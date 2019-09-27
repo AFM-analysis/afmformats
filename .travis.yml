@@ -1,0 +1,30 @@
+notifications:
+  email: false
+sudo: required
+os: linux
+language: python
+python: 3.6
+install:
+# install binary packages
+- travis_retry pip install --upgrade pip setuptools wheel
+# install all dependencies
+- travis_retry pip install -e .
+# for tests:
+- travis_retry pip install codecov coverage
+- pip freeze
+script:
+- coverage run --source=afmformats ./setup.py test
+- coverage report -m
+after_success:
+- codecov
+before_deploy:
+- python setup.py sdist bdist_wheel
+deploy:
+  provider: pypi
+  user: "ci_afm"
+  password:
+    secure: "yjv+55o1HSU/s3ZCcJiFqzn4VcYnh3k3iRsF/EsgjOm7RkxGXRuVXC+RS9+fcyuhTHbrz7ORiCiYrupX6w0caxwCHkEOrqnKqdPaYVM/4a7y1kDjySYpZfcbeAmydceBM5u0HQypXCjlrL7+I9diJq4RvEc1nJWdhP0lhDFwffjWTFkvJQxWEO5LNH3/SKJn9x4sDqAfm8QX+VD7mh23HHt2bAFrSHy1KsMKIux7LtQWMssI2dZH0lEldGhBeHHjozxqtCz18ugS+8upbCwHB8gy8xRL+M9lt2yz8CeZEbr+pFQM2VkODB0MePSfFGOt8vAZ4BI9XQO96T0eL2QIvGc1glvZy9bAmi3rYtx8slluBwCyeGo7CgbP+aQrl7oJ8wj7QlUCl5ZdHlkXb2LKuYTO4O12PQvMrS8UaxugkrSTJpLP49yMHrDktb4rW2+djIo5/H4E/Rj2pwj0UM6DD7flelJytjnH02awNsgAskEwHMjk3AcPq0igAr6ts0XiBwxzrtndvOdMlxdzY55taIgb5CNlOavDqzrRcxl/htl4/UzMBv9bsozE01YxqiY28yumqwchUXQ6Q9iuYHHb9vbZImFtbDep9R9ceUqwvUvYykpAllFGvtiCHduVt+0IV1+Ol258Na1f6D6B8uhSXNE6IqYeXQ/BAhxSUSYftSk="
+  on:
+    tags: true
+  skip_cleanup: true
+  skip_existing: true
