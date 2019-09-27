@@ -15,7 +15,7 @@ def test_load_jpk_map():
 
     assert len(afmlist) == 4
     ds = afmlist[2]
-    assert ds.metadata["index"] == 2
+    assert ds.metadata["enum"] == 2
     # Verified with visual inspection of force curve in JPK software
     assert np.allclose(ds["force"][0], -5.8540192943834714e-10)
     assert np.allclose(ds["height (measured)"][0], 0.0001001727719556085)
@@ -25,7 +25,7 @@ def test_load_jpk_simple():
     jpkfile = datadir / "spot3-0192.jpk-force"
     afmlist = afmformats.load_data(path=jpkfile)
     ds = afmlist[0]
-    assert ds.metadata["index"] == 0
+    assert ds.metadata["enum"] == 0
     assert np.allclose(ds["height (measured)"][0], 2.2815672438768612e-05)
 
 

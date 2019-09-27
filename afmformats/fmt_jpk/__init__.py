@@ -13,7 +13,7 @@ def prepare_jpk_data(path, callback=None):
     for enum, mm in enumerate(measurements):
         app, ret = mm
         metadata = app[1]
-        metadata["index"] = enum
+        metadata["enum"] = enum
         metadata["path"] = pathlib.Path(path)
 
         # join segments

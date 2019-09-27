@@ -6,13 +6,7 @@ class AFMData(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def path(self):
-        """Path to the measurement file"""
-        # set this to None if it does not apply
-
-    @property
-    @abc.abstractmethod
-    def index(self):
+    def enum(self):
         """Unique index identifying this dataset in `self.path`
 
         Indexing starts at '0'.
@@ -22,3 +16,14 @@ class AFMData(abc.ABC):
     @abc.abstractmethod
     def metadata(self):
         """Metadata, instance of :class:`afmformats.MetaData`)"""
+
+    @property
+    @abc.abstractmethod
+    def mode(self):
+        """Imaging modality (e.g. force-distance)"""
+
+    @property
+    @abc.abstractmethod
+    def path(self):
+        """Path to the measurement file"""
+        # set this to None if it does not apply
