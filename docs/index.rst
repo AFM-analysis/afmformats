@@ -1,0 +1,28 @@
+.. _index:
+
+Afmformats is a Python library for reading atomic force microscopy (AFM)
+data file formats.
+This is the documentation of afmformats version |release|.
+
+
+Documentation
+=============
+
+.. toctree::
+   :maxdepth: 3
+
+   sec_getting_started
+
+.. toctree::
+   :maxdepth: 1
+
+   sec_changelog
+   sec_z_bib
+
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
