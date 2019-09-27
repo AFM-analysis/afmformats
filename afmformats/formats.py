@@ -30,14 +30,21 @@ def load_data(path, mode=None, diskcache=False, callback=None):
 formats_available = [
     fmt_jpk_force,
     fmt_jpk_force_map,
-]
+    ]
 #: available file formats in a dictionary with suffix keys
 formats_by_suffix = {}
 # Populate list of available fit models
-for item in formats_available:
-    suffix = item["suffix"]
-    if suffix not in formats_by_suffix:
-        formats_by_suffix[suffix] = []
-        formats_by_suffix[suffix].append(item)
+for _item in formats_available:
+    _suffix = _item["suffix"]
+    if _suffix not in formats_by_suffix:
+        formats_by_suffix[_suffix] = []
+        formats_by_suffix[_suffix].append(_item)
+#: available file formats in a dictionary with modality keys
+formats_by_mode = {}
+for _item in formats_available:
+    _mode = _item["mode"]
+    if _mode not in formats_by_mode:
+        formats_by_mode[_mode] = []
+        formats_by_mode[_mode].append(_item)
 #: list of supported extensions
 supported_extensions = sorted(formats_by_suffix.keys())
