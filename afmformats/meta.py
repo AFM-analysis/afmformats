@@ -81,5 +81,3 @@ class MetaData(dict):
             msg = "Unknown meta key: '{}'!".format(args[0])
             raise KeyError(msg)
         return super(MetaData, self).__getitem__(*args, **kwargs)
-
-
