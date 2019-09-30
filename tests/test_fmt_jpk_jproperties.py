@@ -19,8 +19,8 @@ def test_meta_simple():
 def test_mata_single():
     jpkfile = datadir / "spot3-0192.jpk-force"
     md = read_jpk_meta.get_meta_data(jpkfile)
-    assert md["curve type"] == "extend-retract"
-    assert md["duration [s]"] == 0.9999999999999998
+    assert md["imaging mode"] == "force-distance"
+    assert md["duration"] == 0.9999999999999998
 
 
 if __name__ == "__main__":

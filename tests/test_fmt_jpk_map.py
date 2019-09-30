@@ -27,6 +27,11 @@ def test_open_jpk_map2():
     assert len(data) == 4
     assert np.allclose(force[0], -5.8540192943834714e-10)
     assert np.allclose(height[0], 0.0001001727719556085)
+    assert data[0][0][1]["grid index x"] == 0
+    assert data[1][0][1]["grid index x"] == 9
+    assert data[2][0][1]["grid index x"] == 9
+    assert data[3][0][1]["grid index x"] == 0
+    assert data[3][0][1]["grid index x"] == data[3][1][1]["grid index x"]
 
 
 if __name__ == "__main__":

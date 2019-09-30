@@ -63,8 +63,10 @@ def load_jpk(path, callback=None):
                     raise
                 segment = {}
                 # segment time
-                segment["time"] = np.linspace(0, mdi["duration [s]"],
-                                              mdi["points"], endpoint=False)
+                segment["time"] = np.linspace(0,
+                                              mdi["duration"],
+                                              mdi["point count"],
+                                              endpoint=False)
                 # load force data
                 force_col = None
                 for dd in curve:

@@ -3,7 +3,7 @@ import pathlib
 import numpy as np
 
 from .afm_data import AFMData
-from .metadata import MetaData
+from .meta import MetaData
 
 
 class AFMForceDistance(AFMData):

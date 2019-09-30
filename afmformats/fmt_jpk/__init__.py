@@ -21,7 +21,7 @@ def prepare_jpk_data(path, callback=None):
         app["segment"] = False
         ret = DataFrame(ret[0])
         ret["segment"] = True
-        ret["time"] += metadata["duration [s]"]
+        ret["time"] += metadata["duration"]
         ret.index += len(app.index)
         data = app.append(ret)
         dataset.append({"data": data,

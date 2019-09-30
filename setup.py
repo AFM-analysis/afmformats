@@ -1,5 +1,5 @@
 from os.path import dirname, exists, realpath
-from setuptools import setup, Extension, find_packages
+from setuptools import setup, find_packages
 import sys
 
 author = "Paul Müller"
@@ -47,4 +47,3 @@ setup(
                  ],
     platforms=['ALL'],
     )
-

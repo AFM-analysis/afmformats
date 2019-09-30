@@ -96,10 +96,10 @@ def get_meta_data(jpk_file):
         segs.append(ss / "0")
         segs.append(ss / "1")
     # multiple keys in case of map data
-    ignore_keys = ["position x [µm]",
-                   "position y [µm]",
-                   "position x [px]",
-                   "position y [px]",
+    ignore_keys = ["position x",
+                   "position y",
+                   "grid index x",
+                   "grid index y",
                    ]
     md = {}
     segs.sort()
@@ -121,9 +121,9 @@ def get_meta_data(jpk_file):
             else:
                 md[k] = mdi[k]
 
-    # join curve types
-    md["curve type"] = "-".join(md["curve type"])
-    md["file"] = jpk_file
+    # other metadata
+    md["imaging mode"] = "force-distance"
+    md["path"] = jpk_file
     # cleanup
     shutil.rmtree(tdir, ignore_errors=True)
     return md
@@ -142,15 +142,14 @@ def get_meta_data_seg(path_segment):
     # These are properties that will be returned, if they exist in the header
     # files.
     dvars = [
-        ["sensitivity [m/V]", sens_str],
-        ["spring constant [N/m]", sprc_str],
-        ["duration [s]", "force-segment-header.duration"],
-        ["points", "force-segment-header.num-points"],
+        ["sensitivity", sens_str],
+        ["spring constant", sprc_str],
+        ["duration", "force-segment-header.duration"],
+        ["point count", "force-segment-header.num-points"],
         ["feedback mode", "force-segment-header.settings.feedback-mode.name"],
-        ["approach id", "force-segment-header.approach-id"],
-        ["curve type", "force-segment-header.settings.style"],
-        ["grid size x [px]", "force-scan-map.position-pattern.grid.ilength"],
-        ["grid size y [px]", "force-scan-map.position-pattern.grid.jlength"],
+        ["identifier", "force-segment-header.approach-id"],
+        ["grid shape x", "force-scan-map.position-pattern.grid.ilength"],
+        ["grid shape y", "force-scan-map.position-pattern.grid.jlength"],
     ]
 
     # These are properties that will not be returned, but are used for the
@@ -167,6 +166,7 @@ def get_meta_data_seg(path_segment):
         ["grid size y [m]", "force-scan-map.position-pattern.grid.vlength"],
         ["grid center x [m]", "force-scan-map.position-pattern.grid.xcenter"],
         ["grid center y [m]", "force-scan-map.position-pattern.grid.ycenter"],
+        ["curve type", "force-segment-header.settings.style"],
     ]
 
     md = {}
@@ -178,54 +178,54 @@ def get_meta_data_seg(path_segment):
             if var in prop:
                 mdi[name] = prop[var]
 
-    for mkey in ["spring constant [N/m]",
-                 "sensitivity [m/V]",
+    for mkey in ["spring constant",
+                 "sensitivity",
                  ]:
         if mkey not in md:
             msg = "Missing meta data: '{}'".format(mkey)
             raise ReadJPKMetaKeyError(msg)
 
-    md["setpoint [N]"] = md_im["setpoint [V]"] * \
-        md["spring constant [N/m]"]*md["sensitivity [m/V]"]
-    md["data rate [Hz]"] = md["points"]/md["duration [s]"]
-    md["z scan size [m]"] = abs(md_im["z start"] - md_im["z end"])
-    md["speed [m/s]"] = md["z scan size [m]"]/md["duration [s]"]
+    md["setpoint"] = md_im["setpoint [V]"] * \
+        md["spring constant"]*md["sensitivity"]
+    md["rate"] = md["point count"]/md["duration"]
+    md["z range"] = abs(md_im["z start"] - md_im["z end"])
+    md["speed"] = md["z range"]/md["duration"]
     if "position x [m]" in md_im:
-        md["position x [µm]"] = md_im["position x [m]"]*1e6
+        md["position x"] = md_im["position x [m]"]
     if "position y [m]" in md_im:
-        md["position y [µm]"] = md_im["position y [m]"]*1e6
+        md["position y"] = md_im["position y [m]"]
     if "grid size x [m]" in md_im:
-        md["grid size x [µm]"] = md_im["grid size x [m]"]*1e6
+        md["grid size x"] = md_im["grid size x [m]"]
     if "grid size y [m]" in md_im:
-        md["grid size y [µm]"] = md_im["grid size y [m]"]*1e6
+        md["grid size y"] = md_im["grid size y [m]"]
     if "grid center x [m]" in md_im:
-        md["grid center x [µm]"] = md_im["grid center x [m]"]*1e6
+        md["grid center x"] = md_im["grid center x [m]"]
     if "grid center y [m]" in md_im:
-        md["grid center y [µm]"] = md_im["grid center y [m]"]*1e6
+        md["grid center y"] = md_im["grid center y [m]"]
     if ("position x [m]" in md_im and
         "position y [m]" in md_im and
         "grid size x [m]" in md_im and
         "grid size y [m]" in md_im and
         "grid center x [m]" in md_im and
         "grid center y [m]" in md_im and
-        "grid size x [px]" in md and
-            "grid size y [px]" in md):
+        "grid shape x" in md and
+            "grid shape y" in md):
         pxpx = position_m2px(pos_m=md_im["position x [m]"],
                              size_m=md_im["grid size x [m]"],
                              center_m=md_im["grid center x [m]"],
-                             size_px=md["grid size x [px]"])
+                             size_px=md["grid shape x"])
         pypx = position_m2px(pos_m=md_im["position y [m]"],
                              size_m=md_im["grid size y [m]"],
                              center_m=md_im["grid center y [m]"],
-                             size_px=md["grid size y [px]"])
-        md["position x [px]"] = pxpx
-        md["position y [px]"] = pypx
+                             size_px=md["grid shape y"])
+        md["grid index x"] = pxpx
+        md["grid index y"] = pypx
 
-    integer_keys = ["position x [px]",
-                    "position y [px]",
-                    "grid size x [px]",
-                    "grid size y [px]",
-                    "points",
+    integer_keys = ["grid shape x",
+                    "grid shape y",
+                    "grid index x",
+                    "grid index y",
+                    "point count",
                     ]
     for ik in integer_keys:
         if ik in md:
