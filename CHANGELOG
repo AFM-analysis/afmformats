@@ -1,3 +1,7 @@
+0.3.0
+ - feat: support tab-separated values file format (*.tab)
+ - fix: file formats were not registered correctly
+ - ref: derive file format errors from own error classes
 0.2.0
  - compatibility changes towards nanite
 0.1.0

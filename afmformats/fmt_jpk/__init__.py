@@ -31,13 +31,13 @@ def prepare_jpk_data(path, callback=None):
     return dataset
 
 
-fmt_jpk_force = {
+recipe_jpk_force = {
     "loader": prepare_jpk_data,
     "suffix": ".jpk-force",
     "mode": "force-distance",
 }
 
-fmt_jpk_force_map = {
+recipe_jpk_force_map = {
     "loader": prepare_jpk_data,
     "suffix": ".jpk-force-map",
     "mode": "force-distance",

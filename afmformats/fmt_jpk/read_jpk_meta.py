@@ -8,8 +8,10 @@ import zipfile
 import jprops
 import numpy as np
 
+from ..errors import FileFormatMetaDataError
 
-class ReadJPKMetaKeyError(BaseException):
+
+class ReadJPKMetaKeyError(FileFormatMetaDataError):
     pass
 
 

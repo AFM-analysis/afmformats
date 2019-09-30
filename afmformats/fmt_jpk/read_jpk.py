@@ -7,8 +7,10 @@ import numpy as np
 
 from . import read_jpk_meta as meta
 
+from ..errors import FileFormatNotSupportedError
 
-class ReadJPKError(BaseException):
+
+class ReadJPKError(FileFormatNotSupportedError):
     pass
 
 

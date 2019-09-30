@@ -1,6 +1,7 @@
 import pathlib
 
-from .fmt_jpk import fmt_jpk_force, fmt_jpk_force_map
+from .fmt_jpk import recipe_jpk_force, recipe_jpk_force_map
+from .fmt_tab import recipe_tab
 from .afm_fdist import AFMForceDistance
 
 
@@ -28,8 +29,9 @@ def load_data(path, mode=None, diskcache=False, callback=None):
 
 #: available/supported file formats
 formats_available = [
-    fmt_jpk_force,
-    fmt_jpk_force_map,
+    recipe_jpk_force,
+    recipe_jpk_force_map,
+    recipe_tab,
     ]
 #: available file formats in a dictionary with suffix keys
 formats_by_suffix = {}
@@ -38,13 +40,13 @@ for _item in formats_available:
     _suffix = _item["suffix"]
     if _suffix not in formats_by_suffix:
         formats_by_suffix[_suffix] = []
-        formats_by_suffix[_suffix].append(_item)
+    formats_by_suffix[_suffix].append(_item)
 #: available file formats in a dictionary with modality keys
 formats_by_mode = {}
 for _item in formats_available:
     _mode = _item["mode"]
     if _mode not in formats_by_mode:
         formats_by_mode[_mode] = []
-        formats_by_mode[_mode].append(_item)
+    formats_by_mode[_mode].append(_item)
 #: list of supported extensions
 supported_extensions = sorted(formats_by_suffix.keys())
