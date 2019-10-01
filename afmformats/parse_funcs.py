@@ -40,3 +40,4 @@ def vd_str_in(alist):
             raise ValueError("Invalid value '{}', must be in {}!".format(
                 value, alist))
         return value
+    return str_in

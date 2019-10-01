@@ -2,13 +2,22 @@ import pathlib
 
 from .parse_funcs import fint, vd_str_in
 
-#: Metadata related to the basic AFM experiment
-DEF_BASE = {
+
+#: Definition of metadata related to the data generated
+#: (dictionary with metadata keys, descriptions, units, and validators)
+DEF_DATA = {
+    "enum": ["Datapoint index within the dataset", "", fint],
+    "identifier": ["Measurement identifier", "", str],
+    "path": ["Measurement path", "", pathlib.Path],
+    "session": ["Recording session identifier", "", str],
+    }
+
+#: Definition of metadata related to the AFM experiment
+#: (dictionary with metadata keys, descriptions, units, and validators)
+DEF_EXPERIMENT = {
     "duration": ["Duration of experiment", "s", float],
     "feedback mode": ["Feedback mode", "", vd_str_in(["contact"])],
-    "identifier": ["Unique data identifier", "", str],
     "imaging mode": ["Imaging modality", "", vd_str_in(["force-distance"])],
-    "path": ["Path to the measurement file", "", pathlib.Path],
     "point count": ["Size of the dataset in points", "", fint],
     "rate": ["Data recording rate", "Hz", float],
     "sensitivity": ["Sensitivity", "m/V", float],
@@ -18,13 +27,13 @@ DEF_BASE = {
     "z range": ["Axial piezo range covered", "m", float],
     }
 
-#: Metadata related to quantitative maps
+#: Definition of metadata related to quantitative maps
+#: (dictionary with metadata keys, descriptions, units, and validators)
 DEF_QMAP = {
-    "enum": ["Datapoint index within the dataset", "", fint],
     "grid center x": ["Horizontal center of grid", "m", float],
     "grid center y": ["Vertical center of grid", "m", float],
-    "grid index x": ["Horizontal grid position index", fint],
-    "grid index y": ["Vertical grid position index", fint],
+    "grid index x": ["Horizontal grid position index", "", fint],
+    "grid index y": ["Vertical grid position index", "", fint],
     "grid shape x": ["Horizontal grid shape", "px", fint],
     "grid shape y": ["Vertical grid shape", "px", fint],
     "grid size x": ["Horizontal grid size", "m", float],
@@ -33,13 +42,20 @@ DEF_QMAP = {
     "position y": ["Vertical position", "m", float],
     }
 
-#: Metadata related to data analysis
+#: Definition of metadata related to data analysis
+#: (dictionary with metadata keys, descriptions, units, and validators)
 DEF_ANALYSIS = {
     }
 
-KEYS_VALID = sorted(list(DEF_BASE.keys())
-                    + list(DEF_QMAP.keys())
-                    + list(DEF_ANALYSIS.keys()))
+#: A dictionary for all metadata definitions
+DEF_ALL = {}
+DEF_ALL.update(DEF_DATA)
+DEF_ALL.update(DEF_EXPERIMENT)
+DEF_ALL.update(DEF_QMAP)
+DEF_ALL.update(DEF_ANALYSIS)
+
+#: List of all valid meta data keys
+KEYS_VALID = sorted(DEF_ALL.keys())
 
 
 class MetaDataMissingError(BaseException):

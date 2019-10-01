@@ -147,7 +147,7 @@ def get_meta_data_seg(path_segment):
         ["duration", "force-segment-header.duration"],
         ["point count", "force-segment-header.num-points"],
         ["feedback mode", "force-segment-header.settings.feedback-mode.name"],
-        ["identifier", "force-segment-header.approach-id"],
+        ["session", "force-segment-header.approach-id"],
         ["grid shape x", "force-scan-map.position-pattern.grid.ilength"],
         ["grid shape y", "force-scan-map.position-pattern.grid.jlength"],
     ]

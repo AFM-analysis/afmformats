@@ -1,3 +1,6 @@
+0.4.1
+ - ref: group meta data by topic
+ - fix: identifier in JPK file format was actually session identifier
 0.4.0
  - BREAKING CHANGE: change metadata key names 
  - enh: add class for checking metadata
