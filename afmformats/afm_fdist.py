@@ -84,7 +84,7 @@ class AFMForceDistance(AFMData):
     @property
     def metadata(self):
         """Unique index of `self` in `self.path`"""
-        return self._metadata.copy()
+        return MetaData(self._metadata.copy())
 
     @property
     def mode(self):

@@ -1,11 +1,13 @@
 import pathlib
 
+import numpy as np
+
 from .parse_funcs import fint, vd_str_in
 
 
 #: Definition of metadata related to the data generated
 #: (dictionary with metadata keys, descriptions, units, and validators)
-DEF_DATA = {
+DEF_DATASET = {
     "enum": ["Datapoint index within the dataset", "", fint],
     "identifier": ["Measurement identifier", "", str],
     "path": ["Measurement path", "", pathlib.Path],
@@ -49,7 +51,7 @@ DEF_ANALYSIS = {
 
 #: A dictionary for all metadata definitions
 DEF_ALL = {}
-DEF_ALL.update(DEF_DATA)
+DEF_ALL.update(DEF_DATASET)
 DEF_ALL.update(DEF_EXPERIMENT)
 DEF_ALL.update(DEF_QMAP)
 DEF_ALL.update(DEF_ANALYSIS)
@@ -97,3 +99,29 @@ class MetaData(dict):
             msg = "Unknown meta key: '{}'!".format(args[0])
             raise KeyError(msg)
         return super(MetaData, self).__getitem__(*args, **kwargs)
+
+    def get_summary(self):
+        """Convenience function returning the meta data summary
+
+        Returns a dict of dicts with keys matching the DEF_* dicts.
+        Unset values are returned as `np.nan`.
+        """
+        dataset = {}
+        for key in DEF_DATASET:
+            dataset[key] = self.get(key, np.nan)
+        experiment = {}
+        for key in DEF_EXPERIMENT:
+            experiment[key] = self.get(key, np.nan)
+        qmap = {}
+        for key in DEF_QMAP:
+            qmap[key] = self.get(key, np.nan)
+        analysis = {}
+        for key in DEF_ANALYSIS:
+            analysis[key] = self.get(key, np.nan)
+
+        summary = {"dataset": dataset,
+                   "experiment": experiment,
+                   "qmap": qmap,
+                   "analysis": analysis,
+                   }
+        return summary

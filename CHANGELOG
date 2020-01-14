@@ -1,3 +1,5 @@
+0.5.0
+ - feat: meta data summary with `MetaData.get_summary`
 0.4.1
  - ref: group meta data by topic
  - fix: identifier in JPK file format was actually session identifier
