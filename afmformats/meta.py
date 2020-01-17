@@ -12,13 +12,21 @@ DEF_DATASET = {
     "identifier": ["Measurement identifier", "", str],
     "path": ["Measurement path", "", pathlib.Path],
     "session": ["Recording session identifier", "", str],
-    }
+}
 
 #: Definition of metadata related to the AFM experiment
 #: (dictionary with metadata keys, descriptions, units, and validators)
 DEF_EXPERIMENT = {
     "duration": ["Duration of experiment", "s", float],
-    "feedback mode": ["Feedback mode", "", vd_str_in(["contact"])],
+    "feedback mode": ["Feedback mode", "", vd_str_in([
+        # JPK contact mode
+        "contact",
+        # From the NanoWizard User Manual (v. 4.2) sec. 5.7:
+        # Force modulation mode is a mixture between contact mode and
+        # intermittend mode and "can be thought of as a kind of contact
+        # mode with an added vibration on the cantilever".
+        "force-modulation",
+        ])],
     "imaging mode": ["Imaging modality", "", vd_str_in(["force-distance"])],
     "point count": ["Size of the dataset in points", "", fint],
     "rate": ["Data recording rate", "Hz", float],
@@ -27,7 +35,7 @@ DEF_EXPERIMENT = {
     "speed": ["Piezo speed", "m/s", float],
     "spring constant": ["Cantilever spring constant", "N/m", float],
     "z range": ["Axial piezo range covered", "m", float],
-    }
+}
 
 #: Definition of metadata related to quantitative maps
 #: (dictionary with metadata keys, descriptions, units, and validators)
@@ -42,12 +50,12 @@ DEF_QMAP = {
     "grid size y": ["Vertical grid size", "m", float],
     "position x": ["Horizontal position", "m", float],
     "position y": ["Vertical position", "m", float],
-    }
+}
 
 #: Definition of metadata related to data analysis
 #: (dictionary with metadata keys, descriptions, units, and validators)
 DEF_ANALYSIS = {
-    }
+}
 
 #: A dictionary for all metadata definitions
 DEF_ALL = {}

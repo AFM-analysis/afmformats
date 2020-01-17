@@ -32,7 +32,7 @@ formats_available = [
     recipe_jpk_force,
     recipe_jpk_force_map,
     recipe_tab,
-    ]
+]
 #: available file formats in a dictionary with suffix keys
 formats_by_suffix = {}
 # Populate list of available fit models
