@@ -9,7 +9,7 @@ from .meta import MetaData
 class AFMForceDistance(AFMData):
     """Base class for AFM force-distance data
 
-    A force-distance data set consists of an approach and
+    A force-distance dataset consists of an approach and
     a retract curve.
     """
 
@@ -26,7 +26,7 @@ class AFMForceDistance(AFMData):
         # check data keys
         for cc in data:
             if cc not in known_columns:
-                raise ValueError("Unknown feature name '{}'!".format(cc))
+                raise ValueError("Unknown column name '{}'!".format(cc))
         self._path = pathlib.Path(metadata_i["path"])
         self._metadata = metadata_i
         self._enum = metadata_i["enum"]
@@ -47,10 +47,7 @@ class AFMForceDistance(AFMData):
         elif key in self._raw_data:
             data = self._raw_data[key].copy()
         else:
-            raise KeyError("Unknown column '{}'!".format(key))
-        if hasattr(data, "values"):
-            # pandas
-            data = data.values
+            raise KeyError("Column '{}' not defined!".format(key))
         return data
 
     def __len__(self):

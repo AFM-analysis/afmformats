@@ -1,3 +1,5 @@
+0.5.2
+ - ref: drop pandas dependency (#2)
 0.5.1
  - fix: allow "force-modulation" feedback mode
 0.5.0

@@ -31,7 +31,6 @@ setup(
     install_requires=["jprops",
                       "lmfit==0.9.5",
                       "numpy>=1.14.0",
-                      "pandas",
                       ],
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],

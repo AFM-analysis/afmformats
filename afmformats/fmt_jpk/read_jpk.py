@@ -24,7 +24,7 @@ VALID_IDS_HEIGHT = ["strainGaugeHeight", "capacitiveSensorHeight"]
 
 
 def load_jpk(path, callback=None):
-    """ Extracts force, measured height, and time from JPK files
+    """Extracts force, measured height, and time from JPK files
 
     All columns are returned in SI units.
 
