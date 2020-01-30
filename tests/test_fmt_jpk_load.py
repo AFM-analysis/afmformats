@@ -29,6 +29,13 @@ def test_load_jpk_simple():
     assert np.allclose(ds["height (measured)"][0], 2.2815672438768612e-05)
 
 
+def test_load_jpk_piezo():
+    jpkfile = datadir / "spot3-0192.jpk-force"
+    afmlist = afmformats.load_data(path=jpkfile)
+    ds = afmlist[0]
+    assert np.allclose(ds["height (piezo)"][0], 4.9574279773415606e-05)
+
+
 if __name__ == "__main__":
     # Run all tests
     loc = locals()

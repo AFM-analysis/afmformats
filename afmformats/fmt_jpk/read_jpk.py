@@ -20,7 +20,47 @@ class ReadJPKColumnError(BaseException):
 
 extensions = [".jpk-force", ".jpk-force-map"]
 VALID_IDS_FORCE = ["vDeflection"]
-VALID_IDS_HEIGHT = ["strainGaugeHeight", "capacitiveSensorHeight"]
+VALID_IDS_HEIGHT = ["strainGaugeHeight", "capacitiveSensorHeight",
+                    "measuredHeight"]
+VALID_IDS_PIEZO = ["height", "head-height"]
+
+
+def find_column(loc_list, id_list):
+    """Find a column in a list of strings
+
+    Parameters
+    ----------
+    loc_list: list of str
+        The segment's data location list (within the archive), e.g.
+
+        ['segments/0/channels/height.dat',
+         'segments/0/channels/vDeflection.dat',
+         'segments/0/channels/strainGaugeHeight.dat']
+
+    id_list: list of str
+        Data identifiers to match up, e.g. `VALID_IDS_HEIGHT`
+
+    Returns
+    -------
+    column: str
+        Matched column name, e.g. "strainGaugeHeight"
+    loc: str
+        Matched segment location,
+        e.g. "segments/0/channels/strainGaugeHeight.dat"
+    """
+    col = None
+    for dd in loc_list:
+        cn = dd.rsplit("/")[-1].rsplit(".")[0]
+        for vc in id_list:
+            if vc == cn:
+                col = vc
+                break
+        if col:
+            break
+    else:
+        msg = "No data found for: {}".format(id_list)
+        raise ReadJPKError(msg)
+    return col, dd
 
 
 def load_jpk(path, callback=None):
@@ -68,18 +108,9 @@ def load_jpk(path, callback=None):
                                               mdi["point count"],
                                               endpoint=False)
                 # load force data
-                force_col = None
-                for dd in curve:
-                    for vc in VALID_IDS_FORCE:
-                        if vc in dd:
-                            force_col = vc
-                            arc.extract(dd, str(tdir))
-                            break
-                    if force_col:
-                        break
-                else:
-                    msg = "No force data: {} - {}".format(path, segfolder)
-                    raise ReadJPKError(msg)
+                force_col, force_dat = find_column(loc_list=curve,
+                                                   id_list=VALID_IDS_FORCE)
+                arc.extract(force_dat, str(tdir))
                 force, unit, _n = load_jpk_single_curve(segroot,
                                                         segment=mi,
                                                         column=force_col,
@@ -89,19 +120,10 @@ def load_jpk(path, callback=None):
                     raise ReadJPKError(msg)
                 segment["force"] = force
 
-                # load height data
-                height_col = None
-                for dd in curve:
-                    for vc in VALID_IDS_HEIGHT:
-                        if vc in dd:
-                            height_col = vc
-                            arc.extract(dd, str(tdir))
-                            break
-                    if height_col:
-                        break
-                else:
-                    msg = "No height data: {} - {}".format(path, segfolder)
-                    raise ReadJPKError(msg)
+                # load height (measured) data
+                height_col, height_dat = find_column(loc_list=curve,
+                                                     id_list=VALID_IDS_HEIGHT)
+                arc.extract(height_dat, str(tdir))
                 height, unit, _n = load_jpk_single_curve(segroot,
                                                          segment=mi,
                                                          column=height_col,
@@ -110,6 +132,19 @@ def load_jpk(path, callback=None):
                     msg = "Unknown unit for height: {}".format(unit)
                     raise ReadJPKError(msg)
                 segment["height (measured)"] = height
+
+                # load height (piezo) data
+                piezo_col, piezo_dat = find_column(loc_list=curve,
+                                                   id_list=VALID_IDS_PIEZO)
+                arc.extract(piezo_dat, str(tdir))
+                height_p, unit, _n = load_jpk_single_curve(segroot,
+                                                           segment=mi,
+                                                           column=piezo_col,
+                                                           slot="nominal")
+                if unit != "m":
+                    msg = "Unknown unit for piezo height: {}".format(unit)
+                    raise ReadJPKError(msg)
+                segment["height (piezo)"] = height_p
 
                 mm.append([segment, mdi, path])
             if callback:
@@ -146,11 +181,17 @@ def load_jpk_single_curve(path_jpk, segment=0, column="vDeflection",
         The .dat files in the JPK measurement zip files come with different
         calibration slots. Valid values are
 
-            - For the height of the piezzo crystal during measurement:
+
+            - For the height of the piezo crystal during measurement
+              (the piezo height is not as accurate as the measured height
+              from the height sensor; the piezo movement is not linear):
               "height.dat": "volts", "nominal", "calibrated"
 
             - For the measured height of the cantilever:
               "strainGaugeHeight.dat": "volts", "nominal", "absolute"
+              "measuredHeight.dat":  "volts", "nominal", "absolute"
+              "capacitiveSensorHeight": "volts", "nominal", "absolute"
+              (they are all the same)
 
             - For the recorded cantilever deflection:
               "vDeflection.dat": "volts", "distance", "force"
@@ -202,7 +243,7 @@ def load_jpk_single_curve(path_jpk, segment=0, column="vDeflection",
 
 
 def retrieve_segments_data(path_dir):
-    """ From an extracted jpk file, retrieve the containing segments.
+    """From an extracted jpk file, retrieve the containing segments
 
     This is a convenience method that returns a list of the measurement
     data with the default slot, including units and column names.
@@ -231,7 +272,7 @@ def retrieve_segments_data(path_dir):
 
 
 def load_dat_raw(path_dat):
-    """ Load data from binary JPK .dat files.
+    """Load data from binary JPK .dat files
 
     Parameters
     ----------
@@ -316,14 +357,19 @@ def load_dat_unit(path_dat, slot="default"):
         The .dat files in the JPK measurement zip files come with different
         calibration slots. Valid values are
 
-            For the height of the piezzo crystal during measurement:
-            "height.dat": "volts", "nominal", "calibrated"
+            - For the height of the piezo crystal during measurement
+              (the piezo height is not as accurate as the measured height
+              from the height sensor; the piezo movement is not linear):
+              "height.dat": "volts", "nominal", "calibrated"
 
-            For the measured height of the cantilever:
-            "strainGaugeHeight.dat": "volts", "nominal", "absolute"
+            - For the measured height of the cantilever:
+              "strainGaugeHeight.dat": "volts", "nominal", "absolute"
+              "measuredHeight.dat":  "volts", "nominal", "absolute"
+              "capacitiveSensorHeight": "volts", "nominal", "absolute"
+              (they are all the same)
 
-            For the recorded cantilever deflection:
-            "vDeflection.dat": "volts", "distance", "force"
+            - For the recorded cantilever deflection:
+              "vDeflection.dat": "volts", "distance", "force"
 
 
     Returns

@@ -286,10 +286,22 @@ class Segment(object):
 column_dtypes = {
     "force": float,
     "height (measured)": float,
+    "height (piezo)": float,
     "index": int,
     "segment": bool,
     "time": float,
     "tip position": float,
+}
+
+#: Units of all known columns
+column_units = {
+    "force": "N",
+    "height (measured)": "m",
+    "height (piezo)": "m",
+    "index": "",
+    "segment": "",
+    "time": "s",
+    "tip position": "m",
 }
 
 #: Known data columns
