@@ -1,5 +1,6 @@
 import pathlib
 
+from .fmt_hdf5 import recipe_hdf5
 from .fmt_jpk import recipe_jpk_force, recipe_jpk_force_map
 from .fmt_tab import recipe_tab
 from .afm_fdist import AFMForceDistance
@@ -29,6 +30,7 @@ def load_data(path, mode=None, diskcache=False, callback=None):
 
 #: available/supported file formats
 formats_available = [
+    recipe_hdf5,
     recipe_jpk_force,
     recipe_jpk_force_map,
     recipe_tab,

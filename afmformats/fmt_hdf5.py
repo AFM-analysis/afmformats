@@ -1,0 +1,103 @@
+import functools
+import pathlib
+
+import h5py
+import numpy as np
+
+from .afm_fdist import column_dtypes, known_columns
+
+
+class H5DictReader(object):
+    def __init__(self, path_or_h5, enum_key):
+        """Read-only HDF5-based dictionary for arrays
+
+        Parameters
+        ----------
+        path_or_h5: str or pathlib.Path or h5py.Group
+            Path to HDF5 file or an HDF5 group
+        enum_key: str
+            Name of the subgroup in `path_or_h5` that contains the data
+            of the dictionary
+        """
+        if isinstance(path_or_h5, h5py.Group):
+            # we are not responsible for the HDF5 file
+            self.path = None
+            self.h5 = path_or_h5
+        else:
+            # we are responsible for closing the HDF5 file
+            self.path = path_or_h5
+            self.h5 = None
+        self.enum_key = enum_key
+
+    def __getitem__(self, key):
+        if key not in known_columns:
+            raise ValueError("Column '{}' is not documented!".format(key))
+        elif key in self.keys():
+            if self.path is not None:
+                with h5py.File(self.path, "r") as h5:
+                    val = np.asarray(h5[self.enum_key][key][:],
+                                     dtype=column_dtypes[key])
+            else:
+                val = np.asarray(self.h5[self.enum_key][key][:],
+                                 dtype=column_dtypes[key])
+        else:
+            raise KeyError("Column '{}' not in '{}/{}'".format(self.path,
+                                                               self.enum_key))
+        return val
+
+    def __iter__(self):
+        for kk in self.keys():
+            yield kk
+
+    @functools.lru_cache(maxsize=2)
+    def keys(self):
+        if self.path is not None:
+            with h5py.File(self.path, "r") as h5:
+                cols = sorted(h5[self.enum_key].keys())
+        else:
+            cols = sorted(self.h5[self.enum_key].keys())
+        return cols
+
+
+def load_hdf5(path_or_h5, callback=None):
+    """Loads HDF5 files as exported by afmformats
+
+    Parameters
+    ----------
+    path_or_h5: str or pathlib.Path or h5py.Group
+        Path to HDF5 file or an HDF5 group
+
+    Notes
+    -----
+    In case `path_or_h5` is a h5py.Group object, the
+    "path" metadata variable will always be set to the
+    path of the original HDF5 file. Keep this in mind
+    if you think about storing multiple datasets (each
+    containing multiple curves) in one HDF5 file (bad idea).
+    """
+    if isinstance(path_or_h5, h5py.Group):
+        path = pathlib.Path(path_or_h5.file.filename)
+        close = False
+        h5 = path_or_h5
+    else:
+        path = pathlib.Path(path_or_h5)
+        close = True
+        h5 = h5py.File(path, "r")
+    fdlist = []
+    for enum_key in h5.keys():
+        metadata = dict(h5[enum_key].attrs)
+        metadata["path"] = path
+        metadata["enum"] = int(enum_key)
+        data = H5DictReader(path_or_h5, enum_key=enum_key)
+        fdlist.append({"data": data,
+                       "metadata": metadata})
+    if close:
+        h5.close()
+    return fdlist
+
+
+recipe_hdf5 = {
+    "loader": load_hdf5,
+    "suffix": ".h5",
+    "mode": "force-distance",
+}

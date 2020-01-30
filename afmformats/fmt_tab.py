@@ -1,3 +1,4 @@
+import json
 import pathlib
 
 import numpy as np
@@ -9,23 +10,52 @@ def load_tab(path, callback=None):
     """Loads tab-separated-value files as exported by afmformats"""
     path = pathlib.Path(path)
     with path.open() as fd:
-        # first line is the header
-        columns = fd.readline().strip("#").strip().split("\t")
-        da = [f for f in fd.readlines() if f.strip() and not f.startswith("#")]
-        # generate arrays
-        data = {}
-        for cc in columns:
+        tsvdata = fd.readlines()
+
+    # get the metadata
+    dump = []
+    injson = False
+    for ii, line in enumerate(tsvdata):
+        if line.startswith("# BEGIN METADATA"):
+            injson = True
+            continue
+        elif line.startswith("# END METADATA"):
+            break
+        elif injson:
+            dump.append(line.strip("#").strip())
+    if dump:
+        metadata = json.loads("\n".join(dump))
+    else:
+        metadata = {}
+    metadata["path"] = path
+    metadata["enum"] = 0
+
+    # last line with a hash is the header
+    for ii, line in enumerate(tsvdata):
+        if not line.startswith("#"):
+            if ii == 0:
+                raise ValueError("No header found in '{}'!".format(path))
+            header_line = tsvdata[ii-1]
+            break
+    else:
+        raise ValueError("No data found in '{}'!".format(path))
+    columns = header_line.strip("#").strip().split("\t")
+
+    # load the data
+    da = [f for f in tsvdata if f.strip() and not f.startswith("#")]
+    # generate arrays
+    data = {}
+    for cc in columns:
+        if cc in known_columns:
+            data[cc] = np.zeros(len(da), dtype=column_dtypes[cc])
+    for ii, line in enumerate(da):
+        for jj, item in enumerate(line.split("\t")):
+            cc = columns[jj]
             if cc in known_columns:
-                data[cc] = np.zeros(len(da), dtype=column_dtypes[cc])
-        for ii, line in enumerate(da):
-            for jj, item in enumerate(line.split("\t")):
-                cc = columns[jj]
-                if cc in known_columns:
-                    data[cc][ii] = string_to_dtype(item, column_dtypes[cc])
+                data[cc][ii] = string_to_dtype(item, column_dtypes[cc])
 
     dd = {"data": data,
-          "metadata": {"enum": 0,
-                       "path": path}}
+          "metadata": metadata}
     return [dd]
 
 
@@ -33,8 +63,8 @@ def string_to_dtype(astring, dtype):
     astring = astring.strip()
     if dtype == bool:
         return astring.lower() == "true"
-    elif dtype == float:
-        return float(astring)
+    elif dtype in [float, int]:
+        return dtype(astring)
     else:
         raise ValueError("No conversion rule for dtype '{}'!".format(dtype))
 

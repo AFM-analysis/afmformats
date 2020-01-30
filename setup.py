@@ -28,8 +28,8 @@ setup(
     license="MIT",
     description=description,
     long_description=open('README.rst').read() if exists('README.rst') else '',
-    install_requires=["jprops",
-                      "lmfit==0.9.5",
+    install_requires=["h5py",
+                      "jprops",  # JPK file format
                       "numpy>=1.14.0",
                       ],
     setup_requires=["pytest-runner"],

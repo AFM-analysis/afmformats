@@ -1,9 +1,14 @@
+import copy
+import io
+import json
 import pathlib
 
+import h5py
 import numpy as np
 
 from .afm_data import AFMData
 from .meta import MetaData
+from ._version import version
 
 
 class AFMForceDistance(AFMData):
@@ -53,6 +58,11 @@ class AFMForceDistance(AFMData):
     def __len__(self):
         return len(self._data["segment"])
 
+    def __repr__(self):
+        repre = "<Force-Distance Data '{}'[{}] at {}>".format(
+            self.path, self.enum, hex(id(self)))
+        return repre
+
     def __setitem__(self, key, values):
         if len(values) != len(self):
             raise ValueError(
@@ -98,28 +108,152 @@ class AFMForceDistance(AFMData):
         """Dictionary-like interface to the retract segment"""
         return Segment(self._raw_data, self._data, which="retract")
 
-    def export(self, path):
-        """Export all columns to a tab-separated value file"""
-        path = pathlib.Path(path)
-        cols = self.columns
-        end = "\r\n"
+    def _export_hdf5(self, h5group, metadata_dict={}):
+        """Export data to the HDF5 file format
+
+        Parameters
+        ----------
+        h5group: h5py.Group or h5py.File
+            Destination group
+        metadata: dict
+            Key-value pairs for the metadata that should be exported
+            (will be stored in the group attributes)
+        """
+        # set the software and its version
+        h5group.attrs["software"] = "afmformats"
+        h5group.attrs["software version"] = version
+        enum_key = str(self.enum)
+        if enum_key in h5group:
+            # random fill-mode (get the next free enum key)
+            ii = 0
+            while True:
+                enum_key = str(ii)
+                if enum_key not in h5group:
+                    break
+        subgroup = h5group.create_group(enum_key)
+        for col in self.columns:
+            if col == "segment":
+                subgroup.create_dataset(name=col,
+                                        data=np.asarray(self[col],
+                                                        dtype=np.uint8),
+                                        compression="gzip",
+                                        fletcher32=True)
+            else:
+                subgroup.create_dataset(name=col,
+                                        data=self[col],
+                                        fletcher32=True)
+        for kk in metadata_dict:
+            if kk == "path":
+                subgroup.attrs["path"] = str(metadata_dict["path"])
+            else:
+                subgroup.attrs[kk] = metadata_dict[kk]
+
+    def _export_tab(self, fd, metadata_dict={}):
+        """Export data to a tab separated values file
+
+        Parameters
+        ----------
+        fd: io.IOBase
+            File opened in "w" mode
+        metadata: dict
+            Key-value pairs for the metadata that should be exported
+            (will be stored in the group attributes)
+        """
+        fd.write("# afmformats {}\r\n".format(version))
+        fd.write("#\r\n")
+        if metadata_dict:
+            # convert path to string for export (json)
+            if "path" in metadata_dict:
+                metadata_dict = copy.deepcopy(metadata_dict)
+                metadata_dict["path"] = str(metadata_dict["path"])
+            # write metadata
+            dump = json.dumps(metadata_dict, sort_keys=True, indent=2)
+            fd.write("# BEGIN METADATA\r\n")
+            for dl in dump.split("\n"):
+                fd.write("# " + dl + "\r\n")
+            fd.write("# END METADATA\r\n")
+            fd.write("#\r\n")
         # get all data (faster than doing it every time for every row)
         data = {}
-        for cc in cols:
+        for cc in self.columns:
             data[cc] = self[cc]
+        # header
+        fd.write("# " + "\t".join(self.columns) + "\r\n")
+        # rows
+        for ii in range(len(self)):
+            items = []
+            for cc in self.columns:
+                if cc in column_dtypes and column_dtypes[cc] == bool:
+                    items.append("{}".format(data[cc][ii]))
+                else:
+                    items.append("{:.8g}".format(data[cc][ii]))
+            fd.write("\t".join(items) + "\r\n")
 
-        with path.open("w") as fd:
-            # header
-            fd.write("#" + "\t".join(cols) + end)
-            # rows
-            for ii in range(len(self)):
-                items = []
-                for cc in cols:
-                    if cc in column_dtypes and column_dtypes[cc] == bool:
-                        items.append("{}".format(data[cc][ii]))
-                    else:
-                        items.append("{:.8e}".format(data[cc][ii]))
-                fd.write("\t".join(items) + end)
+    def export(self, out, metadata=True, fmt="tab"):
+        """Export all columns to a file
+
+        Parameters
+        ----------
+        out: str, pathlib.Path, writable io.IOBase, or h5py.Group
+            Output path, open file, or h5py object
+        metadata: bool or list
+            If True, all available metadata are stored. If False,
+            no metadata are stored. If a list, only the given
+            metadata keys are stored.
+        fmt: str
+            "tab" for the tab separated values format and "hdf5" for
+            the HDF5 file format
+
+        Notes
+        -----
+        If you wish to append HDF5 data to an existing file, please
+        open the file first and call this function with the h5py.File
+        object, i.e.
+
+        ```python
+        with h5py.File(path, "a") as h5:
+            fdist.export(out=h5, fmt="hdf5")
+        ```
+        Otherwise the file will be overridden.
+        """
+        if isinstance(metadata, (list, tuple)):
+            metadata_dict = {}
+            for key in metadata:
+                metadata_dict[key] = self.metadata[key]
+        elif metadata:
+            metadata_dict = self.metadata
+
+        if fmt == "tab":
+            if isinstance(out, (pathlib.Path, str)):
+                fd = pathlib.Path(out).open("w")
+                close = True
+            elif isinstance(out, io.IOBase):
+                fd = out
+                close = False
+            else:
+                raise ValueError("Unexpected object class for 'out': "
+                                 + "'{}' for format 'tab'!".format(
+                                     out.__class__))
+            self._export_tab(fd, metadata_dict=metadata_dict)
+            if close:
+                fd.close()
+        elif fmt == "hdf5":
+            if isinstance(out, (pathlib.Path, str)):
+                # overrides always
+                h5 = h5py.File(out, "w")
+                close = True
+            elif isinstance(h5, h5py.Group):
+                h5 = out
+                close = False
+            else:
+                raise ValueError("Unexpected object class for 'out': "
+                                 + "'{}' for format 'hdf5'!".format(
+                                     out.__class__))
+            self._export_hdf5(h5group=h5, metadata_dict=metadata_dict)
+            if close:
+                h5.close()
+        else:
+            raise ValueError("Unexpected string for 'fmt': {}".format(fmt))
 
 
 class Segment(object):
@@ -152,6 +286,7 @@ class Segment(object):
 column_dtypes = {
     "force": float,
     "height (measured)": float,
+    "index": int,
     "segment": bool,
     "time": float,
     "tip position": float,

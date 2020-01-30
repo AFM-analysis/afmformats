@@ -8,7 +8,6 @@ from .parse_funcs import fint, vd_str_in
 #: Definition of metadata related to the data generated
 #: (dictionary with metadata keys, descriptions, units, and validators)
 DEF_DATASET = {
-    "enum": ["Datapoint index within the dataset", "", fint],
     "identifier": ["Measurement identifier", "", str],
     "path": ["Measurement path", "", pathlib.Path],
     "session": ["Recording session identifier", "", str],
@@ -17,7 +16,8 @@ DEF_DATASET = {
 #: Definition of metadata related to the AFM experiment
 #: (dictionary with metadata keys, descriptions, units, and validators)
 DEF_EXPERIMENT = {
-    "duration": ["Duration of experiment", "s", float],
+    "duration": ["Data acquisition time", "s", float],
+    "enum": ["Dataset index in the experiment", "", fint],
     "feedback mode": ["Feedback mode", "", vd_str_in([
         # JPK contact mode
         "contact",
@@ -26,7 +26,7 @@ DEF_EXPERIMENT = {
         # intermittend mode and "can be thought of as a kind of contact
         # mode with an added vibration on the cantilever".
         "force-modulation",
-        ])],
+    ])],
     "imaging mode": ["Imaging modality", "", vd_str_in(["force-distance"])],
     "point count": ["Size of the dataset in points", "", fint],
     "rate": ["Data recording rate", "Hz", float],
@@ -51,6 +51,7 @@ DEF_QMAP = {
     "position x": ["Horizontal position", "m", float],
     "position y": ["Vertical position", "m", float],
 }
+
 
 #: Definition of metadata related to data analysis
 #: (dictionary with metadata keys, descriptions, units, and validators)

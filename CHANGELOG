@@ -1,3 +1,7 @@
+0.6.0
+ - feat: force-distance metadata can now be saved and loaded for
+   the .tab file format (#3)
+ - feat: implement new HDF5-based file format (read/write)
 0.5.2
  - ref: drop pandas dependency (#2)
 0.5.1
