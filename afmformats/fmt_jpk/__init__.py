@@ -10,9 +10,8 @@ def prepare_jpk_data(path, callback=None):
     measurements = load_jpk(path=path, callback=callback)
     # convert join the segment data
     dataset = []
-    for enum, mm in enumerate(measurements):
+    for mm in measurements:
         (app, metadata, _), (ret, _, _) = mm
-        metadata["enum"] = enum
         metadata["path"] = pathlib.Path(path)
 
         # join segments

@@ -3,6 +3,7 @@
    the .tab file format (#3)
  - feat: implement new HDF5-based file format (read/write)
  - feat: support piezo height (JPK file format)
+ - enh: improve parsing of JPK files (#1)
 0.5.2
  - ref: drop pandas dependency (#2)
 0.5.1

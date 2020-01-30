@@ -92,6 +92,10 @@ def load_jpk(path, callback=None):
                 segroot = tdir / item[0][0].rsplit("segments", 1)[0]
                 # go through the segments
                 for mi, curve in enumerate(item):
+                    if segroot == tdir:
+                        enum = 0
+                    else:
+                        enum = int(segroot.name)
                     # mi == 0: approach
                     # mi == 1: retract
                     # get meta data
@@ -102,6 +106,7 @@ def load_jpk(path, callback=None):
                     except meta.ReadJPKMetaKeyError as exc:
                         exc.args = ("{}, File: '{}'".format(exc.args[0], path))
                         raise
+                    mdi["enum"] = enum
                     segment = {}
                     # segment time
                     segment["time"] = np.linspace(0,
