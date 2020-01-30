@@ -85,84 +85,87 @@ def load_jpk(path, callback=None):
     indexlist = meta.get_data_list(path)
 
     measurements = []
-    with zipfile.ZipFile(str(path)) as arc:
-        for ii, item in enumerate(indexlist):
-            mm = []
-            segroot = tdir / item[0][0].rsplit("segments", 1)[0]
-            # go through the segments
-            for mi, curve in enumerate(item):
-                # mi == 0: approach
-                # mi == 1: retract
-                # get meta data
-                # (segfolder contains "segment-header.properties")
-                segfolder = tdir / curve[0].rsplit("channels")[0]
-                try:
-                    mdi = meta.get_meta_data_seg(segfolder)
-                except meta.ReadJPKMetaKeyError as exc:
-                    exc.args = ("{}, File: '{}'".format(exc.args[0], path),)
-                    raise
-                segment = {}
-                # segment time
-                segment["time"] = np.linspace(0,
-                                              mdi["duration"],
-                                              mdi["point count"],
-                                              endpoint=False)
-                # load force data
-                force_col, force_dat = find_column(loc_list=curve,
-                                                   id_list=VALID_IDS_FORCE)
-                arc.extract(force_dat, str(tdir))
-                force, unit, _n = load_jpk_single_curve(segroot,
-                                                        segment=mi,
-                                                        column=force_col,
-                                                        slot="force")
-                if unit != "N":
-                    msg = "Unknown unit for force: {}".format(unit)
-                    raise ReadJPKError(msg)
-                segment["force"] = force
+    try:
+        with zipfile.ZipFile(str(path)) as arc:
+            for ii, item in enumerate(indexlist):
+                mm = []
+                segroot = tdir / item[0][0].rsplit("segments", 1)[0]
+                # go through the segments
+                for mi, curve in enumerate(item):
+                    # mi == 0: approach
+                    # mi == 1: retract
+                    # get meta data
+                    # (segfolder contains "segment-header.properties")
+                    segfolder = tdir / curve[0].rsplit("channels")[0]
+                    try:
+                        mdi = meta.get_meta_data_seg(segfolder)
+                    except meta.ReadJPKMetaKeyError as exc:
+                        exc.args = ("{}, File: '{}'".format(exc.args[0], path))
+                        raise
+                    segment = {}
+                    # segment time
+                    segment["time"] = np.linspace(0,
+                                                  mdi["duration"],
+                                                  mdi["point count"],
+                                                  endpoint=False)
+                    # load force data
+                    force_col, force_dat = find_column(loc_list=curve,
+                                                       id_list=VALID_IDS_FORCE)
+                    arc.extract(force_dat, str(tdir))
+                    force, unit, _n = load_jpk_single_curve(segroot,
+                                                            segment=mi,
+                                                            column=force_col,
+                                                            slot="force")
+                    if unit != "N":
+                        msg = "Unknown unit for force: {}".format(unit)
+                        raise ReadJPKError(msg)
+                    segment["force"] = force
 
-                # load height (measured) data
-                height_col, height_dat = find_column(loc_list=curve,
+                    # load height (measured) data
+                    meas_col, meas_dat = find_column(loc_list=curve,
                                                      id_list=VALID_IDS_HEIGHT)
-                arc.extract(height_dat, str(tdir))
-                height, unit, _n = load_jpk_single_curve(segroot,
-                                                         segment=mi,
-                                                         column=height_col,
-                                                         slot="nominal")
-                if unit != "m":
-                    msg = "Unknown unit for height: {}".format(unit)
-                    raise ReadJPKError(msg)
-                segment["height (measured)"] = height
+                    arc.extract(meas_dat, str(tdir))
+                    height, unit, _n = load_jpk_single_curve(segroot,
+                                                             segment=mi,
+                                                             column=meas_col,
+                                                             slot="nominal")
+                    if unit != "m":
+                        msg = "Unknown unit for height: {}".format(unit)
+                        raise ReadJPKError(msg)
+                    segment["height (measured)"] = height
 
-                # load height (piezo) data
-                piezo_col, piezo_dat = find_column(loc_list=curve,
-                                                   id_list=VALID_IDS_PIEZO)
-                arc.extract(piezo_dat, str(tdir))
-                height_p, unit, _n = load_jpk_single_curve(segroot,
-                                                           segment=mi,
-                                                           column=piezo_col,
-                                                           slot="nominal")
-                if unit != "m":
-                    msg = "Unknown unit for piezo height: {}".format(unit)
-                    raise ReadJPKError(msg)
-                segment["height (piezo)"] = height_p
+                    # load height (piezo) data
+                    piezo_col, piezo_dat = find_column(loc_list=curve,
+                                                       id_list=VALID_IDS_PIEZO)
+                    arc.extract(piezo_dat, str(tdir))
+                    heightp, unit, _n = load_jpk_single_curve(segroot,
+                                                              segment=mi,
+                                                              column=piezo_col,
+                                                              slot="nominal")
+                    if unit != "m":
+                        msg = "Unknown unit for piezo height: {}".format(unit)
+                        raise ReadJPKError(msg)
+                    segment["height (piezo)"] = heightp
 
-                mm.append([segment, mdi, path])
-            if callback:
-                # Callback with a float between 0 and 1 to update
-                # a progress dialog or somesuch.
-                callback(ii/len(indexlist))
+                    mm.append([segment, mdi, path])
+                if callback:
+                    # Callback with a float between 0 and 1 to update
+                    # a progress dialog or somesuch.
+                    callback(ii/len(indexlist))
 
-            measurements.append(mm)
-            shutil.rmtree(str(segroot))
+                measurements.append(mm)
+                shutil.rmtree(str(segroot))
+    except BaseException:
+        raise
+    finally:
+        shutil.rmtree(str(tdir), ignore_errors=True)
 
-    if tdir.is_dir():
-        shutil.rmtree(str(tdir))
     return measurements
 
 
 def load_jpk_single_curve(path_jpk, segment=0, column="vDeflection",
                           slot="default"):
-    """ Load a single curve from a jpk-force file
+    """Load a single curve from a jpk-force file
 
     Parameters
     ----------

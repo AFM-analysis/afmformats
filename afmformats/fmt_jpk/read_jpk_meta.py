@@ -17,7 +17,7 @@ class ReadJPKMetaKeyError(FileFormatMetaDataError):
 
 def extract_jpk(path_jpk, props_only=False):
     """Extract the JPK data files and return the extracted path"""
-    tdir = tempfile.mkdtemp(prefix="nanite_jpk_")
+    tdir = tempfile.mkdtemp(prefix="afmformats_jpk_")
     with zipfile.ZipFile(str(path_jpk)) as fd:
         if props_only:
             for name in fd.namelist():
@@ -88,44 +88,48 @@ def get_meta_data(jpk_file):
 
     """
     jpk_file = pathlib.Path(jpk_file)
-    tdir = extract_jpk(jpk_file, props_only=True)
-    segs = []
-    # global search for "segments" and approach (0) / retract (1)
-    # to `segs`.
-    for ss in sorted(tdir.rglob("segments")):
-        segs.append(ss / "0")
-        segs.append(ss / "1")
-    # multiple keys in case of map data
-    ignore_keys = ["position x",
-                   "position y",
-                   "grid index x",
-                   "grid index y",
-                   ]
-    md = {}
-    segs.sort()
-    for seg in segs:
-        mdi = get_meta_data_seg(seg)
-        for k in list(mdi.keys()):
-            if k in ignore_keys:
-                continue
-            elif k in md:
-                if md[k] != mdi[k]:
-                    if isnan(md[k]) and not isnan(mdi[k]):
-                        md[k] = mdi[k]
-                    elif isnan(mdi[k]):
-                        pass
-                    else:
-                        if not isinstance(md[k], list):
-                            md[k] = [md[k]]
-                        md[k].append(mdi[k])
-            else:
-                md[k] = mdi[k]
+    try:
+        tdir = extract_jpk(jpk_file, props_only=True)
+        segs = []
+        # global search for "segments" and approach (0) / retract (1)
+        # to `segs`.
+        for ss in sorted(tdir.rglob("segments")):
+            segs.append(ss / "0")
+            segs.append(ss / "1")
+        # multiple keys in case of map data
+        ignore_keys = ["position x",
+                       "position y",
+                       "grid index x",
+                       "grid index y",
+                       ]
+        md = {}
+        segs.sort()
+        for seg in segs:
+            mdi = get_meta_data_seg(seg)
+            for k in list(mdi.keys()):
+                if k in ignore_keys:
+                    continue
+                elif k in md:
+                    if md[k] != mdi[k]:
+                        if isnan(md[k]) and not isnan(mdi[k]):
+                            md[k] = mdi[k]
+                        elif isnan(mdi[k]):
+                            pass
+                        else:
+                            if not isinstance(md[k], list):
+                                md[k] = [md[k]]
+                            md[k].append(mdi[k])
+                else:
+                    md[k] = mdi[k]
 
-    # other metadata
-    md["imaging mode"] = "force-distance"
-    md["path"] = jpk_file
-    # cleanup
-    shutil.rmtree(tdir, ignore_errors=True)
+        # other metadata
+        md["imaging mode"] = "force-distance"
+        md["path"] = jpk_file
+    except BaseException:
+        raise
+    finally:
+        # cleanup
+        shutil.rmtree(tdir, ignore_errors=True)
     return md
 
 
