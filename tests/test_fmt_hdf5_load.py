@@ -25,7 +25,10 @@ def test_save_open_with_metadata():
     for col in fdat.columns:
         assert np.allclose(fdat[col], fdat2[col], atol=0)
     # cleanup
-    pathlib.Path(path).unlink()
+    try:
+        pathlib.Path(path).unlink()
+    except OSError:
+        pass
 
 
 if __name__ == "__main__":

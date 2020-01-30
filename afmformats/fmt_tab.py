@@ -42,14 +42,14 @@ def load_tab(path, callback=None):
     columns = header_line.strip("#").strip().split("\t")
 
     # load the data
-    da = [f for f in tsvdata if f.strip() and not f.startswith("#")]
+    da = [f.strip() for f in tsvdata if f.strip() and not f.startswith("#")]
     # generate arrays
     data = {}
     for cc in columns:
         if cc in known_columns:
             data[cc] = np.zeros(len(da), dtype=column_dtypes[cc])
     for ii, line in enumerate(da):
-        for jj, item in enumerate(line.split("\t")):
+        for jj, item in enumerate(line.strip().split("\t")):
             cc = columns[jj]
             if cc in known_columns:
                 data[cc][ii] = string_to_dtype(item, column_dtypes[cc])
