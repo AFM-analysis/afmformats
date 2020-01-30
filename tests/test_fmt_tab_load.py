@@ -28,7 +28,11 @@ def test_open_simple():
     assert np.allclose(data["force"][0], 0)
     assert np.allclose(data["force"][1], 1e-9)
     assert np.allclose(data["tip position"][1], np.pi*1e-6)
-    pathlib.Path(tf).unlink()
+    # cleanup
+    try:
+        pathlib.Path(tf).unlink()
+    except OSError:
+        pass
 
 
 def test_save_open_with_metadata():
@@ -46,7 +50,10 @@ def test_save_open_with_metadata():
     for col in fdat.columns:
         assert np.allclose(fdat[col], fdat2[col], atol=0)
     # cleanup
-    pathlib.Path(path).unlink()
+    try:
+        pathlib.Path(path).unlink()
+    except OSError:
+        pass
 
 
 if __name__ == "__main__":

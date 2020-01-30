@@ -32,10 +32,15 @@ def load_tab(path, callback=None):
 
     # last line with a hash is the header
     for ii, line in enumerate(tsvdata):
-        if not line.startswith("#"):
+        if not line.strip():
+            # empty line
+            pass
+        elif line.startswith("#"):
+            # header candidate
+            header_line = line
+        else:
             if ii == 0:
                 raise ValueError("No header found in '{}'!".format(path))
-            header_line = tsvdata[ii-1]
             break
     else:
         raise ValueError("No data found in '{}'!".format(path))
