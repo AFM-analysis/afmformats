@@ -130,10 +130,10 @@ def load_jpk(path, callback=None):
                     meas_col, meas_dat = find_column(loc_list=curve,
                                                      id_list=VALID_IDS_HEIGHT)
                     arc.extract(meas_dat, str(tdir))
-                    height, unit, _n = load_jpk_single_curve(segroot,
-                                                             segment=mi,
-                                                             column=meas_col,
-                                                             slot="nominal")
+                    height, unit, _ = load_jpk_single_curve(segroot,
+                                                            segment=mi,
+                                                            column=meas_col,
+                                                            slot="nominal")
                     if unit != "m":
                         msg = "Unknown unit for height: {}".format(unit)
                         raise ReadJPKError(msg)
@@ -143,10 +143,10 @@ def load_jpk(path, callback=None):
                     piezo_col, piezo_dat = find_column(loc_list=curve,
                                                        id_list=VALID_IDS_PIEZO)
                     arc.extract(piezo_dat, str(tdir))
-                    heightp, unit, _n = load_jpk_single_curve(segroot,
-                                                              segment=mi,
-                                                              column=piezo_col,
-                                                              slot="nominal")
+                    heightp, unit, _ = load_jpk_single_curve(segroot,
+                                                             segment=mi,
+                                                             column=piezo_col,
+                                                             slot="calibrated")
                     if unit != "m":
                         msg = "Unknown unit for piezo height: {}".format(unit)
                         raise ReadJPKError(msg)

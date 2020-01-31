@@ -1,7 +1,6 @@
 """Methods to open JPK data files and to obtain meta data"""
 import functools
 import pathlib
-import shutil
 import tempfile
 import zipfile
 
@@ -9,6 +8,7 @@ import jprops
 import numpy as np
 
 from ..errors import FileFormatMetaDataError
+from .. import meta
 
 
 class ReadJPKMetaKeyError(FileFormatMetaDataError):
@@ -64,73 +64,12 @@ def get_data_list(path_jpk):
 
     segkeys = list(segdict.keys())
 
-    def sort_key(x): return int(x)
-    segkeys.sort(key=sort_key)
+    segkeys.sort(key=lambda x: int(x))
 
     seglist = []
     for key in segkeys:
         seglist.append(segdict[key])
     return seglist
-
-
-def get_meta_data(jpk_file):
-    """Obtain meta-data from a jpk data file
-
-    Parameters
-    ----------
-    path_jpk: str
-        Path to a jpk data file (e.g. .jpk-force)
-
-    Returns
-    -------
-    metadata: dict
-        Dictionary containing meta-data.
-
-    """
-    jpk_file = pathlib.Path(jpk_file)
-    try:
-        tdir = extract_jpk(jpk_file, props_only=True)
-        segs = []
-        # global search for "segments" and approach (0) / retract (1)
-        # to `segs`.
-        for ss in sorted(tdir.rglob("segments")):
-            segs.append(ss / "0")
-            segs.append(ss / "1")
-        # multiple keys in case of map data
-        ignore_keys = ["position x",
-                       "position y",
-                       "grid index x",
-                       "grid index y",
-                       ]
-        md = {}
-        segs.sort()
-        for seg in segs:
-            mdi = get_meta_data_seg(seg)
-            for k in list(mdi.keys()):
-                if k in ignore_keys:
-                    continue
-                elif k in md:
-                    if md[k] != mdi[k]:
-                        if isnan(md[k]) and not isnan(mdi[k]):
-                            md[k] = mdi[k]
-                        elif isnan(mdi[k]):
-                            pass
-                        else:
-                            if not isinstance(md[k], list):
-                                md[k] = [md[k]]
-                            md[k].append(mdi[k])
-                else:
-                    md[k] = mdi[k]
-
-        # other metadata
-        md["imaging mode"] = "force-distance"
-        md["path"] = jpk_file
-    except BaseException:
-        raise
-    finally:
-        # cleanup
-        shutil.rmtree(tdir, ignore_errors=True)
-    return md
 
 
 def get_meta_data_seg(path_segment):
@@ -146,14 +85,22 @@ def get_meta_data_seg(path_segment):
     # These are properties that will be returned, if they exist in the header
     # files.
     dvars = [
+        # acquisition
         ["sensitivity", sens_str],
         ["spring constant", sprc_str],
+        ["feedback mode", "force-segment-header.settings.feedback-mode.name"],
+        # dataset
         ["duration", "force-segment-header.duration"],
         ["point count", "force-segment-header.num-points"],
-        ["feedback mode", "force-segment-header.settings.feedback-mode.name"],
-        ["session", "force-segment-header.approach-id"],
+        # qmap
         ["grid shape x", "force-scan-map.position-pattern.grid.ilength"],
         ["grid shape y", "force-scan-map.position-pattern.grid.jlength"],
+        # storage
+        ["curve id", "force-segment-header.approach-id"],
+        ["session id", "force-segment-header.approach-id"],
+        # setup
+        ["instrument", "force-scan-series.description.instrument"],
+        ["software version", "force-scan-series.description.source-software"],
     ]
 
     # These are properties that will not be returned, but are used for the
@@ -173,10 +120,16 @@ def get_meta_data_seg(path_segment):
         ["curve type", "force-segment-header.settings.style"],
     ]
 
-    md = {}
+    md = meta.MetaData()
+    md["imaging mode"] = "force-distance"
+    md["software"] = "JPK"
     md_im = {}
     header_file = segment / "segment-header.properties"
     prop = get_seg_head_prop(header_file)
+
+    # date and time
+    md["date"], md["time"], _ = prop["force-segment-header.time-stamp"].split()
+
     for mdi, dvarsi in [[md, dvars], [md_im, dvars_im]]:
         for name, var in dvarsi:
             if var in prop:

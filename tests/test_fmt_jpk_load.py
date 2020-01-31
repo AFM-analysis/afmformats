@@ -33,7 +33,7 @@ def test_load_jpk_piezo():
     jpkfile = datadir / "spot3-0192.jpk-force"
     afmlist = afmformats.load_data(path=jpkfile)
     ds = afmlist[0]
-    assert np.allclose(ds["height (piezo)"][0], 4.9574279773415606e-05)
+    assert np.allclose(ds["height (piezo)"][0], 2.878322343068329e-05)
 
 
 if __name__ == "__main__":

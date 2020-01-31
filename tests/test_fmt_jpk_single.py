@@ -68,14 +68,18 @@ def test_get_single_curves():
 
 def test_meta():
     jpkfile = datadir / "spot3-0192.jpk-force"
-    md = read_jpk_meta.get_meta_data(jpkfile)
+    tdir = read_jpk_meta.extract_jpk(jpkfile)
+    sdir = tdir / "segments" / "0"
+    md = read_jpk_meta.get_meta_data_seg(sdir)
     assert md["spring constant"] == 0.043493666407368466
 
 
 def test_load_jpk():
     jpkfile = datadir / "spot3-0192.jpk-force"
     segs = read_jpk.load_jpk(jpkfile)
-    md = read_jpk_meta.get_meta_data(jpkfile)
+    tdir = read_jpk_meta.extract_jpk(jpkfile)
+    sdir = tdir / "segments" / "0"
+    md = read_jpk_meta.get_meta_data_seg(sdir)
     assert md["imaging mode"] == "force-distance"
     assert len(segs) == 1, "Only one measurement"
     assert len(segs[0]) == 2, "approach and retract curves"

@@ -1,3 +1,7 @@
+0.7.0
+ - BREAKING CHANGE: piezo height is now loaded as "calibrated" and
+   not as "nominal" (JPK file format)
+ - ref: restructured meta data organization
 0.6.0
  - feat: force-distance metadata can now be saved and loaded for
    the .tab file format (#3)

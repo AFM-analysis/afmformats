@@ -5,65 +5,72 @@ import numpy as np
 from .parse_funcs import fint, vd_str_in
 
 
-#: Definition of metadata related to the data generated
-#: (dictionary with metadata keys, descriptions, units, and validators)
-DEF_DATASET = {
-    "identifier": ["Measurement identifier", "", str],
-    "path": ["Measurement path", "", pathlib.Path],
-    "session": ["Recording session identifier", "", str],
+#: Compedium of all allowed meta data keys, sorted by topic, and
+#: including units and validation methods
+META_FIELDS = {
+    # AFM acquisition settings
+    "acquisition": {
+        "feedback mode": ["Feedback mode", "", vd_str_in([
+            # JPK contact mode
+            "contact",
+            # From the NanoWizard User Manual (v. 4.2) sec. 5.7:
+            # Force modulation mode is a mixture between contact mode and
+            # intermittend mode and "can be thought of as a kind of contact
+            # mode with an added vibration on the cantilever".
+            "force-modulation",
+        ])],
+        "imaging mode": ["Imaging modality", "", vd_str_in([
+            # force-distance measurements
+            "force-distance",
+        ])],
+        "rate": ["Data recording rate", "Hz", float],
+        "sensitivity": ["Sensitivity", "m/V", float],
+        "setpoint": ["Active feedback loop setpoint", "N", float],
+        "speed": ["Piezo speed", "m/s", float],
+        "spring constant": ["Cantilever spring constant", "N/m", float],
+    },
+    # dataset info
+    "dataset": {
+        "duration": ["Data acquisition time", "s", float],
+        "enum": ["Dataset index within the experiment", "", fint],
+        "point count": ["Size of the dataset in points", "", fint],
+        "z range": ["Axial piezo range covered", "m", float],
+    },
+    # QMap related dataset metadata
+    "qmap": {
+        "grid center x": ["Horizontal center of grid", "m", float],
+        "grid center y": ["Vertical center of grid", "m", float],
+        "grid index x": ["Horizontal grid position index", "", fint],
+        "grid index y": ["Vertical grid position index", "", fint],
+        "grid shape x": ["Horizontal grid shape", "px", fint],
+        "grid shape y": ["Vertical grid shape", "px", fint],
+        "grid size x": ["Horizontal grid size", "m", float],
+        "grid size y": ["Vertical grid size", "m", float],
+        "position x": ["Horizontal position", "m", float],
+        "position y": ["Vertical position", "m", float],
+    },
+    # AFM setup
+    "setup": {
+        "instrument": ["AFM instrument name", "", str],
+        "software": ["Acquisition software", "", str],
+        "software version": ["Acquisition software version", "", str],
+    },
+    # storage data
+    "storage": {
+        "curve id": ["Dataset identifier", "", str],
+        "date": ["Recording date (YYYY-MM-DD)", "", str],
+        "path": ["Measurement path", "", pathlib.Path],
+        "session id": ["Experiment identifier", "", str],
+        "time": ["Recording time (HH:MM:SS.S)", "", str],
+    },
 }
 
-#: Definition of metadata related to the AFM experiment
-#: (dictionary with metadata keys, descriptions, units, and validators)
-DEF_EXPERIMENT = {
-    "duration": ["Data acquisition time", "s", float],
-    "enum": ["Dataset index in the experiment", "", fint],
-    "feedback mode": ["Feedback mode", "", vd_str_in([
-        # JPK contact mode
-        "contact",
-        # From the NanoWizard User Manual (v. 4.2) sec. 5.7:
-        # Force modulation mode is a mixture between contact mode and
-        # intermittend mode and "can be thought of as a kind of contact
-        # mode with an added vibration on the cantilever".
-        "force-modulation",
-    ])],
-    "imaging mode": ["Imaging modality", "", vd_str_in(["force-distance"])],
-    "point count": ["Size of the dataset in points", "", fint],
-    "rate": ["Data recording rate", "Hz", float],
-    "sensitivity": ["Sensitivity", "m/V", float],
-    "setpoint": ["Active feedback loop setpoint", "N", float],
-    "speed": ["Piezo speed", "m/s", float],
-    "spring constant": ["Cantilever spring constant", "N/m", float],
-    "z range": ["Axial piezo range covered", "m", float],
-}
-
-#: Definition of metadata related to quantitative maps
-#: (dictionary with metadata keys, descriptions, units, and validators)
-DEF_QMAP = {
-    "grid center x": ["Horizontal center of grid", "m", float],
-    "grid center y": ["Vertical center of grid", "m", float],
-    "grid index x": ["Horizontal grid position index", "", fint],
-    "grid index y": ["Vertical grid position index", "", fint],
-    "grid shape x": ["Horizontal grid shape", "px", fint],
-    "grid shape y": ["Vertical grid shape", "px", fint],
-    "grid size x": ["Horizontal grid size", "m", float],
-    "grid size y": ["Vertical grid size", "m", float],
-    "position x": ["Horizontal position", "m", float],
-    "position y": ["Vertical position", "m", float],
-}
-
-
-#: Definition of metadata related to data analysis
-#: (dictionary with metadata keys, descriptions, units, and validators)
-DEF_ANALYSIS = {
-}
 
 #: A dictionary for all metadata definitions
 DEF_ALL = {}
-DEF_ALL.update(DEF_DATASET)
-DEF_ALL.update(DEF_EXPERIMENT)
-DEF_ALL.update(DEF_QMAP)
-DEF_ALL.update(DEF_ANALYSIS)
+for _sec in META_FIELDS:
+    for _key in META_FIELDS[_sec]:
+        DEF_ALL[_key] = META_FIELDS[_sec][_key]
 
 #: List of all valid meta data keys
 KEYS_VALID = sorted(DEF_ALL.keys())
@@ -95,7 +102,7 @@ class MetaData(dict):
         (defaults to :const:`afmformats.meta.KEYS_VALID`).
         """
         if key not in self.valid_keys:
-            raise KeyError("Unknown metdataa key: '{}'".format(key))
+            raise KeyError("Unknown metadata key: '{}'".format(key))
         super(MetaData, self).__setitem__(key, value)
 
     def __getitem__(self, *args, **kwargs):
@@ -115,22 +122,9 @@ class MetaData(dict):
         Returns a dict of dicts with keys matching the DEF_* dicts.
         Unset values are returned as `np.nan`.
         """
-        dataset = {}
-        for key in DEF_DATASET:
-            dataset[key] = self.get(key, np.nan)
-        experiment = {}
-        for key in DEF_EXPERIMENT:
-            experiment[key] = self.get(key, np.nan)
-        qmap = {}
-        for key in DEF_QMAP:
-            qmap[key] = self.get(key, np.nan)
-        analysis = {}
-        for key in DEF_ANALYSIS:
-            analysis[key] = self.get(key, np.nan)
-
-        summary = {"dataset": dataset,
-                   "experiment": experiment,
-                   "qmap": qmap,
-                   "analysis": analysis,
-                   }
+        summary = {}
+        for sec in META_FIELDS:
+            summary[sec] = {}
+            for key in META_FIELDS[sec]:
+                summary[sec][key] = self.get(key, np.nan)
         return summary
