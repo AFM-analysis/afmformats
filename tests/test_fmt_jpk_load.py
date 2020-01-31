@@ -15,11 +15,15 @@ def test_load_jpk_map():
 
     assert len(afmlist) == 4
     ds = afmlist[2]
+    ds2 = afmlist[3]
     assert ds.metadata["enum"] == 2
     assert np.allclose(ds.metadata["duration"], 1.6089775561097257)
     # Verified with visual inspection of force curve in JPK software
     assert np.allclose(ds["force"][0], -5.8540192943834714e-10)
     assert np.allclose(ds["height (measured)"][0], 0.0001001727719556085)
+    # make sure curve id is different
+    assert ds.metadata["curve id"] != ds2.metadata["curve id"]
+    assert ds.metadata["session id"] == ds2.metadata["session id"]
 
 
 def test_load_jpk_simple():

@@ -14,7 +14,9 @@ def prepare_jpk_data(path, callback=None):
         (app, metadata, _), (ret, metadata_ret, _) = mm
         metadata["path"] = pathlib.Path(path)
         metadata["duration"] += metadata_ret["duration"]
-
+        metadata["rate retract"] = metadata_ret["rate retract"]
+        metadata["point count"] += metadata_ret["point count"]
+        metadata["speed retract"] = metadata_ret["speed retract"]
         # join segments
         lenapp = len(app[list(app.keys())[0]])
         lenret = len(ret[list(ret.keys())[0]])

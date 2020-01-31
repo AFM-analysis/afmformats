@@ -23,18 +23,20 @@ META_FIELDS = {
             # force-distance measurements
             "force-distance",
         ])],
-        "rate": ["Sampling rate", "Hz", float],
+        "rate approach": ["Sampling rate (approach)", "Hz", float],
+        "rate retract": ["Sampling rate (retract)", "Hz", float],
         "sensitivity": ["Sensitivity", "m/V", float],
         "setpoint": ["Active feedback loop setpoint", "N", float],
-        "speed": ["Piezo speed", "m/s", float],
         "spring constant": ["Cantilever spring constant", "N/m", float],
+        "z range": ["Axial piezo range covered", "m", float],
     },
     # dataset info
     "dataset": {
-        "duration": ["Data acquisition time", "s", float],
+        "duration": ["Duration", "s", float],
         "enum": ["Dataset index within the experiment", "", fint],
         "point count": ["Size of the dataset in points", "", fint],
-        "z range": ["Axial piezo range covered", "m", float],
+        "speed approach": ["Piezo speed (approach)", "m/s", float],
+        "speed retract": ["Piezo speed (retract)", "m/s", float],
     },
     # QMap related dataset metadata
     "qmap": {

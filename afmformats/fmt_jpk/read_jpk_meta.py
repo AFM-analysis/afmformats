@@ -96,7 +96,6 @@ def get_meta_data_seg(path_segment):
         ["grid shape x", "force-scan-map.position-pattern.grid.ilength"],
         ["grid shape y", "force-scan-map.position-pattern.grid.jlength"],
         # storage
-        ["curve id", "force-segment-header.approach-id"],
         ["session id", "force-segment-header.approach-id"],
         # setup
         ["instrument", "force-scan-series.description.instrument"],
@@ -118,10 +117,16 @@ def get_meta_data_seg(path_segment):
         ["grid center x [m]", "force-scan-map.position-pattern.grid.xcenter"],
         ["grid center y [m]", "force-scan-map.position-pattern.grid.ycenter"],
         ["curve type", "force-segment-header.settings.style"],
+        ["position index", "force-scan-series.header.position-index"]
     ]
 
     md = meta.MetaData()
+    # Currently, only force-distance mode is supported!
     md["imaging mode"] = "force-distance"
+    if segment.name == "0":
+        curseg = "approach"
+    else:
+        curseg = "retract"
     md["software"] = "JPK"
     md_im = {}
     header_file = segment / "segment-header.properties"
@@ -142,11 +147,14 @@ def get_meta_data_seg(path_segment):
             msg = "Missing meta data: '{}'".format(mkey)
             raise ReadJPKMetaKeyError(msg)
 
+    md["curve id"] = "{}:{:g}".format(md["session id"], mdi["position index"])
+
     md["setpoint"] = md_im["setpoint [V]"] * \
         md["spring constant"]*md["sensitivity"]
-    md["rate"] = md["point count"]/md["duration"]
+
+    md["rate " + curseg] = md["point count"]/md["duration"]
     md["z range"] = abs(md_im["z start"] - md_im["z end"])
-    md["speed"] = md["z range"]/md["duration"]
+    md["speed " + curseg] = md["z range"]/md["duration"]
     if "position x [m]" in md_im:
         md["position x"] = md_im["position x [m]"]
     if "position y [m]" in md_im:
