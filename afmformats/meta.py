@@ -30,7 +30,7 @@ META_FIELDS = {
         "spring constant": ["Cantilever spring constant", "N/m", float],
         "z range": ["Axial piezo range covered", "m", float],
     },
-    # dataset info
+    # dataset parameters
     "dataset": {
         "duration": ["Duration", "s", float],
         "enum": ["Dataset index within the experiment", "", fint],
