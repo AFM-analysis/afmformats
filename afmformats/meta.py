@@ -23,7 +23,7 @@ META_FIELDS = {
             # force-distance measurements
             "force-distance",
         ])],
-        "rate": ["Data recording rate", "Hz", float],
+        "rate": ["Sampling rate", "Hz", float],
         "sensitivity": ["Sensitivity", "m/V", float],
         "setpoint": ["Active feedback loop setpoint", "N", float],
         "speed": ["Piezo speed", "m/s", float],
@@ -51,17 +51,17 @@ META_FIELDS = {
     },
     # AFM setup
     "setup": {
-        "instrument": ["AFM instrument name", "", str],
+        "instrument": ["Instrument", "", str],
         "software": ["Acquisition software", "", str],
         "software version": ["Acquisition software version", "", str],
     },
     # storage data
     "storage": {
-        "curve id": ["Dataset identifier", "", str],
-        "date": ["Recording date (YYYY-MM-DD)", "", str],
-        "path": ["Measurement path", "", pathlib.Path],
-        "session id": ["Experiment identifier", "", str],
-        "time": ["Recording time (HH:MM:SS.S)", "", str],
+        "curve id": ["Curve identifier", "", str],
+        "date": ["Recording date", "", str],  # YYYY-MM-DD
+        "path": ["Path", "", pathlib.Path],
+        "session id": ["Dataset identifier", "", str],
+        "time": ["Recording time", "", str],  # HH:MM:SS.S
     },
 }
 

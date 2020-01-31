@@ -1,6 +1,8 @@
 0.7.0
  - BREAKING CHANGE: piezo height is now loaded as "calibrated" and
    not as "nominal" (JPK file format)
+ - fix: metadata acquisition duration only showed duration of apporach
+   part (JPK file format)
  - ref: restructured meta data organization
 0.6.0
  - feat: force-distance metadata can now be saved and loaded for

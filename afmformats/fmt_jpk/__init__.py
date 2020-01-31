@@ -11,8 +11,9 @@ def prepare_jpk_data(path, callback=None):
     # convert join the segment data
     dataset = []
     for mm in measurements:
-        (app, metadata, _), (ret, _, _) = mm
+        (app, metadata, _), (ret, metadata_ret, _) = mm
         metadata["path"] = pathlib.Path(path)
+        metadata["duration"] += metadata_ret["duration"]
 
         # join segments
         lenapp = len(app[list(app.keys())[0]])
