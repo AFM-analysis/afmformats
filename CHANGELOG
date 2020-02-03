@@ -1,3 +1,9 @@
+0.7.1
+ - fix: exporting to HDF5 did not work when a h5py.Group was used
+ - fix: exporting to HDF5 did not reset the "enum" key
+ - enh: use gzip compression in HDF5 file format
+ - enh: allow "h5" and "hdf5" as HDF5 file format specifiers during
+   export
 0.7.0
  - BREAKING CHANGE: piezo height is now loaded as "calibrated" and
    not as "nominal" (JPK file format)

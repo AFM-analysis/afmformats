@@ -130,6 +130,8 @@ class AFMForceDistance(AFMData):
                 enum_key = str(ii)
                 if enum_key not in h5group:
                     break
+                ii += 1
+        metadata_dict["enum"] = int(enum_key)
         subgroup = h5group.create_group(enum_key)
         for col in self.columns:
             if col == "segment":
@@ -141,6 +143,7 @@ class AFMForceDistance(AFMData):
             else:
                 subgroup.create_dataset(name=col,
                                         data=self[col],
+                                        compression="gzip",
                                         fletcher32=True)
         for kk in metadata_dict:
             if kk == "path":
@@ -201,8 +204,8 @@ class AFMForceDistance(AFMData):
             no metadata are stored. If a list, only the given
             metadata keys are stored.
         fmt: str
-            "tab" for the tab separated values format and "hdf5" for
-            the HDF5 file format
+            "tab" for the tab separated values format and "hdf5" / "h5"
+            for the HDF5 file format
 
         Notes
         -----
@@ -237,12 +240,12 @@ class AFMForceDistance(AFMData):
             self._export_tab(fd, metadata_dict=metadata_dict)
             if close:
                 fd.close()
-        elif fmt == "hdf5":
+        elif fmt in ["hdf5", "h5"]:
             if isinstance(out, (pathlib.Path, str)):
                 # overrides always
                 h5 = h5py.File(out, "w")
                 close = True
-            elif isinstance(h5, h5py.Group):
+            elif isinstance(out, h5py.Group):
                 h5 = out
                 close = False
             else:
