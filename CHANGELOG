@@ -1,3 +1,6 @@
+0.7.2
+ - enh: do not export "index" column to HDF5 files to save disk space
+ - enh: save column units when exporting to HDF5
 0.7.1
  - fix: exporting to HDF5 did not work when a h5py.Group was used
  - fix: exporting to HDF5 did not reset the "enum" key

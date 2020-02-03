@@ -135,16 +135,20 @@ class AFMForceDistance(AFMData):
         subgroup = h5group.create_group(enum_key)
         for col in self.columns:
             if col == "segment":
-                subgroup.create_dataset(name=col,
-                                        data=np.asarray(self[col],
-                                                        dtype=np.uint8),
-                                        compression="gzip",
-                                        fletcher32=True)
+                ds = subgroup.create_dataset(name=col,
+                                             data=np.asarray(self[col],
+                                                             dtype=np.uint8),
+                                             compression="gzip",
+                                             fletcher32=True)
+            elif col == "index":
+                # do not store index column
+                continue
             else:
-                subgroup.create_dataset(name=col,
-                                        data=self[col],
-                                        compression="gzip",
-                                        fletcher32=True)
+                ds = subgroup.create_dataset(name=col,
+                                             data=self[col],
+                                             compression="gzip",
+                                             fletcher32=True)
+            ds.attrs["unit"] = column_units[col]
         for kk in metadata_dict:
             if kk == "path":
                 subgroup.attrs["path"] = str(metadata_dict["path"])
@@ -209,15 +213,17 @@ class AFMForceDistance(AFMData):
 
         Notes
         -----
-        If you wish to append HDF5 data to an existing file, please
-        open the file first and call this function with the h5py.File
-        object, i.e.
+        - If you wish to append HDF5 data to an existing file, please
+          open the file first and call this function with the h5py.File
+          object, i.e.
 
-        ```python
-        with h5py.File(path, "a") as h5:
-            fdist.export(out=h5, fmt="hdf5")
-        ```
-        Otherwise the file will be overridden.
+          ```python
+          with h5py.File(path, "a") as h5:
+              fdist.export(out=h5, fmt="hdf5")
+          ```
+          Otherwise the file will be overridden.
+        - The column "index" is not exported in the HDF5 file
+          format
         """
         if isinstance(metadata, (list, tuple)):
             metadata_dict = {}

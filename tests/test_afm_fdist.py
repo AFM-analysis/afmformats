@@ -23,6 +23,7 @@ def test_export_hdf5():
     with h5py.File(path, "r") as h5:
         assert h5["0"].attrs["enum"] == 0
         assert h5["1"].attrs["enum"] == 1
+        assert h5["0"]["force"].attrs["unit"] == "N"
     # cleanup
     try:
         pathlib.Path(path).unlink()
