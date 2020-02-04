@@ -16,6 +16,7 @@ Documentation
 .. toctree::
    :maxdepth: 1
 
+   Code reference <sec_api/afmformats>
    sec_changelog
    sec_z_bib
 

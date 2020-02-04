@@ -3,11 +3,20 @@ import pathlib
 
 import numpy as np
 
-from .afm_fdist import column_dtypes, known_columns
+from .afm_data import column_dtypes, known_columns
+
+
+__all__ = ["load_tab"]
 
 
 def load_tab(path, callback=None):
-    """Loads tab-separated-value files as exported by afmformats"""
+    """Loads tab-separated-value files as exported by afmformats
+
+    This is a simple tab-separated values files. The metadata
+    may be present at the beginning of the file, commented out,
+    as a json dump in a "BEGIN METADATA" - "END METADATA" block.
+    The column data is listed below as a simple table.
+    """
     path = pathlib.Path(path)
     with path.open() as fd:
         tsvdata = fd.readlines()
@@ -79,4 +88,5 @@ recipe_tab = {
     "loader": load_tab,
     "suffix": ".tab",
     "mode": "force-distance",
+    "maker": "afmformats",
 }

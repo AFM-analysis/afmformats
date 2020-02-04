@@ -4,7 +4,10 @@ import pathlib
 import h5py
 import numpy as np
 
-from .afm_fdist import column_dtypes, known_columns
+from .afm_data import column_dtypes, known_columns
+
+
+__all__ = ["H5DictReader", "load_hdf5"]
 
 
 class H5DictReader(object):
@@ -62,6 +65,16 @@ class H5DictReader(object):
 def load_hdf5(path_or_h5, callback=None):
     """Loads HDF5 files as exported by afmformats
 
+    The HDF5 format is self explanatory. The root attributes
+    contain the version of afmformats used to create it. For each
+    curve, one group is created, named according to "0", "1", ...
+    "9", "10", "11", etc. The attributes of each group are key-value
+    pairs defined in :const:`afmformats.meta.KEYS_VALID`. The group
+    contains datasets named according to
+    :const:`afmformats.afm_data.known_columns` and have the attribute
+    "unit" with the corresponding value in
+    :const:`afmformats.afm_data.column_units`.
+
     Parameters
     ----------
     path_or_h5: str or pathlib.Path or h5py.Group
@@ -100,4 +113,5 @@ recipe_hdf5 = {
     "loader": load_hdf5,
     "suffix": ".h5",
     "mode": "force-distance",
+    "maker": "afmformats",
 }

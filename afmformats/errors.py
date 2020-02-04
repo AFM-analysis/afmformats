@@ -12,3 +12,6 @@ class FileFormatMetaDataError(AFMFileFormatError):
 
 class DataFileBrokenError(AFMFileFormatError):
     pass
+
+
+__all__ = [e for e in dir() if not e.startswith("__")]

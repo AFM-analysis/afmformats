@@ -5,6 +5,10 @@ import numpy as np
 from .parse_funcs import fint, vd_str_in
 
 
+__all__ = ["META_FIELDS", "DEF_ALL", "KEYS_VALID", "MetaDataMissingError",
+           "MetaData"]
+
+
 #: Compedium of all allowed meta data keys, sorted by topic, and
 #: including units and validation methods
 META_FIELDS = {

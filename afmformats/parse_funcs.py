@@ -41,3 +41,6 @@ def vd_str_in(alist):
                 value, alist))
         return value
     return str_in
+
+
+__all__ = [e for e in dir() if not e.startswith("__")]

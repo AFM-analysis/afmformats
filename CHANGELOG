@@ -1,6 +1,8 @@
-0.7.2
+0.8.0
  - enh: do not export "index" column to HDF5 files to save disk space
  - enh: save column units when exporting to HDF5
+ - ref: moved class methods and constants from "afm_fdist" to "afm_data"
+ - docs: add code reference, basic usage, and list of file formats
 0.7.1
  - fix: exporting to HDF5 did not work when a h5py.Group was used
  - fix: exporting to HDF5 did not reset the "enum" key
@@ -34,7 +36,7 @@
  - BREAKING CHANGE: change metadata key names 
  - enh: add class for checking metadata
 0.3.0
- - feat: support tab-separated values file format (*.tab)
+ - feat: support tab-separated values file format (.tab)
  - fix: file formats were not registered correctly
  - ref: derive file format errors from own error classes
 0.2.0

@@ -6,6 +6,10 @@ from .fmt_tab import recipe_tab
 from .afm_fdist import AFMForceDistance
 
 
+__all__ = ["load_data", "formats_available", "formats_by_suffix",
+           "formats_by_mode", "supported_extensions"]
+
+
 def load_data(path, mode=None, diskcache=False, callback=None):
     path = pathlib.Path(path)
     if path.suffix in formats_by_suffix:

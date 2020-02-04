@@ -60,10 +60,16 @@ extensions = ['sphinx.ext.autodoc',
               'IPython.sphinxext.ipython_console_highlighting',
               'fancy_include',
               'github_changelog',
+              "afmformats_supported_fmt",
+              'autoapi.sphinx',
+              'sphinx.ext.inheritance_diagram',
               ]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
+
+# autoAPI options
+autoapi_modules = {'afmformats': {"output": "sec_api"}}
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
@@ -115,7 +121,7 @@ numfig = True
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'default'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the

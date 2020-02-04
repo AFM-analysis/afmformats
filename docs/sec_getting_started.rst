@@ -14,10 +14,37 @@ To install afmformats, use one of the following methods
     ``pip install -e .``
 
 
+Usage
+=====
+
+.. ipython::
+
+    In [1]: import afmformats
+
+    In [2]: dslist = afmformats.load_data("data/force-save-example.jpk-force")
+
+    # dslist is a list of Force-Distance curves
+    In [3]: dslist
+
+    # available data columns of the first curve
+    In [4]: dslist[0].columns
+
+    In [5]: dslist[0]["force"]
+
+
+.. _supported_formats:
 
 Supported file formats
 ======================
-Currently, afmformats only supports the file formats *.jpk-force* and
-*.jpk-force-map*. If you are interested in other file formats, please
+All supported file formats are listed in the table below.
+If you are interested in other file formats, please
 `create a new issue <https://github.com/AFM-analysis/afmformats/issues/new>`_.
 
+.. afmformats_file_formats::
+
+
+Notes
+=====
+Afmformats is a base module for loading experimental data.
+You might want to use `nanite <https://nanite.readthedocs.io/>`_ or
+`PyJibe <https://pyjibe.readthedocs.io/>`_ for higher-level functionalities.

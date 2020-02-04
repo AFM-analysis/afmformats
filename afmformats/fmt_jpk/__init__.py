@@ -1,13 +1,21 @@
 import pathlib
 
 import numpy as np
-from .read_jpk import load_jpk
+from . import read_jpk
 
 
-def prepare_jpk_data(path, callback=None):
-    """Convert the data from `load_jpk` to something afmformats understands"""
+__all__ = ["load_jpk"]
+
+
+def load_jpk(path, callback=None):
+    """Loads JPK Instruments data files
+
+    These files are zip files containing java property files and
+    integer-encoded binary data. The property files include recipes
+    on how to convert the raw integer data to SI units.
+    """
     # load the data
-    measurements = load_jpk(path=path, callback=callback)
+    measurements = read_jpk.load_jpk(path=path, callback=callback)
     # convert join the segment data
     dataset = []
     for mm in measurements:
@@ -33,13 +41,15 @@ def prepare_jpk_data(path, callback=None):
 
 
 recipe_jpk_force = {
-    "loader": prepare_jpk_data,
+    "loader": load_jpk,
     "suffix": ".jpk-force",
     "mode": "force-distance",
+    "maker": "JPK Instruments",
 }
 
 recipe_jpk_force_map = {
-    "loader": prepare_jpk_data,
+    "loader": load_jpk,
     "suffix": ".jpk-force-map",
     "mode": "force-distance",
+    "maker": "JPK Instruments",
 }
