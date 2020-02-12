@@ -104,6 +104,7 @@ def load_igor(path, callback=None):
 
 
 recipe_ibw = {
+    "descr": "binarywave",
     "loader": load_igor,
     "suffix": ".ibw",
     "mode": "force-distance",

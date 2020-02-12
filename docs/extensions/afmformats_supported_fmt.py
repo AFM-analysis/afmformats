@@ -42,32 +42,28 @@ class Formats(Base):
 
         rst.append("")
         rst.append(".. csv-table::")
-        rst.append("    :header: Format introduced by, Extensions, Loaders")
-        rst.append("    :widths: 30, 10, 60")
+        rst.append("    :header: Format introduced by, Description, "
+                   + "Extension, Loader")
+        rst.append("    :widths: 15, 5, 20, 60")
         rst.append("    :delim: tab")
         rst.append("")
 
         # generate a new dict with maker-keys
-        maker_dict = {}
+        loader_dict = {}
         for recipe in afmformats.formats.formats_available:
-            # group by maker + loader
-            maker = recipe["maker"] + recipe["loader"].__name__
-            if maker not in maker_dict:
-                maker_dict[maker] = {"ext": [],
-                                     "mod": [],
-                                     "mak": []}
-            maker_dict[maker]["ext"].append(recipe["suffix"])
-            maker_dict[maker]["mak"].append(recipe["maker"])
-            mod = ":func:`{}.{}`".format(recipe["loader"].__module__,
-                                         recipe["loader"].__name__)
-            maker_dict[maker]["mod"].append(mod)
-
-        for item in sorted(maker_dict.values(), key=lambda x: x["ext"]):
-            rst.append("    {}\t {}\t {}".format(
-                item["mak"][0],
-                ", ".join(sorted(set(item["ext"]))),
-                ", ".join(sorted(set(item["mod"])))
-            ))
+            # group by loader
+            k = recipe["loader"].__name__ + recipe["descr"] + recipe["suffix"]
+            loader_dict[k] = {
+                "ext": recipe["suffix"],
+                "mod": ":func:`{}.{}`".format(
+                    recipe["loader"].__module__.split(".", 1)[1],
+                    recipe["loader"].__name__),
+                "mak": recipe["maker"],
+                "des": recipe["descr"]
+                }
+        for item in sorted(loader_dict.values(), key=lambda x: x["ext"]):
+            rst.append("    {}\t {}\t {} \t {}".format(
+                item["mak"], item["des"], item["ext"], item["mod"]))
 
         rst.append("")
 

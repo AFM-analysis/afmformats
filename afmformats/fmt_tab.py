@@ -85,6 +85,7 @@ def string_to_dtype(astring, dtype):
 
 
 recipe_tab = {
+    "descr": "tab-separated values",
     "loader": load_tab,
     "suffix": ".tab",
     "mode": "force-distance",

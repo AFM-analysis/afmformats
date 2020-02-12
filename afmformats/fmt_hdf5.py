@@ -110,6 +110,7 @@ def load_hdf5(path_or_h5, callback=None):
 
 
 recipe_hdf5 = {
+    "descr": "HDF5-based",
     "loader": load_hdf5,
     "suffix": ".h5",
     "mode": "force-distance",
