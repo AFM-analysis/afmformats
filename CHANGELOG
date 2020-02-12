@@ -1,3 +1,7 @@
+0.9.0
+ - feat: support new file format from Asylum Research, Igor (.ibw)
+ - ref: always compute piezo range metadata instead of taking it from
+   the set value in the acquisition settings (JKP format) 
 0.8.0
  - enh: do not export "index" column to HDF5 files to save disk space
  - enh: save column units when exporting to HDF5

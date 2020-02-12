@@ -29,6 +29,7 @@ setup(
     description=description,
     long_description=open('README.rst').read() if exists('README.rst') else '',
     install_requires=["h5py",
+                      "igor",  # Asylum Research .ibw file format
                       "jprops",  # JPK file format
                       "numpy>=1.14.0",
                       ],

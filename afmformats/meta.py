@@ -32,7 +32,6 @@ META_FIELDS = {
         "sensitivity": ["Sensitivity", "m/V", float],
         "setpoint": ["Active feedback loop setpoint", "N", float],
         "spring constant": ["Cantilever spring constant", "N/m", float],
-        "z range": ["Axial piezo range covered", "m", float],
     },
     # dataset parameters
     "dataset": {
@@ -41,6 +40,7 @@ META_FIELDS = {
         "point count": ["Size of the dataset in points", "", fint],
         "speed approach": ["Piezo speed (approach)", "m/s", float],
         "speed retract": ["Piezo speed (retract)", "m/s", float],
+        "z range": ["Axial piezo range", "m", float],
     },
     # QMap related dataset metadata
     "qmap": {

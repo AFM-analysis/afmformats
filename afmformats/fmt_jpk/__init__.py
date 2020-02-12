@@ -32,6 +32,7 @@ def load_jpk(path, callback=None):
         data = {}
         for key in app.keys():
             data[key] = np.concatenate((app[key], ret[key]))
+        metadata["z range"] = np.ptp(data["height (piezo)"])
         data["segment"] = np.concatenate((np.zeros(lenapp, dtype=bool),
                                           np.ones(lenret, dtype=bool)))
         dataset.append({"data": data,

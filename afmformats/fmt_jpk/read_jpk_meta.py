@@ -153,8 +153,8 @@ def get_meta_data_seg(path_segment):
         md["spring constant"]*md["sensitivity"]
 
     md["rate " + curseg] = md["point count"]/md["duration"]
-    md["z range"] = abs(md_im["z start"] - md_im["z end"])
-    md["speed " + curseg] = md["z range"]/md["duration"]
+    zrange = abs(md_im["z start"] - md_im["z end"])
+    md["speed " + curseg] = zrange/md["duration"]
     if "position x [m]" in md_im:
         md["position x"] = md_im["position x [m]"]
     if "position y [m]" in md_im:
