@@ -22,7 +22,7 @@ class Base(Directive):
     optional_arguments = 0
 
     def generate_rst(self):
-        pass        
+        pass
 
     def run(self):
         rst = self.generate_rst()
@@ -47,12 +47,11 @@ class Formats(Base):
         rst.append("    :delim: tab")
         rst.append("")
 
-
         # generate a new dict with maker-keys
         maker_dict = {}
         for recipe in afmformats.formats.formats_available:
             # group by maker + loader
-            maker = recipe["maker"] + recipe["loader"].__name__ 
+            maker = recipe["maker"] + recipe["loader"].__name__
             if maker not in maker_dict:
                 maker_dict[maker] = {"ext": [],
                                      "mod": [],
@@ -60,15 +59,15 @@ class Formats(Base):
             maker_dict[maker]["ext"].append(recipe["suffix"])
             maker_dict[maker]["mak"].append(recipe["maker"])
             mod = ":func:`{}.{}`".format(recipe["loader"].__module__,
-                                        recipe["loader"].__name__)
+                                         recipe["loader"].__name__)
             maker_dict[maker]["mod"].append(mod)
 
-        for key in sorted(maker_dict.keys()):
+        for item in sorted(maker_dict.values(), key=lambda x: x["ext"]):
             rst.append("    {}\t {}\t {}".format(
-                maker_dict[key]["mak"][0],
-                ", ".join(sorted(set(maker_dict[key]["ext"]))),
-                ", ".join(sorted(set(maker_dict[key]["mod"])))
-                ))
+                item["mak"][0],
+                ", ".join(sorted(set(item["ext"]))),
+                ", ".join(sorted(set(item["mod"])))
+            ))
 
         rst.append("")
 
@@ -77,4 +76,4 @@ class Formats(Base):
 
 def setup(app):
     app.add_directive('afmformats_file_formats', Formats)
-    return {'version': '0.1'}   # identifies the version of our extension
+    return {'version': '0.2'}   # identifies the version of our extension
