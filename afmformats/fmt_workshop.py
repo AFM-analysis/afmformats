@@ -49,6 +49,9 @@ def load_csv(path, callback=None, meta_override={}):
         13781.9288,0.6875,14163.9288,1.0989
         ...
 
+
+    The data for testing was kindly provided by Peter Eaton
+    (afmhelp.com).
     """
     path = pathlib.Path(path)
     with path.open() as fd:
