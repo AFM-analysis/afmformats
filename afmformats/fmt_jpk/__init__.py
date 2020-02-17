@@ -7,7 +7,7 @@ from . import read_jpk
 __all__ = ["load_jpk"]
 
 
-def load_jpk(path, callback=None):
+def load_jpk(path, callback=None, meta_override={}):
     """Loads JPK Instruments data files
 
     These files are zip files containing java property files and
@@ -35,6 +35,7 @@ def load_jpk(path, callback=None):
         metadata["z range"] = np.ptp(data["height (piezo)"])
         data["segment"] = np.concatenate((np.zeros(lenapp, dtype=bool),
                                           np.ones(lenret, dtype=bool)))
+        metadata.update(meta_override)
         dataset.append({"data": data,
                         "metadata": metadata,
                         })

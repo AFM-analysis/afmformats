@@ -9,7 +9,7 @@ from .afm_data import column_dtypes, known_columns
 __all__ = ["load_tab"]
 
 
-def load_tab(path, callback=None):
+def load_tab(path, callback=None, meta_override={}):
     """Loads tab-separated-value files as exported by afmformats
 
     This is a simple tab-separated values files. The metadata
@@ -69,6 +69,7 @@ def load_tab(path, callback=None):
             if cc in known_columns:
                 data[cc][ii] = string_to_dtype(item, column_dtypes[cc])
 
+    metadata.update(meta_override)
     dd = {"data": data,
           "metadata": metadata}
     return [dd]

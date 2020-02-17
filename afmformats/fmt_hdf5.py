@@ -62,7 +62,7 @@ class H5DictReader(object):
         return cols
 
 
-def load_hdf5(path_or_h5, callback=None):
+def load_hdf5(path_or_h5, callback=None, meta_override={}):
     """Loads HDF5 files as exported by afmformats
 
     The HDF5 format is self explanatory. The root attributes
@@ -101,6 +101,7 @@ def load_hdf5(path_or_h5, callback=None):
         metadata = dict(h5[enum_key].attrs)
         metadata["path"] = path
         metadata["enum"] = int(enum_key)
+        metadata.update(meta_override)
         data = H5DictReader(path_or_h5, enum_key=enum_key)
         fdlist.append({"data": data,
                        "metadata": metadata})

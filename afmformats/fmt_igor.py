@@ -6,7 +6,7 @@ import numpy as np
 __all__ = ["load_igor"]
 
 
-def load_igor(path, callback=None):
+def load_igor(path, callback=None, meta_override={}):
     """Load Asylum Research (Igor) binarywave .ibw files
 
     The raw data are loaded with the Python module "igor"
@@ -95,6 +95,7 @@ def load_igor(path, callback=None):
 
     # missing metadata
     metadata["z range"] = np.ptp(data["height (piezo)"])
+    metadata.update(meta_override)
 
     dataset = [{"data": data,
                 "metadata": metadata,

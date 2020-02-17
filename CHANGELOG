@@ -1,3 +1,6 @@
+0.10.0
+ - feat: allow to override metadata when loading data
+ - feat: support new file format from AFM workshop (.csv)
 0.9.0
  - feat: support new file format from Asylum Research, Igor (.ibw)
  - ref: always compute piezo range metadata instead of taking it from
