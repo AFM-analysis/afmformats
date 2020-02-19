@@ -57,3 +57,11 @@ recipe_jpk_force_map = {
     "mode": "force-distance",
     "maker": "JPK Instruments",
 }
+
+recipe_jpk_force_qi = {
+    "descr": "binary QMap data",
+    "loader": load_jpk,
+    "suffix": ".jpk-qi-data",
+    "mode": "force-distance",
+    "maker": "JPK Instruments",
+}

@@ -2,7 +2,8 @@ import pathlib
 
 from .fmt_hdf5 import recipe_hdf5
 from .fmt_igor import recipe_ibw
-from .fmt_jpk import recipe_jpk_force, recipe_jpk_force_map
+from .fmt_jpk import recipe_jpk_force, recipe_jpk_force_map, \
+    recipe_jpk_force_qi
 from .fmt_tab import recipe_tab
 from .fmt_workshop import recipe_workshop
 from .afm_fdist import AFMForceDistance
@@ -36,11 +37,14 @@ def load_data(path, mode=None, diskcache=False, callback=None,
             mode = "force-distance"
         # TODO:
         # - if multiple file types exist, get the right one (not the 1st)
-        loader = formats_by_suffix[path.suffix][0]["loader"]
+        recipe = formats_by_suffix[path.suffix][0]
         afmdata = []
         if mode == "force-distance":
+            loader = recipe["loader"]
             for dd in loader(path, callback=callback,
                              meta_override=meta_override):
+                dd["metadata"]["format"] = "{} ({})".format(recipe["maker"],
+                                                            recipe["descr"])
                 ddi = AFMForceDistance(data=dd["data"],
                                        metadata=dd["metadata"],
                                        diskcache=diskcache)
@@ -56,6 +60,7 @@ formats_available = [
     recipe_ibw,
     recipe_jpk_force,
     recipe_jpk_force_map,
+    recipe_jpk_force_qi,
     recipe_tab,
     recipe_workshop,
 ]

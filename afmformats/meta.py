@@ -65,6 +65,7 @@ META_FIELDS = {
     "storage": {
         "curve id": ["Curve identifier", "", str],
         "date": ["Recording date", "", str],  # YYYY-MM-DD
+        "format": ["File format", "", str],
         "path": ["Path", "", pathlib.Path],
         "session id": ["Dataset identifier", "", str],
         "time": ["Recording time", "", str],  # HH:MM:SS.S

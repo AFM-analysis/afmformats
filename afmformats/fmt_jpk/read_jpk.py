@@ -18,7 +18,6 @@ class ReadJPKColumnError(BaseException):
     pass
 
 
-extensions = [".jpk-force", ".jpk-force-map"]
 VALID_IDS_FORCE = ["vDeflection"]
 VALID_IDS_HEIGHT = ["strainGaugeHeight", "capacitiveSensorHeight",
                     "measuredHeight"]

@@ -92,14 +92,8 @@ def get_meta_data_seg(path_segment):
         # dataset
         ["duration", "force-segment-header.duration"],
         ["point count", "force-segment-header.num-points"],
-        # qmap
-        ["grid shape x", "force-scan-map.position-pattern.grid.ilength"],
-        ["grid shape y", "force-scan-map.position-pattern.grid.jlength"],
         # storage
         ["session id", "force-segment-header.approach-id"],
-        # setup
-        ["instrument", "force-scan-series.description.instrument"],
-        ["software version", "force-scan-series.description.source-software"],
     ]
 
     # These are properties that will not be returned, but are used for the
@@ -112,13 +106,40 @@ def get_meta_data_seg(path_segment):
          "force-segment-header.settings.segment-settings.setpoint"],
         ["position x [m]", pos_str + "x"],
         ["position y [m]", pos_str + "y"],
-        ["grid size x [m]", "force-scan-map.position-pattern.grid.ulength"],
-        ["grid size y [m]", "force-scan-map.position-pattern.grid.vlength"],
-        ["grid center x [m]", "force-scan-map.position-pattern.grid.xcenter"],
-        ["grid center y [m]", "force-scan-map.position-pattern.grid.ycenter"],
         ["curve type", "force-segment-header.settings.style"],
-        ["position index", "force-scan-series.header.position-index"]
     ]
+
+    for sec in ["force-scan-map.",
+                "force-scan-series.",
+                "quantitative-imaging-map.",
+                "quantitative-imaging-series.",
+                ]:
+        # qmap
+        dvars.append(["grid shape x",
+                      sec + "position-pattern.grid.ilength"])
+        dvars.append(["grid shape y",
+                      sec + "position-pattern.grid.jlength"])
+        # setup
+        dvars.append(["instrument",
+                      sec + "description.instrument"]),
+        dvars.append(["software version",
+                      sec + "description.source-software"]),
+
+        # intermediate properties
+        dvars_im.append(["grid size x [m]",
+                         sec + "position-pattern.grid.ulength"])
+        dvars_im.append(["grid size y [m]",
+                         sec + "position-pattern.grid.vlength"])
+        dvars_im.append(["grid center x [m]",
+                         sec + "position-pattern.grid.xcenter"])
+        dvars_im.append(["grid center y [m]",
+                         sec + "position-pattern.grid.ycenter"])
+        dvars_im.append(["position index",
+                         sec + "header.position-index"])
+        dvars_im.append(["position x [m]",
+                         sec + "header.position.x"])
+        dvars_im.append(["position y [m]",
+                         sec + "header.position.y"])
 
     md = meta.MetaData()
     # Currently, only force-distance mode is supported!
