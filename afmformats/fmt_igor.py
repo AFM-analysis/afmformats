@@ -14,7 +14,7 @@ def load_igor(path, callback=None, meta_override={}):
     The way column labels are assigend to the data is kind of hacky.
     The metadata assignment is largely guessed.
 
-    This loader was tested using data from :cite:`Hauck2018`.
+    Test data were provided by Nicolas Hauck :cite:`Hauck2018`.
     """
     # load binarywave
     ibw = binarywave.load(path)
