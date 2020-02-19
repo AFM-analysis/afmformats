@@ -43,8 +43,8 @@ def test_save_open_with_metadata():
     fdat2 = afmformats.load_data(path, mode="force-distance")[0]
     # compare metadata
     for key in fdat.metadata:
-        if key == "path":
-            assert fdat.metadata["path"] != fdat2.metadata["path"]
+        if key in ["path", "format"]:
+            assert fdat.metadata[key] != fdat2.metadata[key]
         else:
             assert fdat.metadata[key] == fdat2.metadata[key]
     for col in fdat.columns:
