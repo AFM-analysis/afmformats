@@ -41,6 +41,15 @@ def load_txt(path, callback=None, meta_override={}):
 
     Test data were provided by Yuri Efremov
     :cite:`Efremov_figshare_20` :cite:`Efremov_2015`.
+
+    Note that support for the original .mdt files is currently (2020)
+    not possible. There exist binary readers for nt-mdt files
+    (https://github.com/kaitai-io/kaitai_struct/), but this does
+    not work for `exemplary data
+    <https://doi.org/10.6084/m9.figshare.11862327.v1>`_. If the
+    NT-MDT Nova software is not available, it should still be
+    possible to load the data with `Ggyddion <http://gwyddion.net>`
+    and export it to something afmformats understands.
     """
     if ("sensitivity" not in meta_override
             and "spring constant" not in meta_override):
