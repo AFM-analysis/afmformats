@@ -5,6 +5,7 @@ from .fmt_igor import recipe_ibw
 from .fmt_jpk import recipe_jpk_force, recipe_jpk_force_map, \
     recipe_jpk_force_qi
 from .fmt_tab import recipe_tab
+from .fmt_ntmdt_txt import recipe_ntmdt_txt
 from .fmt_workshop import recipe_workshop
 from .afm_fdist import AFMForceDistance
 
@@ -61,6 +62,7 @@ formats_available = [
     recipe_jpk_force,
     recipe_jpk_force_map,
     recipe_jpk_force_qi,
+    recipe_ntmdt_txt,
     recipe_tab,
     recipe_workshop,
 ]

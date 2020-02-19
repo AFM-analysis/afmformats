@@ -55,8 +55,10 @@ class Formats(Base):
             k = recipe["loader"].__name__ + recipe["descr"] + recipe["suffix"]
             loader_dict[k] = {
                 "ext": recipe["suffix"],
-                "mod": ":func:`{}.{}`".format(
+                "mod": ":func:`{}.{}<{}.{}>`".format(
                     recipe["loader"].__module__.split(".", 1)[1],
+                    recipe["loader"].__name__,
+                    recipe["loader"].__module__,
                     recipe["loader"].__name__),
                 "mak": recipe["maker"],
                 "des": recipe["descr"]

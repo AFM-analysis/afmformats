@@ -2,6 +2,10 @@ class AFMFileFormatError(BaseException):
     pass
 
 
+class DataFileBrokenError(AFMFileFormatError):
+    pass
+
+
 class FileFormatNotSupportedError(AFMFileFormatError):
     pass
 
@@ -10,7 +14,7 @@ class FileFormatMetaDataError(AFMFileFormatError):
     pass
 
 
-class DataFileBrokenError(AFMFileFormatError):
+class InvalidFileFormatError(AFMFileFormatError):
     pass
 
 
