@@ -10,8 +10,79 @@ from .fmt_workshop import recipe_workshop
 from .afm_fdist import AFMForceDistance
 
 
-__all__ = ["load_data", "formats_available", "formats_by_suffix",
-           "formats_by_mode", "supported_extensions"]
+__all__ = ["AFMFormatRecipe", "load_data", "formats_available",
+           "formats_by_suffix", "formats_by_mode", "supported_extensions"]
+
+
+#: supported imaging modalities
+IMAGING_MODALITIES = ["force-distance"]
+
+
+class AFMFormatRecipe(object):
+    def __init__(self, recipe):
+        """A wrapper class for file format recipes
+
+        Parameters
+        ----------
+        recipe: dict
+            file format recipe
+        """
+        self.recipe = recipe
+
+        # check loader
+        if not callable(self.loader):
+            raise ValueError(
+                "'loader' must be callable: '{}'".format(self.loader))
+        self.origin = self.loader.__module__
+
+        # check mode
+        if self.mode not in IMAGING_MODALITIES:
+            raise ValueError("'mode' must be in {}, got '{}'!".format(
+                IMAGING_MODALITIES, self.mode))
+
+    def __getitem__(self, key):
+        # backwards compatibility
+        return getattr(self, key)
+
+    def __repr__(self):
+        repre = "<{} from '{}' at {}>".format(self.__class__.__name__,
+                                              self.origin,
+                                              hex(id(self)))
+        return repre
+
+    @property
+    def descr(self):
+        """description of file format"""
+        return self.recipe.get("descr", "no description")
+
+    @property
+    def loader(self):
+        """method for loading the data"""
+        if "loader" in self.recipe:
+            return self.recipe["loader"]
+        else:
+            raise ValueError("No loader defined!")
+
+    @property
+    def maker(self):
+        """who introduced the file format"""
+        return self.recipe.get("maker", "unknown maker")
+
+    @property
+    def mode(self):
+        """key describing the AFM recording modality"""
+        if "mode" in self.recipe:
+            return self.recipe["mode"]
+        else:
+            raise ValueError("No mode defined for recipe {}!".format(self))
+
+    @property
+    def suffix(self):
+        """file format suffix"""
+        if "suffix" in self.recipe:
+            return self.recipe["suffix"]
+        else:
+            raise ValueError("No suffix defined for recipe {}!".format(self))
 
 
 def load_data(path, mode=None, diskcache=False, callback=None,
@@ -55,8 +126,37 @@ def load_data(path, mode=None, diskcache=False, callback=None,
     return afmdata
 
 
+def register_format(recipe):
+    """Registers a file format from a recipe dictionary"""
+    afr = AFMFormatRecipe(recipe)
+    formats_available.append(afr)
+    # suffix
+    if afr.suffix not in formats_by_suffix:
+        formats_by_suffix[afr.suffix] = []
+    formats_by_suffix[afr.suffix].append(afr)
+    # mode
+    if afr.mode not in formats_by_mode:
+        formats_by_mode[afr.mode] = []
+    formats_by_mode[afr.mode].append(afr)
+    # supported extensions
+    if afr.suffix not in supported_extensions:  # avoid duplucates
+        supported_extensions.append(afr.suffix)
+    supported_extensions.sort()
+
+
 #: available/supported file formats
-formats_available = [
+formats_available = []
+
+#: available file formats in a dictionary with suffix keys
+formats_by_suffix = {}
+
+#: available file formats in a dictionary with modality keys
+formats_by_mode = {}
+
+#: list of supported extensions
+supported_extensions = []
+
+for recipe in [
     recipe_hdf5,
     recipe_ibw,
     recipe_jpk_force,
@@ -65,21 +165,5 @@ formats_available = [
     recipe_ntmdt_txt,
     recipe_tab,
     recipe_workshop,
-]
-#: available file formats in a dictionary with suffix keys
-formats_by_suffix = {}
-# Populate list of available fit models
-for _item in formats_available:
-    _suffix = _item["suffix"]
-    if _suffix not in formats_by_suffix:
-        formats_by_suffix[_suffix] = []
-    formats_by_suffix[_suffix].append(_item)
-#: available file formats in a dictionary with modality keys
-formats_by_mode = {}
-for _item in formats_available:
-    _mode = _item["mode"]
-    if _mode not in formats_by_mode:
-        formats_by_mode[_mode] = []
-    formats_by_mode[_mode].append(_item)
-#: list of supported extensions
-supported_extensions = sorted(formats_by_suffix.keys())
+]:
+    register_format(recipe)

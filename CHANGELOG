@@ -3,6 +3,9 @@
  - feat: support new file format from AFM workshop (.csv)
  - feat: support new file format from JPK (.jpk-qi-data)
  - feat: support new file format from NT-MDT (.txt exported by Nova)
+ - enh: implement `AFMFormatRecipe` class for handling and verifying
+   recipe dictionaries
+ - enh: implement `register_format` function
 0.9.0
  - feat: support new file format from Asylum Research, Igor (.ibw)
  - ref: always compute piezo range metadata instead of taking it from

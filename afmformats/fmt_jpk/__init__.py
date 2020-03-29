@@ -45,23 +45,23 @@ def load_jpk(path, callback=None, meta_override={}):
 recipe_jpk_force = {
     "descr": "binary FD data",
     "loader": load_jpk,
-    "suffix": ".jpk-force",
-    "mode": "force-distance",
     "maker": "JPK Instruments",
+    "mode": "force-distance",
+    "suffix": ".jpk-force",
 }
 
 recipe_jpk_force_map = {
     "descr": "binary QMap data",
     "loader": load_jpk,
-    "suffix": ".jpk-force-map",
-    "mode": "force-distance",
     "maker": "JPK Instruments",
+    "mode": "force-distance",
+    "suffix": ".jpk-force-map",
 }
 
 recipe_jpk_force_qi = {
     "descr": "binary QMap data",
     "loader": load_jpk,
-    "suffix": ".jpk-qi-data",
-    "mode": "force-distance",
     "maker": "JPK Instruments",
+    "mode": "force-distance",
+    "suffix": ".jpk-qi-data",
 }
