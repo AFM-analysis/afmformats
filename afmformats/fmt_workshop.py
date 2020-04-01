@@ -68,15 +68,7 @@ def load_csv(path, callback=None, meta_override={}):
                                                              months[m],
                                                              int(d))
         elif line.startswith("Time:"):
-
-            time, ap = line.split(":", 1)[1].split()
-            timetup = time.split(":")
-            if ap == "PM":  # convert to 24h
-                timetup[0] = str(int(timetup[0]) + 12)
-            else:  # add leading 0 if necessary
-                timetup[0] = "{:02d}".format(int(timetup[0]))
-            time = ":".join(timetup)
-            metadata["time"] = time
+            metadata["time"] = line.split(":", 1)[1]
         elif line.startswith("Mode:"):
             # TODO: how should we deal with mapping?
             pass

@@ -52,14 +52,7 @@ def load_igor(path, callback=None, meta_override={}):
     metadata["date"] = notes["Date"]
     metadata["path"] = pathlib.Path(path)
     metadata["point count"] = wdata.shape[0]
-    time, ap = notes["Time"].split()
-    if ap == "PM":  # convert to 24h
-        timetup = time.split(":")
-        timetup[0] = str(int(timetup[0]) + 12)
-        time = ":".join(timetup)
-    metadata["time"] = time
-    metadata["curve id"] = metadata["date"] + "_" + metadata["time"]
-    metadata["session id"] = metadata["curve id"]
+    metadata["time"] = notes["Time"]
 
     # Data
     labels = []

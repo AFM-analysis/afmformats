@@ -96,7 +96,8 @@ class MetaData(dict):
     valid_keys = KEYS_VALID
 
     def __init__(self, *args, **kwargs):
-        super(MetaData, self).__init__(*args, **kwargs)
+        # make sure everything goes through __set__
+        self.update(*args, **kwargs)
         # check for invalid keys
         for key in self:
             if key not in self.valid_keys:
@@ -107,21 +108,53 @@ class MetaData(dict):
 
         The key must be a valid key defined in `self.valid_keys`
         (defaults to :const:`afmformats.meta.KEYS_VALID`).
+
+        The "time" key is converted using :func:`parse_time`.
         """
         if key not in self.valid_keys:
             raise KeyError("Unknown metadata key: '{}'".format(key))
+        elif key == "time":
+            value = parse_time(value)
         super(MetaData, self).__setitem__(key, value)
 
-    def __getitem__(self, *args, **kwargs):
-        if args[0] not in self and args[0] in self.valid_keys:
-            msg = "No meta data was defined for '{}'!".format(args[0]) \
+    def __getitem__(self, key):
+        if key == "curve id":
+            return self._get_curve_id()
+        elif key == "session id":
+            return self._get_session_id()
+        elif key not in self and key in self.valid_keys:
+            msg = "No meta data was defined for '{}'!".format(key) \
                   + "Please make sure you passed the dictionary `metadata` " \
                   + "when you loaded your data."
             raise MetaDataMissingError(msg)
-        elif args[0] not in self:
-            msg = "Unknown meta key: '{}'!".format(args[0])
+        elif key not in self:
+            msg = "Unknown meta key: '{}'!".format(key)
             raise KeyError(msg)
-        return super(MetaData, self).__getitem__(*args, **kwargs)
+        return super(MetaData, self).__getitem__(key)
+
+    def _get_curve_id(self):
+        # already set?
+        thisid = super(MetaData, self).get("curve id")
+        # compute using session_id
+        if not thisid and "enum" in self:
+            thisid = self._get_session_id() + "_{}".format(self["enum"])
+        # not available
+        if not thisid:
+            raise MetaDataMissingError("Key 'curve id' not set!")
+        return thisid
+
+    def _get_session_id(self):
+        # already set?
+        thisid = super(MetaData, self).get("session id")
+        # compute using date/time
+        if not thisid:
+            idlist = [self.get("date", ""),
+                      self.get("time", "")]
+            thisid = "_".join([it for it in idlist if it])
+        # not available
+        if not thisid:
+            raise MetaDataMissingError("Key 'session id' not set!")
+        return thisid
 
     def get_summary(self):
         """Convenience function returning the meta data summary
@@ -135,3 +168,45 @@ class MetaData(dict):
             for key in META_FIELDS[sec]:
                 summary[sec][key] = self.get(key, np.nan)
         return summary
+
+    def update(self, *args, **kwargs):
+        # make sure everything goes through __set__
+        for k, v in dict(*args, **kwargs).items():
+            self[k] = v
+
+
+def parse_time(value):
+    """Convert a time string to "HH:MM:SS.S"
+
+    - leading zeros are added where necessary
+    - trailing zeros after "." are stripped
+    - trailing "." is stripped
+
+    e.g.
+
+    - "6:15:22 PM" -> "18:15:22"
+    - "6:15:22.00 AM" -> "06:15:22"
+    - "6:02:22.010 AM" -> "06:02:22.01"
+    """
+    # fix AM/PM
+    if value.count(" "):
+        time, ap = value.split()
+        if ap == "PM":  # convert to 24h
+            timetup = time.split(":")
+            timetup[0] = str(int(timetup[0]) + 12)
+            time = ":".join(timetup)
+    else:
+        time = value
+    # convert to time with leading zeros and stripped subseconds
+    hh, mm, ss = time.split(":")
+    if ss.count("."):
+        ss0, ss1 = ss.split(".")
+        ss1 = ("." + ss1).rstrip(".0")
+    else:
+        ss0 = ss
+        ss1 = ""
+    newvalue = ":".join(["{:02d}".format(int(hh)),
+                         "{:02d}".format(int(mm)),
+                         "{:02d}".format(int(ss0)) + ss1
+                         ])
+    return newvalue

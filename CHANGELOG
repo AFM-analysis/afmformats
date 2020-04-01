@@ -1,3 +1,10 @@
+0.10.1
+ - fix: parsing issue when loading .ibw files without AM/PM in "Time"
+   metadata (#8)
+ - enh: make sure "time" is always parsed as HH:MM:SS.S when adding
+   it to `MetaData`
+ - enh: compute "curve id" and "session id" from "date", "time", and
+   "enum" if not given in `MetaData`
 0.10.0
  - feat: allow to override metadata when loading data
  - feat: support new file format from AFM workshop (.csv)
