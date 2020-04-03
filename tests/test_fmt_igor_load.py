@@ -24,6 +24,13 @@ def test_open_with_metadata():
                        rtol=1e-7, atol=0)
 
 
+def test_open_issue_8():
+    # test file provided by María Tenorio (CC0)
+    jpkfile = datadir / "SiN_FD_plot.ibw"
+    fdat = afmformats.load_data(jpkfile, mode="force-distance")[0]
+    assert fdat.metadata["time"] == "10:47:31"
+
+
 if __name__ == "__main__":
     # Run all tests
     loc = locals()
