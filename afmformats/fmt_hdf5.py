@@ -44,7 +44,7 @@ class H5DictReader(object):
                 val = np.asarray(self.h5[self.enum_key][key][:],
                                  dtype=column_dtypes[key])
         else:
-            raise KeyError("Column '{}' not in '{}/{}'".format(self.path,
+            raise KeyError("Column '{}' not in '{}/{}'".format(key, self.path,
                                                                self.enum_key))
         return val
 
