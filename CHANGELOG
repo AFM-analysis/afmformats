@@ -1,3 +1,6 @@
+0.11.0
+ - feat: allow defining "detect" method to determine whether a recipe
+   can open a file (#7)
 0.10.2
  - maintenance release
 0.10.1

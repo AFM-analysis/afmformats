@@ -1,5 +1,6 @@
 """Test NT-MDT text export format"""
 import pathlib
+import tempfile
 
 import numpy as np
 
@@ -7,6 +8,34 @@ import afmformats
 
 
 datadir = pathlib.Path(__file__).resolve().parent / "data"
+
+
+def test_detect():
+    path = datadir / "2015_01_17_gel4-0,1_mQ_adh_6B_Curve_DFL_Height_51.txt"
+    recipe = afmformats.formats.get_recipe(path)
+    assert recipe.descr == "exported by NT-MDT Nova"
+
+
+def test_detect_bad():
+    path = datadir / "2015_01_17_gel4-0,1_mQ_adh_6B_Curve_DFL_Height_51.txt"
+    _, tf = tempfile.mkstemp(suffix=".txt", prefix="afmformats_test")
+    data = pathlib.Path(path).read_text()
+    data.replace("\t", ",")
+    with pathlib.Path(tf).open("w") as fd:
+        # add a header line without any hashes
+        fd.write("header without hash")
+        fd.write(data)
+    try:
+        afmformats.formats.get_recipe(tf)
+    except ValueError:
+        pass
+    else:
+        assert False, "invalid format"
+    # cleanup
+    try:
+        pathlib.Path(tf).unlink()
+    except OSError:
+        pass
 
 
 def test_open_simple():

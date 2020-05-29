@@ -27,6 +27,19 @@ def crop_beginning(data):
     return data[ii-1:, :]
 
 
+def detect_txt(path):
+    """File should be plain text"""
+    valid = False
+    try:
+        rawdata = np.loadtxt(path, converters=converters, max_rows=10)
+    except ValueError:
+        pass
+    else:
+        if np.issubdtype(rawdata.dtype, np.floating):
+            valid = True
+    return valid
+
+
 def load_txt(path, callback=None, meta_override={}):
     """Load text files exported by the NT-MDT Nova software
 
@@ -86,6 +99,7 @@ def load_txt(path, callback=None, meta_override={}):
 
 recipe_ntmdt_txt = {
     "descr": "exported by NT-MDT Nova",
+    "detect": detect_txt,
     "loader": load_txt,
     "suffix": ".txt",
     "mode": "force-distance",

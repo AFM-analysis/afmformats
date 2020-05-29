@@ -40,6 +40,13 @@ class AFMFormatRecipe(object):
             raise ValueError("'mode' must be in {}, got '{}'!".format(
                 IMAGING_MODALITIES, self.mode))
 
+        # check detect
+        if "detect" in self.recipe:
+            if not callable(self.recipe["detect"]):
+                raise ValueError(
+                    "'detect' must be callable: '{}'".format(
+                        self.recipe["detect"]))
+
     def __getitem__(self, key):
         # backwards compatibility
         return getattr(self, key)
@@ -84,6 +91,51 @@ class AFMFormatRecipe(object):
         else:
             raise ValueError("No suffix defined for recipe {}!".format(self))
 
+    def detect(self, path):
+        """Determine whether `path` can be opened with this recipe
+
+        Returns
+        -------
+        valid: bool
+            True if `path` is openable, False otherwise.
+
+        Notes
+        -----
+        If the underlying recipe does not implement a "detect"
+        function, then only the file extension is checked.
+        """
+        valid = False
+        path = pathlib.Path(path)
+        # basic check for suffix
+        try:
+            if path.suffix == self.suffix:
+                valid = True
+        except ValueError:
+            pass
+
+        # advanced check with "detect"
+        if valid and "detect" in self.recipe:
+            fdetect = self.recipe["detect"]
+            valid = fdetect(path)
+
+        return valid
+
+
+def get_recipe(path, mode=None):
+    path = pathlib.Path(path)
+    if mode is None:
+        # TODO:
+        # - Try to figure out the mode somehow
+        mode = "force-distance"
+
+    recipes = formats_by_suffix[path.suffix]
+    for rec in recipes:
+        if rec.mode == mode and rec.detect(path):
+            break
+    else:
+        raise ValueError("Could not determine recipe for '{}'!".format(path))
+    return rec
+
 
 def load_data(path, mode=None, diskcache=False, callback=None,
               meta_override={}):
@@ -103,24 +155,17 @@ def load_data(path, mode=None, diskcache=False, callback=None,
     """
     path = pathlib.Path(path)
     if path.suffix in formats_by_suffix:
-        if mode is None:
-            # TODO:
-            # - Try to figure out the mode somehow
-            mode = "force-distance"
-        # TODO:
-        # - if multiple file types exist, get the right one (not the 1st)
-        recipe = formats_by_suffix[path.suffix][0]
         afmdata = []
-        if mode == "force-distance":
-            loader = recipe["loader"]
-            for dd in loader(path, callback=callback,
-                             meta_override=meta_override):
-                dd["metadata"]["format"] = "{} ({})".format(recipe["maker"],
-                                                            recipe["descr"])
-                ddi = AFMForceDistance(data=dd["data"],
-                                       metadata=dd["metadata"],
-                                       diskcache=diskcache)
-                afmdata.append(ddi)
+        recipe = get_recipe(path, mode)
+        loader = recipe.loader
+        for dd in loader(path, callback=callback,
+                         meta_override=meta_override):
+            dd["metadata"]["format"] = "{} ({})".format(recipe["maker"],
+                                                        recipe["descr"])
+            ddi = AFMForceDistance(data=dd["data"],
+                                   metadata=dd["metadata"],
+                                   diskcache=diskcache)
+            afmdata.append(ddi)
     else:
         raise ValueError("Unsupported file extension: '{}'!".format(path))
     return afmdata

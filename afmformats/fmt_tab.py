@@ -9,6 +9,28 @@ from .afm_data import column_dtypes, known_columns
 __all__ = ["load_tab"]
 
 
+def detect_tab(path, max_header=1000):
+    """Test whether `path` is in the tab format"""
+    has_begin = False
+    has_data = False
+    has_end = False
+    with path.open() as fd:
+        for _ in range(max_header):
+            line = fd.readline().strip()
+            if line.startswith("# BEGIN METADATA"):
+                has_begin = True
+            elif line.startswith("# END METADATA") and has_begin:
+                has_end = True
+            elif len(line) == 0 or line.startswith("#"):
+                continue
+            else:
+                # make sure the first line contains actual floats
+                if line.count("\t"):
+                    has_data = True
+                break
+    return has_begin and has_data and has_end
+
+
 def load_tab(path, callback=None, meta_override={}):
     """Loads tab-separated-value files as exported by afmformats
 
@@ -87,6 +109,7 @@ def string_to_dtype(astring, dtype):
 
 recipe_tab = {
     "descr": "tab-separated values",
+    "detect": detect_tab,
     "loader": load_tab,
     "suffix": ".tab",
     "mode": "force-distance",
