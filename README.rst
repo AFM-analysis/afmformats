@@ -24,7 +24,7 @@ To install the latest release, simply run:
 .. |PyPI Version| image:: https://img.shields.io/pypi/v/afmformats.svg
    :target: https://pypi.python.org/pypi/afmformats
 .. |Build Status Linux| image:: https://img.shields.io/travis/AFM-analysis/afmformats.svg?label=build_linux
-   :target: https://travis-ci.org/AFM-analysis/afmformats
+   :target: https://travis-ci.com/AFM-analysis/afmformats
 .. |Build Status Win| image:: https://img.shields.io/appveyor/ci/paulmueller/afmformats/master.svg?label=build_win
    :target: https://ci.appveyor.com/project/paulmueller/afmformats
 .. |Coverage Status| image:: https://img.shields.io/codecov/c/github/AFM-analysis/afmformats/master.svg
