@@ -1,0 +1,68 @@
+{
+  "sensitivity": ["channel.vDeflection.conversion-set.conversion.distance.scaling.multiplier"],
+  "spring constant": ["channel.vDeflection.conversion-set.conversion.force.scaling.multiplier"],
+  "feedback mode": ["force-segment-header.settings.feedback-mode.name"],
+  "duration":  ["force-segment-header.duration"],
+  "point count": ["force-segment-header.num-points"],
+  "session id": ["force-segment-header.approach-id"],
+  "grid center x": [
+    "force-scan-map.position-pattern.grid.xcenter",
+    "force-scan-series.position-pattern.grid.xcenter",
+    "quantitative-imaging-map.position-pattern.grid.xcenter",
+    "quantitative-imaging-series.position-pattern.grid.xcenter"
+  ],
+  "grid center y": [
+    "force-scan-map.position-pattern.grid.ycenter",
+    "force-scan-series.position-pattern.grid.ycenter",
+    "quantitative-imaging-map.position-pattern.grid.ycenter",
+    "quantitative-imaging-series.position-pattern.grid.ycenter"
+  ],
+  "grid shape x": [
+    "force-scan-map.position-pattern.grid.ilength",
+    "force-scan-series.position-pattern.grid.ilength",
+    "quantitative-imaging-map.position-pattern.grid.ilength",
+    "quantitative-imaging-series.position-pattern.grid.ilength"
+  ],
+  "grid shape y": [
+    "force-scan-map.position-pattern.grid.jlength",
+    "force-scan-series.position-pattern.grid.jlength",
+    "quantitative-imaging-map.position-pattern.grid.jlength",
+    "quantitative-imaging-series.position-pattern.grid.jlength"
+  ],
+  "grid size x": [
+    "force-scan-map.position-pattern.grid.ulength",
+    "force-scan-series.position-pattern.grid.ulength",
+    "quantitative-imaging-map.position-pattern.grid.ulength",
+    "quantitative-imaging-series.position-pattern.grid.ulength"
+  ],
+  "grid size y": [
+    "force-scan-map.position-pattern.grid.vlength",
+    "force-scan-series.position-pattern.grid.vlength",
+    "quantitative-imaging-map.position-pattern.grid.vlength",
+    "quantitative-imaging-series.position-pattern.grid.vlength"
+  ],
+  "instrument": [
+    "force-scan-map.description.instrument",
+    "force-scan-series.description.instrument",
+    "quantitative-imaging-map.description.instrument",
+    "quantitative-imaging-series.description.instrument"
+  ],
+  "position x": [
+    "force-scan-map.header.position.x",
+    "force-scan-series.header.position.x",
+    "quantitative-imaging-map.header.position.x",
+    "quantitative-imaging-series.header.position.x"
+  ],
+  "position y": [
+    "force-scan-map.header.position.y",
+    "force-scan-series.header.position.y",
+    "quantitative-imaging-map.header.position.y",
+    "quantitative-imaging-series.header.position.y"
+  ],
+  "software version": [
+    "force-scan-map.description.source-software",
+    "force-scan-series.description.source-software",
+    "quantitative-imaging-map.description.source-software",
+    "quantitative-imaging-series.description.source-software"
+  ]
+}

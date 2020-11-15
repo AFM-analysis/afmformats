@@ -1,6 +1,8 @@
 """Methods to open JPK data files and to obtain meta data"""
 import functools
+import json
 import pathlib
+from pkg_resources import resource_filename
 import tempfile
 import zipfile
 
@@ -72,95 +74,37 @@ def get_data_list(path_jpk):
     return seglist
 
 
+@functools.lru_cache()
+def get_primary_meta_recipe():
+    with open(resource_filename("afmformats.fmt_jpk",
+                                "jpk_meta_primary.json")) as fd:
+        meta_recipe_pri = json.load(fd)
+    return meta_recipe_pri
+
+
+@functools.lru_cache()
+def get_secondary_meta_recipe():
+    with open(resource_filename("afmformats.fmt_jpk",
+                                "jpk_meta_secondary.json")) as fd:
+        meta_recipe_sec = json.load(fd)
+    return meta_recipe_sec
+
+
 def get_meta_data_seg(path_segment):
     """Obtain most important meta-data for a segment folder
     """
     segment = pathlib.Path(path_segment)
-    conv = "channel.vDeflection.conversion-set.conversion"
-    sens_str = conv + ".distance.scaling.multiplier"
-    sprc_str = conv + ".force.scaling.multiplier"
-    pos_str = "force-segment-header.environment.xy-scanner-position-map"\
-              + ".xy-scanner.motorstage.position."
 
-    # These are properties that will be returned, if they exist in the header
-    # files.
-    dvars = [
-        # acquisition
-        ["sensitivity", sens_str],
-        ["spring constant", sprc_str],
-        ["feedback mode", "force-segment-header.settings.feedback-mode.name"],
-        # dataset
-        ["duration", "force-segment-header.duration"],
-        ["point count", "force-segment-header.num-points"],
-        # storage
-        ["session id", "force-segment-header.approach-id"],
-    ]
-
-    # These are properties that will not be returned, but are used for the
-    # computation of properties.
-    dvars_im = [
-        ["z start", "force-segment-header.settings.segment-settings.z-start"],
-        ["z end", "force-segment-header.settings.segment-settings.z-end"],
-        # Setpoint is stored in Volts and needs to be converted still
-        ["setpoint [V]",
-         "force-segment-header.settings.segment-settings.setpoint"],
-        ["position x [m]", pos_str + "x"],
-        ["position y [m]", pos_str + "y"],
-        ["curve type", "force-segment-header.settings.style"],
-    ]
-
-    for sec in ["force-scan-map.",
-                "force-scan-series.",
-                "quantitative-imaging-map.",
-                "quantitative-imaging-series.",
-                ]:
-        # qmap
-        dvars.append(["grid shape x",
-                      sec + "position-pattern.grid.ilength"])
-        dvars.append(["grid shape y",
-                      sec + "position-pattern.grid.jlength"])
-        # setup
-        dvars.append(["instrument",
-                      sec + "description.instrument"]),
-        dvars.append(["software version",
-                      sec + "description.source-software"]),
-
-        # intermediate properties
-        dvars_im.append(["grid size x [m]",
-                         sec + "position-pattern.grid.ulength"])
-        dvars_im.append(["grid size y [m]",
-                         sec + "position-pattern.grid.vlength"])
-        dvars_im.append(["grid center x [m]",
-                         sec + "position-pattern.grid.xcenter"])
-        dvars_im.append(["grid center y [m]",
-                         sec + "position-pattern.grid.ycenter"])
-        dvars_im.append(["position index",
-                         sec + "header.position-index"])
-        dvars_im.append(["position x [m]",
-                         sec + "header.position.x"])
-        dvars_im.append(["position y [m]",
-                         sec + "header.position.y"])
-
+    # 1. Populate with primary metadata
     md = meta.MetaData()
-    # Currently, only force-distance mode is supported!
-    md["imaging mode"] = "force-distance"
-    if segment.name == "0":
-        curseg = "approach"
-    else:
-        curseg = "retract"
-    md["software"] = "JPK"
-    md_im = {}
+    recipe = get_primary_meta_recipe()
     header_file = segment / "segment-header.properties"
     prop = get_seg_head_prop(header_file)
-
-    # date and time
-    md["date"], md["time"], _ = prop["force-segment-header.time-stamp"].split()
-
-    for mdi, dvarsi in [[md, dvars], [md_im, dvars_im]]:
-        for name, var in dvarsi:
-            if var in prop:
-                mdi[name] = prop[var]
-
+    for key in recipe:
+        for vari in recipe[key]:
+            if vari in prop:
+                md[key] = prop[vari]
+                break
     for mkey in ["spring constant",
                  "sensitivity",
                  ]:
@@ -168,45 +112,51 @@ def get_meta_data_seg(path_segment):
             msg = "Missing meta data: '{}'".format(mkey)
             raise ReadJPKMetaKeyError(msg)
 
-    md["curve id"] = "{}:{:g}".format(md["session id"], mdi["position index"])
+    # Currently, only force-distance mode is supported!
+    md["imaging mode"] = "force-distance"
+    if segment.name == "0":
+        curseg = "approach"
+    else:
+        curseg = "retract"
+    md["software"] = "JPK"
 
-    md["setpoint"] = md_im["setpoint [V]"] * \
-        md["spring constant"]*md["sensitivity"]
-
-    md["rate " + curseg] = md["point count"]/md["duration"]
-    zrange = abs(md_im["z start"] - md_im["z end"])
-    md["speed " + curseg] = zrange/md["duration"]
-    if "position x [m]" in md_im:
-        md["position x"] = md_im["position x [m]"]
-    if "position y [m]" in md_im:
-        md["position y"] = md_im["position y [m]"]
-    if "grid size x [m]" in md_im:
-        md["grid size x"] = md_im["grid size x [m]"]
-    if "grid size y [m]" in md_im:
-        md["grid size y"] = md_im["grid size y [m]"]
-    if "grid center x [m]" in md_im:
-        md["grid center x"] = md_im["grid center x [m]"]
-    if "grid center y [m]" in md_im:
-        md["grid center y"] = md_im["grid center y [m]"]
-    if ("position x [m]" in md_im and
-        "position y [m]" in md_im and
-        "grid size x [m]" in md_im and
-        "grid size y [m]" in md_im and
-        "grid center x [m]" in md_im and
-        "grid center y [m]" in md_im and
-        "grid shape x" in md and
-            "grid shape y" in md):
-        pxpx = position_m2px(pos_m=md_im["position x [m]"],
-                             size_m=md_im["grid size x [m]"],
-                             center_m=md_im["grid center x [m]"],
+    if ("position x" in md and "position y" in md
+        and "grid size x" in md and "grid size y" in md
+        and "grid center x" in md and "grid center y" in md
+            and "grid shape x" in md and "grid shape y" in md):
+        pxpx = position_m2px(pos_m=md["position x"],
+                             size_m=md["grid size x"],
+                             center_m=md["grid center x"],
                              size_px=md["grid shape x"])
-        pypx = position_m2px(pos_m=md_im["position y [m]"],
-                             size_m=md_im["grid size y [m]"],
-                             center_m=md_im["grid center y [m]"],
+        pypx = position_m2px(pos_m=md["position y"],
+                             size_m=md["grid size y"],
+                             center_m=md["grid center y"],
                              size_px=md["grid shape y"])
         md["grid index x"] = pxpx
         md["grid index y"] = pypx
 
+    # 2. Populate with secondary metadata
+    recipe_2 = get_secondary_meta_recipe()
+    md_im = {}
+
+    for key in recipe_2:
+        for vari in recipe_2[key]:
+            if vari in prop:
+                md_im[key] = prop[vari]
+                break
+
+    md["curve id"] = "{}:{:g}".format(md["session id"],
+                                      md_im["position index"])
+    md["setpoint"] = md_im["setpoint [V]"] * \
+        md["spring constant"] * md["sensitivity"]
+
+    md["rate " + curseg] = md["point count"] / md["duration"]
+    zrange = abs(md_im["z start"] - md_im["z end"])
+    md["speed " + curseg] = zrange / md["duration"]
+    # date and time
+    md["date"], md["time"], _ = md_im["time stamp"].split()
+
+    # Convert designated keys to integers
     integer_keys = ["grid shape x",
                     "grid shape y",
                     "grid index x",
@@ -331,7 +281,7 @@ def position_m2px(pos_m, size_m, center_m, size_px):
     s2 = center_m + size_m / 2
 
     x, dx = np.linspace(s1, s2, size_px, endpoint=False, retstep=True)
-    x += dx/2
+    x += dx / 2
 
-    xpx = np.nanargmin(np.abs(x-pos_m))
+    xpx = np.nanargmin(np.abs(x - pos_m))
     return xpx

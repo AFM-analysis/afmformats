@@ -1,6 +1,7 @@
 include CHANGELOG
 include LICENSE
 include README.rst
+recursive-include afmformats *.json
 recursive-include tests *.jpk-force *.jpk-force-map *.py
 
 
