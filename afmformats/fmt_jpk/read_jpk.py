@@ -1,14 +1,16 @@
 """Methods to open JPK data files and to obtain meta data"""
 import pathlib
 import shutil
+import tempfile
 import zipfile
 
 import numpy as np
 
 from ..errors import FileFormatNotSupportedError
 
-from . import read_jpk_meta as meta
 from .jpk_reader import JPKReader
+from . import read_jpk_meta
+from . import jpk_meta
 
 
 class ReadJPKError(FileFormatNotSupportedError):
@@ -23,6 +25,19 @@ VALID_IDS_FORCE = ["vDeflection"]
 VALID_IDS_HEIGHT = ["strainGaugeHeight", "capacitiveSensorHeight",
                     "measuredHeight"]
 VALID_IDS_PIEZO = ["height", "head-height"]
+
+
+def extract_jpk(path_jpk, props_only=False):
+    """Extract the JPK data files and return the extracted path"""
+    tdir = tempfile.mkdtemp(prefix="afmformats_jpk_")
+    with zipfile.ZipFile(str(path_jpk)) as fd:
+        if props_only:
+            for name in fd.namelist():
+                if name.endswith(".properties"):
+                    fd.extract(name, tdir)
+        else:
+            fd.extractall(tdir)
+    return pathlib.Path(tdir)
 
 
 def find_column(loc_list, id_list):
@@ -80,13 +95,15 @@ def load_jpk(path, callback=None):
     if callback:
         callback(0)
     # First, only extract the properties
-    tdir = meta.extract_jpk(path, props_only=True)
+    tdir = extract_jpk(path, props_only=True)
+    # Instantiate JPKReader
+    jpkr = JPKReader(path)
     # Get data file names
-    indexlist = meta.get_data_list(path)
+
+    indexlist = jpkr.get_data_list()
 
     measurements = []
     try:
-        jpkr = JPKReader(path)
         with zipfile.ZipFile(str(path)) as arc:
             for ii, item in enumerate(indexlist):
                 mm = []
@@ -102,7 +119,7 @@ def load_jpk(path, callback=None):
                     # get meta data
                     try:
                         mdi = jpkr.get_metadata(index=ii, segment=mi)
-                    except meta.ReadJPKMetaKeyError as exc:
+                    except jpk_meta.ReadJPKMetaKeyError as exc:
                         exc.args = ("{}, File: '{}'".format(exc.args[0], path))
                         raise
                     mdi["enum"] = enum
@@ -225,7 +242,7 @@ def load_jpk_single_curve(path_jpk, segment=0, column="vDeflection",
         tdir = path_jpk
         cleanup = False
     else:
-        tdir = meta.extract_jpk(path_jpk)
+        tdir = extract_jpk(path_jpk)
         cleanup = True
     segroot = tdir / "segments"
     if not segroot.exists():
@@ -309,7 +326,7 @@ def load_dat_raw(path_dat):
 
     # open header file
     header_file = path_dat.parents[1] / "segment-header.properties"
-    prop = meta.get_seg_head_prop(header_file)
+    prop = read_jpk_meta.get_seg_head_prop(header_file)
 
     # extract multiplier and offset from header
     # multiplier
@@ -465,7 +482,7 @@ def load_dat_unit(path_dat, slot="default"):
 
     # open header file
     header_file = path_dat.parents[1] / "segment-header.properties"
-    prop = meta.get_seg_head_prop(header_file)
+    prop = read_jpk_meta.get_seg_head_prop(header_file)
 
     conv = "channel.{}.conversion-set".format(key)
 

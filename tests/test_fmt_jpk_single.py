@@ -2,7 +2,7 @@
 import pathlib
 import shutil
 
-from afmformats.fmt_jpk import read_jpk, read_jpk_meta, jpk_meta
+from afmformats.fmt_jpk import read_jpk, jpk_meta, JPKReader
 
 
 datadir = pathlib.Path(__file__).resolve().parent / "data"
@@ -10,7 +10,7 @@ datadir = pathlib.Path(__file__).resolve().parent / "data"
 
 def test_open_jpk_simple():
     jpkfile = datadir / "spot3-0192.jpk-force"
-    tdir = read_jpk_meta.extract_jpk(jpkfile)
+    tdir = read_jpk.extract_jpk(jpkfile)
     segroot = tdir / "segments"
     seg = sorted(segroot.glob("[0-1]"))
     chan_data = {}
@@ -34,7 +34,7 @@ def test_open_jpk_calibration():
 
 def test_open_jpk_conversion():
     jpkfile = datadir / "spot3-0192.jpk-force"
-    tdir = read_jpk_meta.extract_jpk(jpkfile)
+    tdir = read_jpk.extract_jpk(jpkfile)
     segroot = tdir / "segments"
     seg = sorted(segroot.glob("[0-1]"))
     chan_data = {}
@@ -68,18 +68,16 @@ def test_get_single_curves():
 
 def test_meta():
     jpkfile = datadir / "spot3-0192.jpk-force"
-    tdir = read_jpk_meta.extract_jpk(jpkfile)
-    sdir = tdir / "segments" / "0"
-    md = read_jpk_meta.get_meta_data_seg(sdir)
+    jpkr = JPKReader(jpkfile)
+    md = jpkr.get_metadata(0, 1)
     assert md["spring constant"] == 0.043493666407368466
 
 
 def test_load_jpk():
     jpkfile = datadir / "spot3-0192.jpk-force"
     segs = read_jpk.load_jpk(jpkfile)
-    tdir = read_jpk_meta.extract_jpk(jpkfile)
-    sdir = tdir / "segments" / "0"
-    md = read_jpk_meta.get_meta_data_seg(sdir)
+    jpkr = JPKReader(jpkfile)
+    md = jpkr.get_metadata(0, 1)
     assert md["imaging mode"] == "force-distance"
     assert len(segs) == 1, "Only one measurement"
     assert len(segs[0]) == 2, "approach and retract curves"

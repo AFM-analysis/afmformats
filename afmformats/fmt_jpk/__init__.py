@@ -6,7 +6,7 @@ from .jpk_reader import JPKReader  # noqa: F401
 from . import read_jpk
 
 
-__all__ = ["load_jpk"]
+__all__ = ["JPKReader", "load_jpk"]
 
 
 def load_jpk(path, callback=None, meta_override={}):

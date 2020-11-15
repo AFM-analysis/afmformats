@@ -51,7 +51,7 @@ class JPKReader(object):
             props = {}
         return props
 
-    def _get_index_segment_properties(self, index, segment=None):
+    def _get_index_segment_properties(self, index, segment):
         """Return properties fro a specific index and segment
 
         Parameters
@@ -158,6 +158,20 @@ class JPKReader(object):
             raise IndexError("Cannot find path for index '{}'!".format(index))
         return path
 
+    def get_index_segment_numbers(self, index):
+        """Return available segment numbers for an index"""
+        segments = []
+        seg = 0
+        while True:
+            try:
+                self.get_index_segment_path()
+            except IndexError:
+                break
+            else:
+                segments.append(seg)
+                seg += 1
+        return segments
+
     def get_index_segment_path(self, index, segment):
         """Return the path in the zip file for a specific index and segment"""
         if self.hierarchy == "single":
@@ -179,9 +193,14 @@ class JPKReader(object):
         index: int
             Curve index; For "single" hierarchy files, this should be 0.
         segment: int or None
-            If None, then no segment-specific properties (e.g.
-            approach or retract) are returned.
+            If None, then all segment-specific properties (e.g.
+            approach and retract) are returned.
         """
+        if segment is None:
+            md = meta.MetaData()
+            for seg in self.get_segment_numbers(index):
+                md.update(self.get_metadata(index, seg))
+            return md
         prop = self._get_index_segment_properties(index=index, segment=segment)
         # 1. Populate with primary metadata
         md = meta.MetaData()
