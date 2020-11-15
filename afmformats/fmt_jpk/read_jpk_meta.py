@@ -100,6 +100,7 @@ def get_meta_data_seg(path_segment):
     recipe = get_primary_meta_recipe()
     header_file = segment / "segment-header.properties"
     prop = get_seg_head_prop(header_file)
+
     for key in recipe:
         for vari in recipe[key]:
             if vari in prop:

@@ -2,7 +2,7 @@
 import pathlib
 import shutil
 
-from afmformats.fmt_jpk import read_jpk, read_jpk_meta
+from afmformats.fmt_jpk import read_jpk, read_jpk_meta, jpk_meta
 
 
 datadir = pathlib.Path(__file__).resolve().parent / "data"
@@ -26,7 +26,7 @@ def test_open_jpk_calibration():
     cf = datadir / "calibration_force-save-2015.02.04-11.25.21.294.jpk-force"
     try:
         read_jpk.load_jpk(cf)
-    except read_jpk_meta.ReadJPKMetaKeyError:
+    except jpk_meta.ReadJPKMetaKeyError:
         pass
     else:
         assert False, "no spring constant should raise error"

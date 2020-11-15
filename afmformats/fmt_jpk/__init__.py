@@ -1,6 +1,8 @@
 import pathlib
 
 import numpy as np
+
+from .jpk_reader import JPKReader  # noqa: F401
 from . import read_jpk
 
 

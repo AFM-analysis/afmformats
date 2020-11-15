@@ -5,9 +5,10 @@ import zipfile
 
 import numpy as np
 
-from . import read_jpk_meta as meta
-
 from ..errors import FileFormatNotSupportedError
+
+from . import read_jpk_meta as meta
+from .jpk_reader import JPKReader
 
 
 class ReadJPKError(FileFormatNotSupportedError):
@@ -85,6 +86,7 @@ def load_jpk(path, callback=None):
 
     measurements = []
     try:
+        jpkr = JPKReader(path)
         with zipfile.ZipFile(str(path)) as arc:
             for ii, item in enumerate(indexlist):
                 mm = []
@@ -98,10 +100,8 @@ def load_jpk(path, callback=None):
                     # mi == 0: approach
                     # mi == 1: retract
                     # get meta data
-                    # (segfolder contains "segment-header.properties")
-                    segfolder = tdir / curve[0].rsplit("channels")[0]
                     try:
-                        mdi = meta.get_meta_data_seg(segfolder)
+                        mdi = jpkr.get_metadata(index=ii, segment=mi)
                     except meta.ReadJPKMetaKeyError as exc:
                         exc.args = ("{}, File: '{}'".format(exc.args[0], path))
                         raise
