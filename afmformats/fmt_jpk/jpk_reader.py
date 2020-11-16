@@ -23,7 +23,21 @@ class JPKReader(object):
     @functools.lru_cache()
     def files(self):
         """List of files and folders in the archive"""
-        return sorted(self.arc.namelist())
+        nlist = self.arc.namelist()
+        maxdigits = int(np.ceil(np.log10(len(nlist)))) + 1
+        repstr = "{:0" + "{}".format(maxdigits) + "d}"
+
+        def sortkey(x):
+            if x.count("/"):
+                xs = x.split("/")
+                for ii in range(len(xs)):
+                    if xs[ii].isnumeric():
+                        xs[ii] = repstr.format(int(xs[ii]))
+                return "/".join(xs)
+            else:
+                return x
+
+        return sorted(nlist, key=sortkey)
 
     @property
     @functools.lru_cache()
@@ -77,7 +91,7 @@ class JPKReader(object):
         # 2. Properties of segment (if applicable)
         if segment is not None:
             p_segment = self.get_index_segment_path(index, segment) \
-                + "segment-header.properties"
+                        + "segment-header.properties"
             with self.arc.open(p_segment, "r") as fd:
                 prop.update(jprops.load_properties(fd))
 
@@ -195,7 +209,7 @@ class JPKReader(object):
             # TODO: is there a more efficient way?
             for ff in self.files:
                 if (ff.startswith("index/")
-                    and ff.count("/") == 2
+                        and ff.count("/") == 2
                         and ff.endswith("/")):
                     indices.append(int(ff.split("/")[1]))
         indices = np.array(indices, dtype=int)
