@@ -149,7 +149,7 @@ def load_dat_unit(fd, name, properties, slot="default"):
 
     Parameters
     ----------
-    fd : str
+    fd: file
         Open .dat file
     name: str
         Name of the data to read (required for scale conversions)

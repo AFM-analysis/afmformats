@@ -17,15 +17,7 @@ class JPKReader(object):
 
     @functools.lru_cache()
     def __len__(self):
-        if self.hierarchy == "single":
-            return 1
-        else:
-            # TODO: is there a more efficient way?
-            indices = []
-            for ff in self.files:
-                if ff.startswith("index/") and ff.count("/") == 2:
-                    indices.append(ff.split("/")[1])
-            return len(set(indices))
+        return len(self.get_index_numbers())
 
     @property
     @functools.lru_cache()
@@ -103,14 +95,14 @@ class JPKReader(object):
                 # Replace the lcd-info tag by the values in the shared
                 # properties file:
                 # 0, 1, 2, 3, etc.
-                index = prop[key]
+                pindex = prop[key]
                 # lcd-info, force-segment-header-info
                 mediator = ".".join(key.split(".")[-2:-1])
                 # channel.vDeflection, force-segment-header
                 headkey = key.rsplit(".", 2)[0]
                 # append a "." here to make sure
                 # not to confuse "1" with "10".
-                startid = "{}.{}.".format(mediator, index)
+                startid = "{}.{}.".format(mediator, pindex)
                 for k2 in pslist:
                     if k2.startswith(startid):
                         var = ".".join(k2.split(".")[2:])
@@ -189,17 +181,40 @@ class JPKReader(object):
             return data
 
     @functools.lru_cache()
+    def get_index_numbers(self):
+        """Return int array with available index numbers
+
+        The numbers is what we refer to as "enum" in afmformats.
+        Sometimes individual curves are missing from JPK files.
+        These have to be correctly indexed.
+        """
+        indices = []
+        if self.hierarchy == "single":
+            indices.append(0)
+        else:
+            # TODO: is there a more efficient way?
+            for ff in self.files:
+                if (ff.startswith("index/")
+                    and ff.count("/") == 2
+                        and ff.endswith("/")):
+                    indices.append(int(ff.split("/")[1]))
+        indices = np.array(indices, dtype=int)
+        return indices
+
+    @functools.lru_cache()
     def get_index_path(self, index):
         """Return the path in the zip file for a specific curve index"""
+        enum = self.get_index_numbers()[index]
         if self.hierarchy == "single":
             path = ""
         elif self.hierarchy == "indexed":
-            path = "index/{}/".format(index)
+            path = "index/{}/".format(enum)
         else:
             raise NotImplementedError("No rule to get path for hierarchy "
                                       + "'{}'!".format(self.hierarchy))
         if path and path not in self.files:
-            raise IndexError("Cannot find path for index '{}'!".format(index))
+            raise IndexError("Cannot find path for index '{}' ".format(index)
+                             + " (enum '{}')!".format(enum))
         return path
 
     @functools.lru_cache()
@@ -220,15 +235,17 @@ class JPKReader(object):
     @functools.lru_cache()
     def get_index_segment_path(self, index, segment):
         """Return the path in the zip file for a specific index and segment"""
+        enum = self.get_index_numbers()[index]
         if self.hierarchy == "single":
             path = "segments/{}/".format(segment)
         elif self.hierarchy == "indexed":
-            path = "index/{}/segments/{}/".format(index, segment)
+            path = "index/{}/segments/{}/".format(enum, segment)
         else:
             raise NotImplementedError("No rule to get path for hierarchy "
                                       + "'{}'!".format(self.hierarchy))
         if path not in self.files:
-            raise IndexError("Cannot find path for index '{}'!".format(index))
+            raise IndexError("Cannot find path for index '{}' ".format(index)
+                             + "(enum '{}')".format(enum))
         return path
 
     @functools.lru_cache()
@@ -278,7 +295,7 @@ class JPKReader(object):
             curseg = "retract"
         md["software"] = "JPK"
 
-        md["enum"] = index
+        md["enum"] = int(self.get_index_numbers()[index])
         md["path"] = self.path
 
         if ("position x" in md and "position y" in md
