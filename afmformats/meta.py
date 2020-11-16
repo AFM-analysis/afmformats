@@ -110,11 +110,15 @@ class MetaData(dict):
         (defaults to :const:`afmformats.meta.KEYS_VALID`).
 
         The "time" key is converted using :func:`parse_time`.
+        NaN values are silently ignored.
         """
         if key not in self.valid_keys:
             raise KeyError("Unknown metadata key: '{}'".format(key))
         elif key == "time":
             value = parse_time(value)
+        if isinstance(value, np.float) and np.isnan(value):
+            # nan values are ignored
+            return
         super(MetaData, self).__setitem__(key, value)
 
     def __getitem__(self, key):

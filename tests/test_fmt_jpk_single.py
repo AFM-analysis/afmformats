@@ -48,6 +48,22 @@ def test_open_jpk_conversion():
     assert chan_data["strainGaugeHeight"][0][0] == 2.2815672438768612e-05
 
 
+def test_get_both_metadata():
+    jpkfile = datadir / "spot3-0192.jpk-force"
+    jpkr = JPKReader(jpkfile)
+    md1 = jpkr.get_metadata(index=0, segment=0)
+    md2 = jpkr.get_metadata(index=0, segment=1)
+    md = jpkr.get_metadata(index=0, segment=None)
+    for key1 in md1:
+        assert md1[key1] == md[key1]
+    for key2 in md2:
+        if key2 == "time":
+            # time from approach curve should be used
+            assert md2[key2] != md[key2]
+        else:
+            assert md2[key2] == md[key2]
+
+
 def test_get_single_curves():
     jpkfile = datadir / "spot3-0192.jpk-force"
     jpkr = JPKReader(jpkfile)

@@ -217,7 +217,7 @@ class JPKReader(object):
         """
         if segment is None:
             md = meta.MetaData()
-            for seg in self.get_segment_numbers(index):
+            for seg in self.get_index_segment_numbers(index)[::-1]:
                 md.update(self.get_metadata(index, seg))
             return md
         prop = self._get_index_segment_properties(index=index, segment=segment)
