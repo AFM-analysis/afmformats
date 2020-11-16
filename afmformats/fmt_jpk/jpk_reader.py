@@ -126,7 +126,7 @@ class JPKReader(object):
                 pass
         return prop
 
-    def get_data(self, column, index, segment):
+    def get_data(self, column, index, segment=None):
         """Return data for a given column, index, or segment
 
         Parameters
@@ -135,7 +135,7 @@ class JPKReader(object):
             Valid column from :const:`afmformats.afm_data.known_columns`
         index: int
             Curve index in the current archive
-        segment: int
+        segment: int or None
             Segment index for chosen curve index
 
         Returns
@@ -143,11 +143,19 @@ class JPKReader(object):
         data: 1d ndarray
             Column data
         """
+        numsegs = self.get_index_segment_numbers(index)
+        if segment is None:
+            # Return concatenated data for all segments
+            data = []
+            for seg in numsegs:
+                data.append(self.get_data(column=column, index=index,
+                                          segment=seg))
+            return np.concatenate(data)
         md = self.get_metadata(index, segment)
         prop = self._get_index_segment_properties(index, segment)
+        numsegs = self.get_index_segment_numbers(index)
         # Find the data file that corresponds to the specified column
         if column == "time":
-            numsegs = self.get_index_segment_numbers(index)
             # get initial time
             start = 0
             if segment != 0:
@@ -157,6 +165,12 @@ class JPKReader(object):
 
             return np.linspace(start, start + md["duration"],
                                md["point count"], endpoint=False)
+        elif column == "segment":
+            if len(numsegs) <= 2:
+                dtype = bool
+            else:
+                dtype = np.uint8
+            return np.ones(md["point count"], dtype=dtype) * dtype(segment)
         else:
             # get the segment's data list
             p_seg = self.get_index_segment_path(index, segment)
