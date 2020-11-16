@@ -64,6 +64,7 @@ class JPKReader(object):
             props = {}
         return props
 
+    @functools.lru_cache()
     def _get_index_segment_properties(self, index, segment):
         """Return properties fro a specific index and segment
 
@@ -186,6 +187,7 @@ class JPKReader(object):
                     column, unit))
             return data
 
+    @functools.lru_cache()
     def get_index_path(self, index):
         """Return the path in the zip file for a specific curve index"""
         if self.hierarchy == "single":
@@ -199,6 +201,7 @@ class JPKReader(object):
             raise IndexError("Cannot find path for index '{}'!".format(index))
         return path
 
+    @functools.lru_cache()
     def get_index_segment_numbers(self, index):
         """Return available segment numbers for an index"""
         segments = []
@@ -213,6 +216,7 @@ class JPKReader(object):
                 seg += 1
         return segments
 
+    @functools.lru_cache()
     def get_index_segment_path(self, index, segment):
         """Return the path in the zip file for a specific index and segment"""
         if self.hierarchy == "single":
@@ -226,6 +230,7 @@ class JPKReader(object):
             raise IndexError("Cannot find path for index '{}'!".format(index))
         return path
 
+    @functools.lru_cache()
     def get_metadata(self, index, segment=None):
         """Return the metadata for a specific index and segment
 
