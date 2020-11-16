@@ -1,5 +1,7 @@
 import numpy as np
 
+from ..lazy_loader import LazyData
+
 from .jpk_reader import JPKReader
 
 
@@ -19,14 +21,18 @@ def load_jpk(path, callback=None, meta_override=None):
     dataset = []
     # iterate over all datasets and add them
     for index in range(len(jpkr)):
-        data = {}
+        lazy_data = LazyData()
         for column in ["force", "height (measured)", "height (piezo)",
                        "segment", "time"]:
-            data[column] = jpkr.get_data(column=column, index=index)
+            lazy_data.set_lazy_loader(column=column,
+                                      func=jpkr.get_data,
+                                      kwargs={"column": column,
+                                              "index": index})
         metadata = jpkr.get_metadata(index=index)
-        metadata["z range"] = np.ptp(data["height (piezo)"])
+        # TODO: the following line slows things down, refactor?
+        metadata["z range"] = np.ptp(lazy_data["height (piezo)"])
         metadata.update(meta_override)
-        dataset.append({"data": data,
+        dataset.append({"data": lazy_data,
                         "metadata": metadata,
                         })
         if callback:

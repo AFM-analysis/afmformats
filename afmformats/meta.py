@@ -127,7 +127,7 @@ class MetaData(dict):
         elif key == "session id":
             return self._get_session_id()
         elif key not in self and key in self.valid_keys:
-            msg = "No meta data was defined for '{}'!".format(key) \
+            msg = "No meta data was defined for '{}'! ".format(key) \
                   + "Please make sure you passed the dictionary `metadata` " \
                   + "when you loaded your data."
             raise MetaDataMissingError(msg)

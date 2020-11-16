@@ -1,3 +1,4 @@
+import copy
 import functools
 import zipfile
 
@@ -246,7 +247,7 @@ class JPKReader(object):
             md = meta.MetaData()
             # reverse order, because we want "time" from first md
             for seg in self.get_index_segment_numbers(index)[::-1]:
-                mdap = self.get_metadata(index, seg)
+                mdap = copy.deepcopy(self.get_metadata(index, seg))
                 if "duration" in md:
                     md["duration"] += mdap.pop("duration")
                 if "point count" in md:
