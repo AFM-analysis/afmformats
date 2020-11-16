@@ -1,8 +1,7 @@
 """Test of basic opening functionalities"""
 import pathlib
-import shutil
 
-from afmformats.fmt_jpk import read_jpk, jpk_meta, JPKReader
+from afmformats.fmt_jpk import jpk_data, jpk_meta, read_jpk, JPKReader
 
 
 datadir = pathlib.Path(__file__).resolve().parent / "data"
@@ -10,16 +9,14 @@ datadir = pathlib.Path(__file__).resolve().parent / "data"
 
 def test_open_jpk_simple():
     jpkfile = datadir / "spot3-0192.jpk-force"
-    tdir = read_jpk.extract_jpk(jpkfile)
-    segroot = tdir / "segments"
-    seg = sorted(segroot.glob("[0-1]"))
-    chan_data = {}
-    chroot = seg[0] / "channels"
-    for ch in chroot.glob("*.dat"):
-        key = ch.stem
-        chan_data[key] = read_jpk.load_dat_raw(ch)
-    assert chan_data["height"][0] == 50.425720226584403
-    shutil.rmtree(tdir, ignore_errors=True)
+    jpkr = JPKReader(jpkfile)
+    p_seg = jpkr.get_index_segment_path(0, 0)
+    loc_list = [ff for ff in jpkr.files if ff.count(p_seg)]
+    name, slot, dat = jpk_data.find_column_dat(loc_list, "height (piezo)")
+    properties = jpkr._get_index_segment_properties(0, 0)
+    with jpkr.arc.open(dat, "r") as fd:
+        height = jpk_data.load_dat_raw(fd, name=name, properties=properties)
+    assert height[0] == 50.425720226584403
 
 
 def test_open_jpk_calibration():
@@ -34,36 +31,43 @@ def test_open_jpk_calibration():
 
 def test_open_jpk_conversion():
     jpkfile = datadir / "spot3-0192.jpk-force"
-    tdir = read_jpk.extract_jpk(jpkfile)
-    segroot = tdir / "segments"
-    seg = sorted(segroot.glob("[0-1]"))
+    jpkr = JPKReader(jpkfile)
+    p_seg = jpkr.get_index_segment_path(0, 0)
+    loc_list = [ff for ff in jpkr.files if ff.count(p_seg)]
+    properties = jpkr._get_index_segment_properties(0, 0)
     chan_data = {}
-    chroot = segroot / seg[0] / "channels"
-    for ch in chroot.glob("*.dat"):
-        key = ch.stem
-        chan_data[key] = read_jpk.load_dat_unit(ch)
-
+    for column in ["force", "height (piezo)", "height (measured)"]:
+        name, slot, dat = jpk_data.find_column_dat(loc_list, column)
+        with jpkr.arc.open(dat, "r") as fd:
+            chan_data[name] = jpk_data.load_dat_unit(fd, name, properties,
+                                                     slot)
     assert chan_data["vDeflection"][2] == "vDeflection (Force)"
     assert chan_data["vDeflection"][1] == "N"
     assert chan_data["vDeflection"][0][0] == -5.145579192349918e-10
     assert chan_data["height"][0][0] == 2.8783223430683289e-05
     assert chan_data["strainGaugeHeight"][0][0] == 2.2815672438768612e-05
-    shutil.rmtree(tdir, ignore_errors=True)
 
 
 def test_get_single_curves():
     jpkfile = datadir / "spot3-0192.jpk-force"
-    read_jpk.load_jpk_single_curve(jpkfile, column="vDeflection", slot="force")
-    read_jpk.load_jpk_single_curve(jpkfile, column="height")
-    read_jpk.load_jpk_single_curve(
-        jpkfile, column="strainGaugeHeight", slot="nominal")
-    read_jpk.load_jpk_single_curve(jpkfile, column="height", slot="volts")
-    read_jpk.load_jpk_single_curve(
-        jpkfile, segment=1, column="height", slot="volts")
-    # This is height in the txt files
-    a = read_jpk.load_jpk_single_curve(
-        jpkfile, column="height", slot="nominal")
-    assert a[0][0] == 4.9574279773415606e-05
+    jpkr = JPKReader(jpkfile)
+    jpkr.get_data(column="force", index=0, segment=0)
+    jpkr.get_data(column="height (piezo)", index=0, segment=0)
+    jpkr.get_data(column="height (measured)", index=0, segment=0)
+
+
+def test_get_single_custom_slot():
+    jpkfile = datadir / "spot3-0192.jpk-force"
+    jpkr = JPKReader(jpkfile)
+    p_seg = jpkr.get_index_segment_path(0, 0)
+    loc_list = [ff for ff in jpkr.files if ff.count(p_seg)]
+    name, slot, dat = jpk_data.find_column_dat(loc_list, "height (piezo)")
+    properties = jpkr._get_index_segment_properties(0, 0)
+    with jpkr.arc.open(dat, "r") as fd:
+        data, unit, _ = jpk_data.load_dat_unit(fd, name=name,
+                                               properties=properties,
+                                               slot="nominal")
+    assert data[0] == 4.9574279773415606e-05
 
 
 def test_meta():

@@ -2,16 +2,29 @@ import functools
 import zipfile
 
 import jprops
+import numpy as np
 
 from .. import meta
 
-from . import jpk_meta
+from . import jpk_data, jpk_meta
 
 
 class JPKReader(object):
     def __init__(self, path):
         self.path = path
         self.arc = zipfile.ZipFile(path, mode="r")
+
+    @functools.lru_cache()
+    def __len__(self):
+        if self.hierarchy == "single":
+            return 1
+        else:
+            # TODO: is there a more efficient way?
+            indices = []
+            for ff in self.files:
+                if ff.startswith("index/") and ff.count("/") == 2:
+                    indices.append(ff.split("/")[1])
+            return len(set(indices))
 
     @property
     @functools.lru_cache()
@@ -113,37 +126,43 @@ class JPKReader(object):
                 pass
         return prop
 
-    @functools.lru_cache()
-    def get_data_list(self):
-        """Return sorted list of .dat files in the archive"""
-        dfiles = [f for f in self.files if f.endswith(".dat")]
-        # sort files correctly
-        segdict = {}
-        if self.hierarchy == "single":
-            app = [aa for aa in dfiles if aa.startswith("segments/0")]
-            ret = [aa for aa in dfiles if aa.startswith("segments/1")]
-            segdict["0"] = (app, ret)
-        elif self.hierarchy == "indexed":
-            segids = [dd.split("/")[1] for dd in dfiles]
-            segids = list(set(segids))
-            for sid in segids:
-                sidstrapp = "index/{}/segments/0".format(sid)
-                app = [dd for dd in dfiles if dd.startswith(sidstrapp)]
-                sidstrret = "index/{}/segments/1".format(sid)
-                ret = [dd for dd in dfiles if dd.startswith(sidstrret)]
-                segdict[sid] = (app, ret)
+    def get_data(self, column, index, segment):
+        """Return data for a given column, index, or segment
+
+        Parameters
+        ----------
+        column: str
+            Valid column from :const:`afmformats.afm_data.known_columns`
+        index: int
+            Curve index in the current archive
+        segment: int
+            Segment index for chosen curve index
+
+        Returns
+        -------
+        data: 1d ndarray
+            Column data
+        """
+        md = self.get_metadata(index, segment)
+        prop = self._get_index_segment_properties(index, segment)
+        # Find the data file that corresponds to the specified column
+        if column == "time":
+            return np.linspace(0, md["duration"], md["point count"],
+                               endpoint=False)
         else:
-            msg = "Unknown JPK file format: {}".format(self.path)
-            raise NotImplementedError(msg)
-
-        segkeys = list(segdict.keys())
-
-        segkeys.sort(key=lambda x: int(x))
-
-        seglist = []
-        for key in segkeys:
-            seglist.append(segdict[key])
-        return seglist
+            # get the segment's data list
+            p_seg = self.get_index_segment_path(index, segment)
+            loc_list = [ff for ff in self.files if ff.count(p_seg)]
+            name, slot, dat = jpk_data.find_column_dat(loc_list, column)
+            with self.arc.open(dat, "r") as fd:
+                data, unit, _ = jpk_data.load_dat_unit(fd, name=name,
+                                                       properties=prop,
+                                                       slot=slot)
+            # verify unit
+            if unit != jpk_data.JPK_UNITS[column]:
+                raise jpk_data.ReadJPKError("Unknown unit for {}: {}".format(
+                    column, unit))
+            return data
 
     def get_index_path(self, index):
         """Return the path in the zip file for a specific curve index"""
@@ -164,7 +183,7 @@ class JPKReader(object):
         seg = 0
         while True:
             try:
-                self.get_index_segment_path()
+                self.get_index_segment_path(index, seg)
             except IndexError:
                 break
             else:
@@ -224,6 +243,8 @@ class JPKReader(object):
         else:
             curseg = "retract"
         md["software"] = "JPK"
+
+        md["enum"] = index
 
         if ("position x" in md and "position y" in md
                 and "grid size x" in md and "grid size y" in md
