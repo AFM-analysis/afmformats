@@ -260,7 +260,7 @@ def load_dat_unit(fd, name, properties, slot="default"):
 
     conv = "channel.{}.conversion-set".format(name)
     if slot == "default":
-        slot = properties[conv+".conversions.default"]
+        slot = properties[conv + ".conversions.default"]
 
     # get base unit
     base = properties[conv + ".conversions.base"]

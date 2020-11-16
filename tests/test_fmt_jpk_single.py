@@ -1,6 +1,8 @@
 """Test of basic opening functionalities"""
 import pathlib
 
+import numpy as np
+
 from afmformats.fmt_jpk import jpk_data, jpk_meta, read_jpk, JPKReader
 
 
@@ -55,13 +57,16 @@ def test_get_both_metadata():
     md2 = jpkr.get_metadata(index=0, segment=1)
     md = jpkr.get_metadata(index=0, segment=None)
     for key1 in md1:
-        assert md1[key1] == md[key1]
-    for key2 in md2:
-        if key2 == "time":
-            # time from approach curve should be used
-            assert md2[key2] != md[key2]
+        if key1 in ["duration", "point count"]:
+            assert md1[key1] != md[key1], key1
         else:
-            assert md2[key2] == md[key2]
+            assert md1[key1] == md[key1], key1
+    for key2 in md2:
+        if key2 in ["duration", "point count", "time"]:
+            # time from approach curve should be used
+            assert md2[key2] != md[key2], key2
+        else:
+            assert md2[key2] == md[key2], key2
 
 
 def test_get_single_curves():
@@ -70,6 +75,23 @@ def test_get_single_curves():
     jpkr.get_data(column="force", index=0, segment=0)
     jpkr.get_data(column="height (piezo)", index=0, segment=0)
     jpkr.get_data(column="height (measured)", index=0, segment=0)
+
+
+def test_get_time():
+    jpkfile = datadir / "spot3-0192.jpk-force"
+    jpkr = JPKReader(jpkfile)
+    time1 = jpkr.get_data(column="time", index=0, segment=0)
+    time2 = jpkr.get_data(column="time", index=0, segment=1)
+    m1 = jpkr.get_metadata(0, 0)
+    m2 = jpkr.get_metadata(0, 1)
+    assert np.allclose(m1["duration"], time2[0])
+    assert len(time1) == m1["point count"]
+    assert len(time2) == m2["point count"]
+    assert np.all(time1 < m1["duration"])
+    assert np.all(time2 < (m1["duration"] + m2["duration"]))
+    md = jpkr.get_metadata(0)
+    assert md["duration"] == m1["duration"] + m2["duration"]
+    assert md["point count"] == m1["point count"] + m2["point count"]
 
 
 def test_get_single_custom_slot():

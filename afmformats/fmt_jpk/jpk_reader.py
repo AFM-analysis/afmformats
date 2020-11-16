@@ -147,8 +147,16 @@ class JPKReader(object):
         prop = self._get_index_segment_properties(index, segment)
         # Find the data file that corresponds to the specified column
         if column == "time":
-            return np.linspace(0, md["duration"], md["point count"],
-                               endpoint=False)
+            numsegs = self.get_index_segment_numbers(index)
+            # get initial time
+            start = 0
+            if segment != 0:
+                for seg in numsegs:
+                    if seg < segment:
+                        start += self.get_metadata(index, seg)["duration"]
+
+            return np.linspace(start, start + md["duration"],
+                               md["point count"], endpoint=False)
         else:
             # get the segment's data list
             p_seg = self.get_index_segment_path(index, segment)
@@ -217,8 +225,14 @@ class JPKReader(object):
         """
         if segment is None:
             md = meta.MetaData()
+            # reverse order, because we want "time" from first md
             for seg in self.get_index_segment_numbers(index)[::-1]:
-                md.update(self.get_metadata(index, seg))
+                mdap = self.get_metadata(index, seg)
+                if "duration" in md:
+                    md["duration"] += mdap.pop("duration")
+                if "point count" in md:
+                    md["point count"] += mdap.pop("point count")
+                md.update(mdap)
             return md
         prop = self._get_index_segment_properties(index=index, segment=segment)
         # 1. Populate with primary metadata
@@ -245,6 +259,7 @@ class JPKReader(object):
         md["software"] = "JPK"
 
         md["enum"] = index
+        md["path"] = self.path
 
         if ("position x" in md and "position y" in md
                 and "grid size x" in md and "grid size y" in md
