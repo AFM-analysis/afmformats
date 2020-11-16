@@ -3,7 +3,7 @@ import pathlib
 
 import numpy as np
 
-from afmformats.fmt_jpk import jpk_data, jpk_meta, read_jpk, JPKReader
+from afmformats.fmt_jpk import jpk_data, jpk_meta, JPKReader, load_jpk
 
 
 datadir = pathlib.Path(__file__).resolve().parent / "data"
@@ -24,7 +24,7 @@ def test_open_jpk_simple():
 def test_open_jpk_calibration():
     cf = datadir / "calibration_force-save-2015.02.04-11.25.21.294.jpk-force"
     try:
-        read_jpk.load_jpk(cf)
+        load_jpk(cf)
     except jpk_meta.ReadJPKMetaKeyError:
         pass
     else:
@@ -117,12 +117,11 @@ def test_meta():
 
 def test_load_jpk():
     jpkfile = datadir / "spot3-0192.jpk-force"
-    segs = read_jpk.load_jpk(jpkfile)
     jpkr = JPKReader(jpkfile)
     md = jpkr.get_metadata(0, 1)
     assert md["imaging mode"] == "force-distance"
-    assert len(segs) == 1, "Only one measurement"
-    assert len(segs[0]) == 2, "approach and retract curves"
+    assert len(jpkr) == 1, "Only one measurement"
+    assert len(jpkr.get_index_segment_numbers(0)) == 2, "approach and retract"
 
 
 if __name__ == "__main__":
