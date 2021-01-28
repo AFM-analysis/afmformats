@@ -1,7 +1,7 @@
 afmformats
 ==========
 
-|PyPI Version| |Build Status Linux| |Build Status Win| |Coverage Status| |Docs Status|
+|PyPI Version| |Build Status Unix| |Build Status Win| |Coverage Status| |Docs Status|
 
 Reading common atomic force microscopy (AFM) file formats.
 
@@ -23,8 +23,8 @@ To install the latest release, simply run:
 
 .. |PyPI Version| image:: https://img.shields.io/pypi/v/afmformats.svg
    :target: https://pypi.python.org/pypi/afmformats
-.. |Build Status Linux| image:: https://img.shields.io/travis/AFM-analysis/afmformats.svg?label=build_linux
-   :target: https://travis-ci.com/AFM-analysis/afmformats
+.. |Build Status Unix| image:: https://img.shields.io/github/workflow/status/AFM-analysis/afmformats/Checks
+   :target: https://github.com/AFM-analysis/afmformats/actions?query=workflow%3AChecks
 .. |Build Status Win| image:: https://img.shields.io/appveyor/ci/paulmueller/afmformats/master.svg?label=build_win
    :target: https://ci.appveyor.com/project/paulmueller/afmformats
 .. |Coverage Status| image:: https://img.shields.io/codecov/c/github/AFM-analysis/afmformats/master.svg
