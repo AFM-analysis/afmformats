@@ -2,4 +2,4 @@
 Bilbliography
 =============
 
-.. bibliography:: afmformats.bib
+.. bibliography::
