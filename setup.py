@@ -11,8 +11,8 @@ year = "2019"
 
 sys.path.insert(0, realpath(dirname(__file__))+"/"+name)
 try:
-    from _version import version  # @UnresolvedImport
-except:
+    from _version import version  # noqa: F821
+except BaseException:
     version = "unknown"
 
 
@@ -39,11 +39,11 @@ setup(
     keywords=["atomic force microscopy",
               "mechanical phenotyping",
               "tissue analysis"],
-    classifiers= [
+    classifiers=[
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3',
         'Topic :: Scientific/Engineering :: Visualization',
         'Intended Audience :: Science/Research'
-                 ],
+    ],
     platforms=['ALL'],
-    )
+)

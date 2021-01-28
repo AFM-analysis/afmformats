@@ -62,7 +62,7 @@ class Formats(Base):
                     recipe["loader"].__name__),
                 "mak": recipe["maker"],
                 "des": recipe["descr"]
-                }
+            }
         for item in sorted(loader_dict.values(), key=lambda x: x["ext"]):
             rst.append("    {}\t {}\t {} \t {}".format(
                 item["mak"], item["des"], item["ext"], item["mod"]))
