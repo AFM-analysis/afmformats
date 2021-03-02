@@ -24,11 +24,15 @@ def test_save_open_with_metadata():
             assert fdat.metadata[key] == fdat2.metadata[key]
     for col in fdat.columns:
         assert np.allclose(fdat[col], fdat2[col], atol=0)
-    # cleanup
-    try:
-        pathlib.Path(path).unlink()
-    except OSError:
-        pass
+
+
+def test_hdf5_metadata_contains():
+    jpkfile = datadir / "spot3-0192.jpk-force"
+    fdat = afmformats.load_data(jpkfile, mode="force-distance")[0]
+    _, path = tempfile.mkstemp(suffix=".h5", prefix="afmformats_test_")
+    fdat.export(path, metadata=True, fmt="hdf5")
+    fdat2 = afmformats.load_data(path, mode="force-distance")[0]
+    assert "force" in fdat2
 
 
 if __name__ == "__main__":

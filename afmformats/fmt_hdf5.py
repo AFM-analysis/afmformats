@@ -31,6 +31,10 @@ class H5DictReader(object):
             self.path = path_or_h5
             self.h5 = None
         self.enum_key = enum_key
+        self._columns = self.keys()
+
+    def __contains__(self, key):
+        return key in self._columns
 
     def __getitem__(self, key):
         if key not in known_columns:
@@ -49,7 +53,7 @@ class H5DictReader(object):
         return val
 
     def __iter__(self):
-        for kk in self.keys():
+        for kk in self._columns:
             yield kk
 
     @functools.lru_cache(maxsize=2)
