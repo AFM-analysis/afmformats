@@ -31,7 +31,7 @@ build: off
 test_script:
   - "appveyor-retry pip install coverage"
   - "appveyor-retry pip install codecov"
-  - "coverage run --source=afmformats ./setup.py test"
+  - "coverage run --source=afmformats -m pytest tests"
   - "coverage report -m"
   # Allow codecov to fail
   - "codecov || exit 0"

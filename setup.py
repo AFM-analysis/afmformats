@@ -33,8 +33,6 @@ setup(
                       "jprops",  # JPK file format
                       "numpy>=1.14.0",
                       ],
-    setup_requires=["pytest-runner"],
-    tests_require=["pytest"],
     python_requires='>=3.6, <4',
     keywords=["atomic force microscopy",
               "mechanical phenotyping",

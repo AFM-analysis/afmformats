@@ -1,5 +1,6 @@
 0.12.4
  - fix: opening .h5 files failed with AttributeError
+ - ref: setup.py test is deprecated
 0.12.3
  - build: migrate to GitHub Actions
 0.12.2
