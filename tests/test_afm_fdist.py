@@ -24,16 +24,11 @@ def test_export_hdf5():
         assert h5["0"].attrs["enum"] == 0
         assert h5["1"].attrs["enum"] == 1
         assert h5["0"]["force"].attrs["unit"] == "N"
-    # cleanup
-    try:
-        pathlib.Path(path).unlink()
-    except OSError:
-        pass
 
 
 if __name__ == "__main__":
     # Run all tests
-    loc = locals()
-    for key in list(loc.keys()):
-        if key.startswith("test_") and hasattr(loc[key], "__call__"):
-            loc[key]()
+    _loc = locals()
+    for _key in list(_loc.keys()):
+        if _key.startswith("test_") and hasattr(_loc[_key], "__call__"):
+            _loc[_key]()

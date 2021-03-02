@@ -52,11 +52,6 @@ def test_detect():
     tf = generate_tab_file()
     recipe = afmformats.formats.get_recipe(tf)
     assert recipe.descr == "tab-separated values"
-    # cleanup
-    try:
-        pathlib.Path(tf).unlink()
-    except OSError:
-        pass
 
 
 def test_detect_bad():
@@ -67,11 +62,6 @@ def test_detect_bad():
         pass
     else:
         assert False, "invalid format"
-    # cleanup
-    try:
-        pathlib.Path(tf).unlink()
-    except OSError:
-        pass
 
 
 def test_open_simple():
@@ -81,11 +71,6 @@ def test_open_simple():
     assert np.allclose(data["force"][0], 0)
     assert np.allclose(data["force"][1], 1e-9)
     assert np.allclose(data["tip position"][1], np.pi*1e-6)
-    # cleanup
-    try:
-        pathlib.Path(tf).unlink()
-    except OSError:
-        pass
 
 
 def test_save_open_with_metadata():
@@ -102,16 +87,11 @@ def test_save_open_with_metadata():
             assert fdat.metadata[key] == fdat2.metadata[key]
     for col in fdat.columns:
         assert np.allclose(fdat[col], fdat2[col], atol=0)
-    # cleanup
-    try:
-        pathlib.Path(path).unlink()
-    except OSError:
-        pass
 
 
 if __name__ == "__main__":
     # Run all tests
-    loc = locals()
-    for key in list(loc.keys()):
-        if key.startswith("test_") and hasattr(loc[key], "__call__"):
-            loc[key]()
+    _loc = locals()
+    for _key in list(_loc.keys()):
+        if _key.startswith("test_") and hasattr(_loc[_key], "__call__"):
+            _loc[_key]()
