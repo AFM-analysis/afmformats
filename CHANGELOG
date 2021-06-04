@@ -1,3 +1,7 @@
+0.12.5
+ - fix: JPK file format reader kept the zip files open indefinitely
+   which resulted in OSError "Too many open files" (#10)
+ - ci: removed appveyor build
 0.12.4
  - fix: opening .h5 files failed with AttributeError
  - ref: setup.py test is deprecated

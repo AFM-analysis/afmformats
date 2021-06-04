@@ -13,7 +13,6 @@ from . import jpk_data, jpk_meta
 class JPKReader(object):
     def __init__(self, path):
         self.path = path
-        self.arc = zipfile.ZipFile(path, mode="r")
 
     @functools.lru_cache()
     def __len__(self):
@@ -23,7 +22,8 @@ class JPKReader(object):
     @functools.lru_cache()
     def files(self):
         """List of files and folders in the archive"""
-        nlist = self.arc.namelist()
+        with self.get_archive() as arc:
+            nlist = arc.namelist()
         maxdigits = int(np.ceil(np.log10(len(nlist)))) + 1
         repstr = "{:0" + "{}".format(maxdigits) + "d}"
 
@@ -55,8 +55,9 @@ class JPKReader(object):
     @functools.lru_cache()
     def _properties_general(self):
         """Return content of "header.properties"""
-        with self.arc.open("header.properties", "r") as fd:
-            props = jprops.load_properties(fd)
+        with self.get_archive() as arc:
+            with arc.open("header.properties", "r") as fd:
+                props = jprops.load_properties(fd)
         return props
 
     @property
@@ -65,8 +66,9 @@ class JPKReader(object):
         """Return content of "shared-data/header.properties"""
         path = "shared-data/header.properties"
         if path in self.files:
-            with self.arc.open(path, "r") as fd:
-                props = jprops.load_properties(fd)
+            with self.get_archive() as arc:
+                with arc.open(path, "r") as fd:
+                    props = jprops.load_properties(fd)
         else:
             props = {}
         return props
@@ -85,15 +87,17 @@ class JPKReader(object):
         """
         # 1. Properties of index
         p_index = self.get_index_path(index) + "header.properties"
-        with self.arc.open(p_index, "r") as fd:
-            prop = jprops.load_properties(fd)
+        with self.get_archive() as arc:
+            with arc.open(p_index, "r") as fd:
+                prop = jprops.load_properties(fd)
 
         # 2. Properties of segment (if applicable)
         if segment is not None:
             p_segment = self.get_index_segment_path(index, segment) \
                         + "segment-header.properties"
-            with self.arc.open(p_segment, "r") as fd:
-                prop.update(jprops.load_properties(fd))
+            with self.get_archive() as arc:
+                with arc.open(p_segment, "r") as fd:
+                    prop.update(jprops.load_properties(fd))
 
         # 3. Substitute shared properties
         psprop = self._properties_shared
@@ -133,6 +137,9 @@ class JPKReader(object):
             except BaseException:
                 pass
         return prop
+
+    def get_archive(self):
+        return zipfile.ZipFile(self.path, mode="r")
 
     def get_data(self, column, index, segment=None):
         """Return data for a given column, index, or segment
@@ -184,10 +191,11 @@ class JPKReader(object):
             p_seg = self.get_index_segment_path(index, segment)
             loc_list = [ff for ff in self.files if ff.count(p_seg)]
             name, slot, dat = jpk_data.find_column_dat(loc_list, column)
-            with self.arc.open(dat, "r") as fd:
-                data, unit, _ = jpk_data.load_dat_unit(fd, name=name,
-                                                       properties=prop,
-                                                       slot=slot)
+            with self.get_archive() as arc:
+                with arc.open(dat, "r") as fd:
+                    data, unit, _ = jpk_data.load_dat_unit(fd, name=name,
+                                                           properties=prop,
+                                                           slot=slot)
             # verify unit
             if unit != jpk_data.JPK_UNITS[column]:
                 raise jpk_data.ReadJPKError("Unknown unit for {}: {}".format(
