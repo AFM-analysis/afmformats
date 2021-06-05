@@ -116,7 +116,7 @@ class MetaData(dict):
             raise KeyError("Unknown metadata key: '{}'".format(key))
         elif key == "time":
             value = parse_time(value)
-        if isinstance(value, np.float) and np.isnan(value):
+        if isinstance(value, float) and np.isnan(value):
             # nan values are ignored
             return
         super(MetaData, self).__setitem__(key, value)
