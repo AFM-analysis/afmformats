@@ -40,7 +40,7 @@ def detect_txt(path):
     return valid
 
 
-def load_txt(path, callback=None, meta_override={}):
+def load_txt(path, callback=None, meta_override=None):
     """Load text files exported by the NT-MDT Nova software
 
     The columns are assumed to be: height (piezo) [nm],
@@ -64,6 +64,8 @@ def load_txt(path, callback=None, meta_override={}):
     possible to load the data with `Ggyddion <http://gwyddion.net>`
     and export it to something afmformats understands.
     """
+    if meta_override is None:
+        meta_override = {}
     if ("sensitivity" not in meta_override
             and "spring constant" not in meta_override):
         raise errors.MissingMetaDataError(
@@ -78,18 +80,16 @@ def load_txt(path, callback=None, meta_override={}):
     raw_apr = crop_beginning(rawdata[:, :2])
     raw_ret = crop_beginning(rawdata[:, ::2])
 
-    data = {}
-    data["height (measured)"] = np.concatenate((raw_apr[::-1, 0],
-                                                raw_ret[:, 0])) * 1e-9
+    data = {"height (measured)": np.concatenate((raw_apr[::-1, 0],
+                                                 raw_ret[:, 0])) * 1e-9}
     fmult = meta_override["sensitivity"] * meta_override["spring constant"]
     data["force"] = np.concatenate((raw_apr[::-1, 1],
                                     raw_ret[:, 1])) * fmult * 1e-9
     data["segment"] = np.concatenate((np.zeros(raw_apr.shape[0], dtype=bool),
                                       np.ones(raw_ret.shape[0], dtype=bool)))
 
-    metadata = {}
-    metadata["path"] = path
-    metadata["enum"] = 0
+    metadata = {"path": path,
+                "enum": 0}
     metadata.update(meta_override)
 
     dd = {"data": data,

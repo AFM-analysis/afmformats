@@ -66,7 +66,7 @@ class H5DictReader(object):
         return cols
 
 
-def load_hdf5(path_or_h5, callback=None, meta_override={}):
+def load_hdf5(path_or_h5, callback=None, meta_override=None):
     """Loads HDF5 files as exported by afmformats
 
     The HDF5 format is self explanatory. The root attributes
@@ -92,6 +92,8 @@ def load_hdf5(path_or_h5, callback=None, meta_override={}):
     if you think about storing multiple datasets (each
     containing multiple curves) in one HDF5 file (bad idea).
     """
+    if meta_override is None:
+        meta_override = {}
     if isinstance(path_or_h5, h5py.Group):
         path = pathlib.Path(path_or_h5.file.filename)
         close = False

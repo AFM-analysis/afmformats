@@ -31,7 +31,7 @@ def detect_tab(path, max_header=1000):
     return has_begin and has_data and has_end
 
 
-def load_tab(path, callback=None, meta_override={}):
+def load_tab(path, callback=None, meta_override=None):
     """Loads tab-separated-value files as exported by afmformats
 
     This is a simple tab-separated values files. The metadata
@@ -39,6 +39,8 @@ def load_tab(path, callback=None, meta_override={}):
     as a json dump in a "BEGIN METADATA" - "END METADATA" block.
     The column data is listed below as a simple table.
     """
+    if meta_override is None:
+        meta_override = {}
     path = pathlib.Path(path)
     with path.open() as fd:
         tsvdata = fd.readlines()

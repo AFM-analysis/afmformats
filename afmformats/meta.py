@@ -96,7 +96,9 @@ class MetaData(dict):
     valid_keys = KEYS_VALID
 
     def __init__(self, *args, **kwargs):
-        # make sure everything goes through __set__
+        # do not init with args/kwargs
+        super(MetaData, self).__init__()
+        # instead, make sure everything goes through __set__
         self.update(*args, **kwargs)
         # check for invalid keys
         for key in self:

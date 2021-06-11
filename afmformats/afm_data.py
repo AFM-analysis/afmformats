@@ -93,18 +93,20 @@ class AFMData(abc.ABC):
         """Path to the measurement file"""
         return self._path
 
-    def _export_hdf5(self, h5group, metadata_dict={}):
+    def _export_hdf5(self, h5group, metadata_dict=None):
         """Export data to the HDF5 file format
 
         Parameters
         ----------
         h5group: h5py.Group or h5py.File
             Destination group
-        metadata: dict
+        metadata_dict: dict
             Key-value pairs for the metadata that should be exported
             (will be stored in the group attributes)
         """
         # set the software and its version
+        if metadata_dict is None:
+            metadata_dict = {}
         h5group.attrs["software"] = "afmformats"
         h5group.attrs["software version"] = version
         enum_key = str(self.enum)
@@ -140,17 +142,19 @@ class AFMData(abc.ABC):
             else:
                 subgroup.attrs[kk] = metadata_dict[kk]
 
-    def _export_tab(self, fd, metadata_dict={}):
+    def _export_tab(self, fd, metadata_dict=None):
         """Export data to a tab separated values file
 
         Parameters
         ----------
         fd: io.IOBase
             File opened in "w" mode
-        metadata: dict
+        metadata_dict: dict
             Key-value pairs for the metadata that should be exported
             (will be stored in the group attributes)
         """
+        if metadata_dict is None:
+            metadata_dict = {}
         fd.write("# afmformats {}\r\n".format(version))
         fd.write("#\r\n")
         if metadata_dict:
@@ -215,8 +219,11 @@ class AFMData(abc.ABC):
             metadata_dict = {}
             for key in metadata:
                 metadata_dict[key] = self.metadata[key]
-        elif metadata:
+        elif isinstance(metadata, bool) and metadata:
             metadata_dict = self.metadata
+        else:
+            raise ValueError("Metadata must be list, tuple, or bool, got "
+                             f"'{metadata}' of type '{type(metadata)}'!")
 
         if fmt == "tab":
             if isinstance(out, (pathlib.Path, str)):

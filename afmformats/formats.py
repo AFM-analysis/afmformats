@@ -138,11 +138,13 @@ def get_recipe(path, mode=None):
 
 
 def load_data(path, mode=None, diskcache=False, callback=None,
-              meta_override={}):
+              meta_override=None):
     """Load AFM data
 
     Parameters
     ----------
+    path: str or pathlib.Path
+        Path to AFM data file
     mode: str
         Which acquisition mode to use (currently only "force-distance")
     diskcache: bool
@@ -153,15 +155,17 @@ def load_data(path, mode=None, diskcache=False, callback=None,
     meta_override: dict
         Metadata dictionary that overrides experimental metadata
     """
+    if meta_override is None:
+        meta_override = {}
     path = pathlib.Path(path)
     if path.suffix in formats_by_suffix:
         afmdata = []
-        recipe = get_recipe(path, mode)
-        loader = recipe.loader
+        cur_recipe = get_recipe(path, mode)
+        loader = cur_recipe.loader
         for dd in loader(path, callback=callback,
                          meta_override=meta_override):
-            dd["metadata"]["format"] = "{} ({})".format(recipe["maker"],
-                                                        recipe["descr"])
+            dd["metadata"]["format"] = "{} ({})".format(cur_recipe["maker"],
+                                                        cur_recipe["descr"])
             ddi = AFMForceDistance(data=dd["data"],
                                    metadata=dd["metadata"],
                                    diskcache=diskcache)
@@ -201,7 +205,7 @@ formats_by_mode = {}
 #: list of supported extensions
 supported_extensions = []
 
-for recipe in [
+for _recipe in [
     recipe_hdf5,
     recipe_ibw,
     recipe_jpk_force,
@@ -211,4 +215,4 @@ for recipe in [
     recipe_tab,
     recipe_workshop,
 ]:
-    register_format(recipe)
+    register_format(_recipe)

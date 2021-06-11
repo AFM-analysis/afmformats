@@ -25,7 +25,7 @@ months = {
 }
 
 
-def load_csv(path, callback=None, meta_override={}):
+def load_csv(path, callback=None, meta_override=None):
     """Load csv data from AFM workshop
 
 
@@ -53,6 +53,8 @@ def load_csv(path, callback=None, meta_override={}):
     The data for testing was kindly provided by Peter Eaton
     (afmhelp.com).
     """
+    if meta_override is None:
+        meta_override = {}
     path = pathlib.Path(path)
     with path.open() as fd:
         csvdata = fd.readlines()

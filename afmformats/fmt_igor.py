@@ -6,7 +6,7 @@ import numpy as np
 __all__ = ["load_igor"]
 
 
-def load_igor(path, callback=None, meta_override={}):
+def load_igor(path, callback=None, meta_override=None):
     """Load Asylum Research (Igor) binarywave .ibw files
 
     The raw data are loaded with the Python module "igor"
@@ -17,6 +17,8 @@ def load_igor(path, callback=None, meta_override={}):
     Test data were provided by Nicolas Hauck :cite:`Hauck2018`.
     """
     # load binarywave
+    if meta_override is None:
+        meta_override = {}
     ibw = binarywave.load(path)
     wdata = ibw["wave"]["wData"]
     notes = {}
