@@ -61,7 +61,7 @@ def load_txt(path, callback=None, meta_override=None):
     not work for `exemplary data
     <https://doi.org/10.6084/m9.figshare.11862327.v1>`_. If the
     NT-MDT Nova software is not available, it should still be
-    possible to load the data with `Ggyddion <http://gwyddion.net>`
+    possible to load the data with `Ggyddion <http://gwyddion.net>`_
     and export it to something afmformats understands.
     """
     if meta_override is None:

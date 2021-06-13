@@ -1,9 +1,14 @@
+import io
 import pathlib
 import warnings
 
 import numpy as np
 
-from . import errors
+from .. import errors
+
+
+class AFMWorkshopFormatWarning(UserWarning):
+    pass
 
 
 __all__ = ["load_csv"]
@@ -25,9 +30,8 @@ months = {
 }
 
 
-def load_csv(path, callback=None, meta_override=None):
+def load_csv(path, callback=None, meta_override=None, mode="single"):
     """Load csv data from AFM workshop
-
 
     The files are structured like this::
 
@@ -36,8 +40,8 @@ def load_csv(path, callback=None, meta_override=None):
 
         Date:    Wednesday, August 1, 2018
         Time:    1:07:47 PM
-        Mode:    Mapping
-        Point:    16
+        Mode:    Single
+        Point:    1
         X, um:    27.250000
         Y, um:    27.250000
 
@@ -49,18 +53,38 @@ def load_csv(path, callback=None, meta_override=None):
         13781.9288,0.6875,14163.9288,1.0989
         ...
 
-
     The data for testing was kindly provided by Peter Eaton
     (afmhelp.com).
+
+
+    Parameters
+    ----------
+    path: str or pathlib.Path or io.TextIOBase
+        data file or an open file in text (not bytes) mode
+    callback: callable
+        function to call to show progress
+    meta_override: dict
+        dictionary with metadata with which to override or complement
+        the stored metadata
+    mode: str
+        curve mode to expect (either "single" or "mapping"); if an
+        unexpected mode is found, AFMWorkshopFormatWarning is issued
     """
     if meta_override is None:
         meta_override = {}
-    path = pathlib.Path(path)
-    with path.open() as fd:
-        csvdata = fd.readlines()
+    metadata = {}
+    # TODO:
+    # - only read really the header instead of the entire file to save time
+    if isinstance(path, io.IOBase):
+        csvdata = path.readlines()
+        path.seek(0)
+    else:
+        path = pathlib.Path(path)
+        with path.open() as fd:
+            csvdata = fd.readlines()
+        metadata["path"] = path
 
     # get the metadata
-    metadata = {}
     for ii, line in enumerate(csvdata):
         if line.count("Force-Distance Curve"):
             metadata["imaging mode"] = "force-distance"
@@ -72,8 +96,10 @@ def load_csv(path, callback=None, meta_override=None):
         elif line.startswith("Time:"):
             metadata["time"] = line.split(":", 1)[1]
         elif line.startswith("Mode:"):
-            # TODO: how should we deal with mapping?
-            pass
+            cur_mode = line.split(":")[1].strip().lower()
+            if cur_mode != mode:
+                warnings.warn(f"Expected '{mode}' curve; got '{cur_mode}'!",
+                              AFMWorkshopFormatWarning)
         elif line.startswith("Point:"):
             metadata["enum"] = int(line.split(":")[1])
         elif line.startswith("X, um:"):
@@ -87,8 +113,6 @@ def load_csv(path, callback=None, meta_override=None):
     else:
         raise errors.FileFormatNotSupportedError(
             "Could not parse metadata correctly: {}".format(path))
-
-    metadata["path"] = path
 
     metadata.update(meta_override)
 
@@ -132,24 +156,16 @@ def load_csv(path, callback=None, meta_override=None):
         elif cc == "Retract Force(nN)":
             data["force"][segsize:] = rawdata[:, jj] * 1e-9
         else:
-            warnings.warn("Unknown column encountered: {}".format(cc))
+            warnings.warn(f"Unknown column encountered: {cc}",
+                          AFMWorkshopFormatWarning)
 
     # remove non-existent or bad data
     for key in list(data.keys()):
         if np.sum(np.isnan(data[key])):
-            warnings.warn("Removed incomplete column: {} in {}!".format(key,
-                                                                        path))
+            warnings.warn(f"Removed incomplete column: {key} in {path}!",
+                          AFMWorkshopFormatWarning)
             data.pop(key)
 
     dd = {"data": data,
           "metadata": metadata}
     return [dd]
-
-
-recipe_workshop = {
-    "descr": "comma-separated values",
-    "loader": load_csv,
-    "suffix": ".csv",
-    "mode": "force-distance",
-    "maker": "AFM workshop",
-}

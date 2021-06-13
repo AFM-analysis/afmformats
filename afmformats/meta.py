@@ -6,10 +6,10 @@ from .parse_funcs import fint, vd_str_in
 
 
 __all__ = ["META_FIELDS", "DEF_ALL", "KEYS_VALID", "MetaDataMissingError",
-           "MetaData"]
+           "MetaData", "parse_time"]
 
 
-#: Compedium of all allowed meta data keys, sorted by topic, and
+#: Compendium of all allowed meta data keys, sorted by topic, and
 #: including units and validation methods
 META_FIELDS = {
     # AFM acquisition settings
@@ -19,7 +19,7 @@ META_FIELDS = {
             "contact",
             # From the NanoWizard User Manual (v. 4.2) sec. 5.7:
             # Force modulation mode is a mixture between contact mode and
-            # intermittend mode and "can be thought of as a kind of contact
+            # intermittent mode and "can be thought of as a kind of contact
             # mode with an added vibration on the cantilever".
             "force-modulation",
         ])],

@@ -5,7 +5,7 @@ from ..lazy_loader import LazyData
 from .jpk_reader import JPKReader
 
 
-__all__ = ["JPKReader", "load_jpk"]
+__all__ = ["load_jpk"]
 
 
 def load_jpk(path, callback=None, meta_override=None):

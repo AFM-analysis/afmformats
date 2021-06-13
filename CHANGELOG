@@ -1,4 +1,6 @@
-0.12.7
+0.13.0
+ - feat: support zipped AFM workshop map data (#5)
+ - docs: add missing objects to ``__all__`` (autoapi)
  - ref: code cleanup
 0.12.6
  - ref: DeprecationWarning: np.float from numpy 1.20

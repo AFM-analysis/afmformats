@@ -10,6 +10,9 @@ from .. import meta
 from . import jpk_data, jpk_meta
 
 
+__all__ = ["JPKReader"]
+
+
 class JPKReader(object):
     def __init__(self, path):
         self.path = path

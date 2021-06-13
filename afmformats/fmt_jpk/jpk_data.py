@@ -3,6 +3,15 @@ import numpy as np
 from ..errors import FileFormatNotSupportedError
 
 
+__all__ = ["JPK_COLUMNS",
+           "JPK_SLOTS",
+           "JPK_UNITS",
+           "ReadJPKError",
+           "find_column_dat",
+           "load_dat_raw",
+           "load_dat_unit",
+           ]
+
 #: Maps afmformats column names to JPK column names
 JPK_COLUMNS = {
     "force": ["vDeflection"],

@@ -1,3 +1,6 @@
+__all__ = ["LazyData"]
+
+
 class LazyData(object):
     """Lazily load data from function and kwargs
 
