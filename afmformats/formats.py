@@ -178,6 +178,10 @@ def get_recipe(path, mode=None):
         # - Try to figure out the mode somehow
         mode = "force-distance"
 
+    if path.suffix not in formats_by_suffix:
+        raise errors.FileFormatNotSupportedError(
+            f"No recipe for suffix '{path.suffix}' (file '{path}')!")
+
     recipes = formats_by_suffix[path.suffix]
     for rec in recipes:
         if rec.mode == mode and rec.detect(path):
@@ -185,6 +189,7 @@ def get_recipe(path, mode=None):
     else:
         raise errors.FileFormatNotSupportedError(
             f"Could not determine file format recipe for '{path}'!")
+
     return rec
 
 
