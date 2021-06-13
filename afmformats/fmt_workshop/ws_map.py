@@ -5,7 +5,6 @@ import zipfile
 
 from .ws_single import AFMWorkshopFormatWarning, load_csv
 
-
 __all__ = ["load_map"]
 
 
@@ -49,18 +48,38 @@ def load_map(path, callback=None, meta_override=None):
     the archive) and that ``Mode`` is ``Mapping``. The ``X`` and
     ``Y`` coordinates can be used by e.g. PyJibe to display QMap
     data on a grid.
+
+
+    Parameters
+    ----------
+    path: str or pathlib.Path
+        path to zip file containing AFM workshop .csv files
+    callback: callable
+        function for progress tracking; must accept a float in
+        [0, 1] as an argument.
+    meta_override: dict
+        if specified, contains key-value pairs of metadata that
+        are used when loading the files
+        (see :data:`afmformats.meta.META_FIELDS`)
     """
     datasets = []
     with zipfile.ZipFile(path) as arc:
-        for ii, name in enumerate(sorted(arc.namelist())):
+        names = sorted(arc.namelist())
+        for ii, name in enumerate(names):
             with arc.open(name, "r") as fd:
                 tfd = io.TextIOWrapper(fd, encoding="utf-8")
-                dd = load_csv(tfd, meta_override=meta_override, mode="mapping")
+                dd = load_csv(
+                    tfd,
+                    # recurse into callback with None as default
+                    callback=lambda x: callback((ii + x) / len(names))
+                    if callback is not None else None,
+                    meta_override=meta_override,
+                    mode="mapping")
                 dd[0]["metadata"]["path"] = pathlib.Path(path)
                 cur_enum = dd[0]["metadata"]["enum"]
                 if cur_enum != ii + 1:
                     warnings.warn("Dataset 'Point' enumeration mismatch for "
-                                  f"'{name}' in '{path}' (expected {ii+1}, "
+                                  f"'{name}' in '{path}' (expected {ii + 1}, "
                                   f"got {cur_enum})!",
                                   AFMWorkshopFormatWarning)
                 datasets += dd

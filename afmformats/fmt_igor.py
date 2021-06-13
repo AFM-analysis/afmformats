@@ -15,6 +15,18 @@ def load_igor(path, callback=None, meta_override=None):
     The metadata assignment is largely guessed.
 
     Test data were provided by Nicolas Hauck :cite:`Hauck2018`.
+
+    Parameters
+    ----------
+    path: str or pathlib.Path
+        path to in .ibw data file
+    callback: callable
+        function for progress tracking; must accept a float in
+        [0, 1] as an argument.
+    meta_override: dict
+        if specified, contains key-value pairs of metadata that
+        are used when loading the files
+        (see :data:`afmformats.meta.META_FIELDS`)
     """
     # load binarywave
     if meta_override is None:
@@ -95,6 +107,9 @@ def load_igor(path, callback=None, meta_override=None):
     dataset = [{"data": data,
                 "metadata": metadata,
                 }]
+
+    if callback is not None:
+        callback(1)
 
     return dataset
 

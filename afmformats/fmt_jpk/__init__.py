@@ -31,6 +31,18 @@ def load_jpk(path, callback=None, meta_override=None):
     These files are zip files containing java property files and
     integer-encoded binary data. The property files include recipes
     on how to convert the raw integer data to SI units.
+
+    Parameters
+    ----------
+    path: str or pathlib.Path
+        path to JPK data file
+    callback: callable
+        function for progress tracking; must accept a float in
+        [0, 1] as an argument.
+    meta_override: dict
+        if specified, contains key-value pairs of metadata that
+        are used when loading the files
+        (see :data:`afmformats.meta.META_FIELDS`)
     """
     if meta_override is None:
         meta_override = {}
@@ -53,7 +65,7 @@ def load_jpk(path, callback=None, meta_override=None):
                         "metadata": metadata,
                         })
         if callback:
-            callback(index / len(jpkr))
+            callback((1+index) / len(jpkr))
     return dataset
 
 

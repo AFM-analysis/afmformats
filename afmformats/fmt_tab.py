@@ -38,6 +38,18 @@ def load_tab(path, callback=None, meta_override=None):
     may be present at the beginning of the file, commented out,
     as a json dump in a "BEGIN METADATA" - "END METADATA" block.
     The column data is listed below as a simple table.
+
+    Parameters
+    ----------
+    path: str or pathlib.Path or io.TextIOBase
+        path to a .tab file
+    callback: callable
+        function for progress tracking; must accept a float in
+        [0, 1] as an argument.
+    meta_override: dict
+        if specified, contains key-value pairs of metadata that
+        are used when loading the files
+        (see :data:`afmformats.meta.META_FIELDS`)
     """
     if meta_override is None:
         meta_override = {}
@@ -96,6 +108,10 @@ def load_tab(path, callback=None, meta_override=None):
     metadata.update(meta_override)
     dd = {"data": data,
           "metadata": metadata}
+
+    if callback is not None:
+        callback(1)
+
     return [dd]
 
 

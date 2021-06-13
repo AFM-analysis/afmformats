@@ -82,7 +82,14 @@ def load_hdf5(path_or_h5, callback=None, meta_override=None):
     Parameters
     ----------
     path_or_h5: str or pathlib.Path or h5py.Group
-        Path to HDF5 file or an HDF5 group
+        path to HDF5 file or an HDF5 group
+    callback: callable
+        function for progress tracking; must accept a float in
+        [0, 1] as an argument.
+    meta_override: dict
+        if specified, contains key-value pairs of metadata that
+        are used when loading the files
+        (see :data:`afmformats.meta.META_FIELDS`)
 
     Notes
     -----
@@ -113,6 +120,8 @@ def load_hdf5(path_or_h5, callback=None, meta_override=None):
                        "metadata": metadata})
     if close:
         h5.close()
+    if callback is not None:
+        callback(1)
     return fdlist
 
 

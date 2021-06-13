@@ -62,10 +62,12 @@ def load_csv(path, callback=None, meta_override=None, mode="single"):
     path: str or pathlib.Path or io.TextIOBase
         data file or an open file in text (not bytes) mode
     callback: callable
-        function to call to show progress
+        function for progress tracking; must accept a float in
+        [0, 1] as an argument.
     meta_override: dict
-        dictionary with metadata with which to override or complement
-        the stored metadata
+        if specified, contains key-value pairs of metadata that
+        are used when loading the files
+        (see :data:`afmformats.meta.META_FIELDS`)
     mode: str
         curve mode to expect (either "single" or "mapping"); if an
         unexpected mode is found, AFMWorkshopFormatWarning is issued
@@ -171,4 +173,7 @@ def load_csv(path, callback=None, meta_override=None, mode="single"):
 
     dd = {"data": data,
           "metadata": metadata}
+
+    if callback is not None:
+        callback(1)
     return [dd]

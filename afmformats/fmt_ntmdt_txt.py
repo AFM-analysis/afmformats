@@ -63,6 +63,18 @@ def load_txt(path, callback=None, meta_override=None):
     NT-MDT Nova software is not available, it should still be
     possible to load the data with `Ggyddion <http://gwyddion.net>`_
     and export it to something afmformats understands.
+
+    Parameters
+    ----------
+    path: str or pathlib.Path or io.TextIOBase
+        path to an ntmdt-exported .txt file
+    callback: callable
+        function for progress tracking; must accept a float in
+        [0, 1] as an argument.
+    meta_override: dict
+        if specified, contains key-value pairs of metadata that
+        are used when loading the files
+        (see :data:`afmformats.meta.META_FIELDS`)
     """
     if meta_override is None:
         meta_override = {}
@@ -96,6 +108,10 @@ def load_txt(path, callback=None, meta_override=None):
 
     dd = {"data": data,
           "metadata": metadata}
+
+    if callback is not None:
+        callback(1)
+
     return [dd]
 
 
