@@ -1,3 +1,6 @@
+0.13.2
+ - enh: make sure people don't think they can load a data file
+   with a different spring constant or sensitivity
 0.13.1
  - fix: make sure callback functions are always used
 0.13.0

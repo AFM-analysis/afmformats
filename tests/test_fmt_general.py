@@ -3,6 +3,7 @@ import pathlib
 import pytest
 
 import afmformats
+import afmformats.errors
 
 
 data_path = pathlib.Path(__file__).parent / "data"
@@ -17,8 +18,11 @@ def test_load_all_with_callback(path):
     def callback(value):
         calls.append(value)
 
-    afmformats.load_data(path=path,
-                         callback=callback,
-                         meta_override={"spring constant": 20,
-                                        "sensitivity": .01e-6})
+    try:
+        afmformats.load_data(path=path, callback=callback)
+    except afmformats.errors.MissingMetaDataError:
+        afmformats.load_data(path=path,
+                             callback=callback,
+                             meta_override={"spring constant": 20,
+                                            "sensitivity": .01e-6})
     assert calls[-1] == 1

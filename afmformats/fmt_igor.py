@@ -28,9 +28,15 @@ def load_igor(path, callback=None, meta_override=None):
         are used when loading the files
         (see :data:`afmformats.meta.META_FIELDS`)
     """
-    # load binarywave
     if meta_override is None:
         meta_override = {}
+    else:
+        # just make sure nobody expects a different result for the forces
+        for key in ["sensitivity", "spring constant"]:
+            if key in meta_override:
+                raise NotImplementedError(
+                    f"Setting metadata such as '{key}' is not implemented!")
+
     ibw = binarywave.load(path)
     wdata = ibw["wave"]["wData"]
     notes = {}

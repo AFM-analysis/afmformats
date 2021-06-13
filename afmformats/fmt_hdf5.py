@@ -101,6 +101,13 @@ def load_hdf5(path_or_h5, callback=None, meta_override=None):
     """
     if meta_override is None:
         meta_override = {}
+    else:
+        # just make sure nobody expects a different result for the forces
+        for key in ["sensitivity", "spring constant"]:
+            if key in meta_override:
+                raise NotImplementedError(
+                    f"Setting metadata such as '{key}' is not implemented!")
+
     if isinstance(path_or_h5, h5py.Group):
         path = pathlib.Path(path_or_h5.file.filename)
         close = False

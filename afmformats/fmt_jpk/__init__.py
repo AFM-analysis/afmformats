@@ -46,6 +46,13 @@ def load_jpk(path, callback=None, meta_override=None):
     """
     if meta_override is None:
         meta_override = {}
+    else:
+        # just make sure nobody expects a different result for the forces
+        for key in ["sensitivity", "spring constant"]:
+            if key in meta_override:
+                raise NotImplementedError(
+                    f"Setting metadata such as '{key}' is not implemented!")
+
     jpkr = JPKReader(path)
     dataset = []
     # iterate over all datasets and add them
