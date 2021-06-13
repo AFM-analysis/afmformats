@@ -77,7 +77,7 @@ def load_csv(path, callback=None, meta_override=None, mode="single"):
     # - only read really the header instead of the entire file to save time
     if isinstance(path, io.IOBase):
         csvdata = path.readlines()
-        path.seek(0)
+        path.seek(0)  # required for np.loadtxt below
     else:
         path = pathlib.Path(path)
         with path.open() as fd:
@@ -115,19 +115,18 @@ def load_csv(path, callback=None, meta_override=None, mode="single"):
             "Could not parse metadata correctly: {}".format(path))
 
     metadata.update(meta_override)
+    req_metadata = ["sensitivity", "spring constant"]
+    mis_metadata = [key for key in req_metadata if key not in metadata]
+    if mis_metadata:
+        fmult = None
+    else:
+        fmult = metadata["sensitivity"] * metadata["spring constant"]
 
     if "imaging mode" not in metadata:
         raise errors.FileFormatNotSupportedError(
             "Unknown file format: {}".format(path))
 
     # load data
-    if "sensitivity" in metadata and "spring constant" in metadata:
-        fmult = metadata["sensitivity"] * metadata["spring constant"]
-    else:
-        errmsg = "Cannot load column '{}', because spring constant and " \
-                 + "sensitivity were neither found in '{}' ".format(path) \
-                 + "nor in the keyword argument `meta_override`!"
-        fmult = None
     rawdata = np.loadtxt(path, skiprows=header_index+1, delimiter=",")
     segsize = rawdata.shape[0]
     data = {"height (measured)": np.zeros(2*segsize, dtype=float)*np.nan,
@@ -142,15 +141,19 @@ def load_csv(path, callback=None, meta_override=None, mode="single"):
         elif cc == "Retract Z-Sense(nm)":
             data["height (measured)"][segsize:] = -rawdata[:, jj] * 1e-9
         elif cc == "Extend T-B(V)":
-            if fmult is None:
-                raise errors.MissingMetaDataError(errmsg.format(cc))
+            if mis_metadata:
+                raise errors.MissingMetaDataError(
+                    mis_metadata,
+                    f"Please specify {' and '.join(mis_metadata)}!")
             else:
                 data["force"][:segsize] = rawdata[:, jj] * fmult
         elif cc == "Extend Force(nN)":
             data["force"][:segsize] = rawdata[:, jj] * 1e-9
         elif cc == "Retract T-B(V)":
-            if fmult is None:
-                raise errors.MissingMetaDataError(errmsg.format(cc))
+            if mis_metadata:
+                raise errors.MissingMetaDataError(
+                    mis_metadata,
+                    f"Please specify {' and '.join(mis_metadata)}!")
             else:
                 data["force"][segsize:] = rawdata[:, jj] * fmult
         elif cc == "Retract Force(nN)":

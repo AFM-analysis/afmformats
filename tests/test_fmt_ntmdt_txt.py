@@ -3,6 +3,7 @@ import pathlib
 import tempfile
 
 import numpy as np
+import pytest
 
 import afmformats
 
@@ -25,17 +26,9 @@ def test_detect_bad():
         # add a header line without any hashes
         fd.write("header without hash")
         fd.write(data)
-    try:
+
+    with pytest.raises(afmformats.errors.FileFormatNotSupportedError):
         afmformats.formats.get_recipe(tf)
-    except ValueError:
-        pass
-    else:
-        assert False, "invalid format"
-    # cleanup
-    try:
-        pathlib.Path(tf).unlink()
-    except OSError:
-        pass
 
 
 def test_open_simple():

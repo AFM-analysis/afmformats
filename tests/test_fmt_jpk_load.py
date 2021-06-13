@@ -2,11 +2,28 @@
 import pathlib
 
 import numpy as np
+import pytest
 
 import afmformats
+import afmformats.errors
 
 
 datadir = pathlib.Path(__file__).resolve().parent / "data"
+
+
+@pytest.mark.parametrize("name, is_valid",
+    [("spot3-0192.jpk-force", True),  # noqa: E128
+     ("map2x2_extracted.jpk-force-map", True),
+     ("calibration_force-save-2015.02.04-11.25.21.294.jpk-force", False),
+     ])
+def test_detect_jpk(name, is_valid):
+    jpkfile = datadir / name
+    if is_valid:
+        afmlist = afmformats.load_data(path=jpkfile)
+        assert afmlist
+    else:
+        with pytest.raises(afmformats.errors.FileFormatNotSupportedError):
+            afmformats.load_data(path=jpkfile)
 
 
 def test_load_jpk_map():

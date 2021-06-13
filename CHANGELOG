@@ -1,5 +1,9 @@
 0.13.0
  - feat: support zipped AFM workshop map data (#5)
+ - feat: added `find_data` method
+ - enh: make MissingMetaDataError class special (missing
+   metadata are stored as property)
+ - enh: add "detect" function for JPK file format
  - docs: add missing objects to ``__all__`` (autoapi)
  - ref: code cleanup
 0.12.6

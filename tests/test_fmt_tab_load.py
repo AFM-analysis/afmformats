@@ -3,6 +3,7 @@ import pathlib
 import tempfile
 
 import numpy as np
+import pytest
 
 import afmformats
 
@@ -56,12 +57,9 @@ def test_detect():
 
 def test_detect_bad():
     _, tf = tempfile.mkstemp(suffix=".tab", prefix="afmformats_test")
-    try:
+
+    with pytest.raises(afmformats.errors.FileFormatNotSupportedError):
         afmformats.formats.get_recipe(tf)
-    except ValueError:
-        pass
-    else:
-        assert False, "invalid format"
 
 
 def test_open_simple():

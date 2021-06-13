@@ -3,9 +3,26 @@ import numpy as np
 from ..lazy_loader import LazyData
 
 from .jpk_reader import JPKReader
+from .jpk_meta import ReadJPKMetaKeyError
 
 
 __all__ = ["load_jpk"]
+
+
+def detect(path):
+    """Check whether a file is a valid JPK data file
+
+    """
+    # The suffix is not checked, because that is done in
+    # the wrapper class formats.AFMFormatRecipe.
+    jpkr = JPKReader(path)
+    try:
+        jpkr.get_metadata(index=0)
+    except ReadJPKMetaKeyError:
+        valid = False
+    else:
+        valid = True
+    return valid
 
 
 def load_jpk(path, callback=None, meta_override=None):
@@ -42,6 +59,7 @@ def load_jpk(path, callback=None, meta_override=None):
 
 recipe_jpk_force = {
     "descr": "binary FD data",
+    "detect": detect,
     "loader": load_jpk,
     "maker": "JPK Instruments",
     "mode": "force-distance",
@@ -50,6 +68,7 @@ recipe_jpk_force = {
 
 recipe_jpk_force_map = {
     "descr": "binary QMap data",
+    "detect": detect,
     "loader": load_jpk,
     "maker": "JPK Instruments",
     "mode": "force-distance",
@@ -58,6 +77,7 @@ recipe_jpk_force_map = {
 
 recipe_jpk_force_qi = {
     "descr": "binary QMap data",
+    "detect": detect,
     "loader": load_jpk,
     "maker": "JPK Instruments",
     "mode": "force-distance",

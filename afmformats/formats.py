@@ -1,5 +1,6 @@
 import pathlib
 
+from . import errors
 from .fmt_hdf5 import recipe_hdf5
 from .fmt_igor import recipe_ibw
 from .fmt_jpk import recipe_jpk_force, recipe_jpk_force_map, \
@@ -10,8 +11,9 @@ from .fmt_workshop import recipe_workshop_single, recipe_workshop_map
 from .afm_fdist import AFMForceDistance
 
 
-__all__ = ["AFMFormatRecipe", "load_data", "formats_available",
-           "formats_by_suffix", "formats_by_mode", "supported_extensions"]
+__all__ = ["AFMFormatRecipe", "find_data", "get_recipe", "load_data",
+           "formats_available", "formats_by_suffix", "formats_by_mode",
+           "supported_extensions"]
 
 
 #: supported imaging modalities
@@ -121,7 +123,55 @@ class AFMFormatRecipe(object):
         return valid
 
 
+def find_data(path, mode=None):
+    """Recursively find valid AFM data files
+
+    Parameters
+    ----------
+    path: str or pathlib.Path
+        file or directory
+    mode: str
+        mode of the measurement ("force-distance")
+
+    Returns
+    -------
+    file_list: list of pathlib.Path
+        list of valid AFM data files
+    """
+    path = pathlib.Path(path)
+    file_list = []
+    if path.is_dir():
+        # recurse into subdirectories
+        for pp in path.rglob("*"):
+            if pp.is_file():
+                file_list += find_data(pp, mode=mode)
+    else:
+        try:
+            get_recipe(path=path, mode=mode)
+        except errors.FileFormatNotSupportedError:
+            # not a valid file format
+            pass
+        else:
+            # valid file format
+            file_list.append(path)
+    return file_list
+
+
 def get_recipe(path, mode=None):
+    """Return the file format recipe for a given path
+
+    Parameters
+    ----------
+    path: str or pathlib.Path
+        file or directory
+    mode: str
+        mode of the measurement ("force-distance")
+
+    Returns
+    -------
+    recipe: dict
+        file format recipe
+    """
     path = pathlib.Path(path)
     if mode is None:
         # TODO:
@@ -133,7 +183,8 @@ def get_recipe(path, mode=None):
         if rec.mode == mode and rec.detect(path):
             break
     else:
-        raise ValueError("Could not determine recipe for '{}'!".format(path))
+        raise errors.FileFormatNotSupportedError(
+            f"Could not determine file format recipe for '{path}'!")
     return rec
 
 

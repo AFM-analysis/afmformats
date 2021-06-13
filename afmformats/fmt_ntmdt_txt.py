@@ -66,10 +66,12 @@ def load_txt(path, callback=None, meta_override=None):
     """
     if meta_override is None:
         meta_override = {}
-    if ("sensitivity" not in meta_override
-            and "spring constant" not in meta_override):
+    req_metadata = ["sensitivity", "spring constant"]
+    mis_metadata = [key for key in req_metadata if key not in meta_override]
+    if mis_metadata:
         raise errors.MissingMetaDataError(
-            "Please specify 'spring constant' and 'sensitivity'!")
+            mis_metadata,
+            f"Please specify {' and '.join(mis_metadata)}!")
 
     rawdata = np.loadtxt(path, converters=converters)
 
