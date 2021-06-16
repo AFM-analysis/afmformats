@@ -40,9 +40,7 @@ class AFMData(abc.ABC):
         self._enum = metadata_i["enum"]
         # raw data will not be touched
         self._raw_data = data
-        self._data = {"segment": data["segment"]}
-        if "index" not in self._raw_data:
-            self._data["index"] = np.arange(len(data["segment"]))
+        self._data = {}
 
     def __contains__(self, key):
         return self._data.__contains__(key) or self._raw_data.__contains__(key)
@@ -52,12 +50,26 @@ class AFMData(abc.ABC):
             data = self._data[key]
         elif key in self._raw_data:
             data = self._raw_data[key].copy()
+        elif key == "index":
+            return np.arange(len(self))
         else:
             raise KeyError("Column '{}' not defined!".format(key))
         return data
 
     def __len__(self):
-        return len(self._data["segment"])
+        # If you are here, you might have asked yourself why
+        # loading your data takes so long. You have tried
+        # lazy-loading and there shouldn't be a reason why
+        # it is sooo slow! Except there is, because we need
+        # the size of the dataset - and if that is not in the
+        # metadata, then we just take the length of the first
+        # data column as a workaround (which takes time).
+        if "point count" not in self._metadata:
+            k0 = list(self._raw_data.keys())[0]
+            length = len(self[k0])
+        else:
+            length = self._metadata["point count"]
+        return length
 
     @abc.abstractmethod
     def __repr__(self):

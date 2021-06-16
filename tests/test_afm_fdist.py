@@ -1,8 +1,8 @@
-"""Test .h5 format writing"""
 import pathlib
 import tempfile
 
 import h5py
+import numpy as np
 
 import afmformats
 
@@ -24,6 +24,17 @@ def test_export_hdf5():
         assert h5["0"].attrs["enum"] == 0
         assert h5["1"].attrs["enum"] == 1
         assert h5["0"]["force"].attrs["unit"] == "N"
+
+
+def test_segment():
+    jpkfile = datadir / "spot3-0192.jpk-force"
+    fdat = afmformats.load_data(jpkfile, mode="force-distance")[0]
+
+    s1 = fdat.appr["segment"]
+    assert np.all(s1 == 0)
+
+    s2 = fdat.retr["segment"]
+    assert np.all(s2 == 1)
 
 
 if __name__ == "__main__":

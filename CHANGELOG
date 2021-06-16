@@ -1,4 +1,6 @@
 0.13.3
+ - enh: improve speed when loading data by avoiding accessing
+   data during initialization
  - fix: JPK file format reader speed regression caused by #10
    (implemented ArchiveCache)
 0.13.2

@@ -56,11 +56,18 @@ class Segment(object):
         self.raw_data = raw_data
         self.data = data
 
+        # determine segment
+        if "segment" in raw_data:
+            self.segment_index = raw_data["segment"] == self.idx
+        elif "segment" in data:
+            self.segment_index = data["segment"] == self.idx
+        else:
+            raise ValueError("Could not identify segment data!")
+
     def __getitem__(self, key):
-        used = self.data["segment"] == self.idx
         if key in self.data:
-            return self.data[key][used]
+            return self.data[key][self.segment_index]
         elif key in self.raw_data:
-            return self.raw_data[key][used].copy()
+            return self.raw_data[key][self.segment_index].copy()
         else:
             raise KeyError("Undefined feature '{}'!".format(key))
