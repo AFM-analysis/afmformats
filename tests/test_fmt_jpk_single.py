@@ -3,7 +3,8 @@ import pathlib
 
 import numpy as np
 
-from afmformats.fmt_jpk import jpk_data, jpk_meta, JPKReader, load_jpk
+from afmformats.fmt_jpk import jpk_data, jpk_meta, load_jpk
+from afmformats.fmt_jpk.jpk_reader import ArchiveCache, JPKReader
 
 
 datadir = pathlib.Path(__file__).resolve().parent / "data"
@@ -16,10 +17,10 @@ def test_open_jpk_simple():
     loc_list = [ff for ff in jpkr.files if ff.count(p_seg)]
     name, slot, dat = jpk_data.find_column_dat(loc_list, "height (piezo)")
     properties = jpkr._get_index_segment_properties(0, 0)
-    with jpkr.get_archive() as arc:
-        with arc.open(dat, "r") as fd:
-            height = jpk_data.load_dat_raw(fd, name=name,
-                                           properties=properties)
+    arc = ArchiveCache.get(jpkr.path)
+    with arc.open(dat, "r") as fd:
+        height = jpk_data.load_dat_raw(fd, name=name,
+                                       properties=properties)
     assert height[0] == 50.425720226584403
 
 
@@ -42,10 +43,10 @@ def test_open_jpk_conversion():
     chan_data = {}
     for column in ["force", "height (piezo)", "height (measured)"]:
         name, slot, dat = jpk_data.find_column_dat(loc_list, column)
-        with jpkr.get_archive() as arc:
-            with arc.open(dat, "r") as fd:
-                chan_data[name] = jpk_data.load_dat_unit(fd, name, properties,
-                                                         slot)
+        arc = ArchiveCache.get(jpkr.path)
+        with arc.open(dat, "r") as fd:
+            chan_data[name] = jpk_data.load_dat_unit(fd, name, properties,
+                                                     slot)
     assert chan_data["vDeflection"][2] == "vDeflection (Force)"
     assert chan_data["vDeflection"][1] == "N"
     assert chan_data["vDeflection"][0][0] == -5.145579192349918e-10
@@ -104,11 +105,11 @@ def test_get_single_custom_slot():
     loc_list = [ff for ff in jpkr.files if ff.count(p_seg)]
     name, slot, dat = jpk_data.find_column_dat(loc_list, "height (piezo)")
     properties = jpkr._get_index_segment_properties(0, 0)
-    with jpkr.get_archive() as arc:
-        with arc.open(dat, "r") as fd:
-            data, unit, _ = jpk_data.load_dat_unit(fd, name=name,
-                                                   properties=properties,
-                                                   slot="nominal")
+    arc = ArchiveCache.get(jpkr.path)
+    with arc.open(dat, "r") as fd:
+        data, unit, _ = jpk_data.load_dat_unit(fd, name=name,
+                                               properties=properties,
+                                               slot="nominal")
     assert data[0] == 4.9574279773415606e-05
 
 

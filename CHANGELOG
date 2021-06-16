@@ -1,3 +1,6 @@
+0.13.3
+ - fix: JPK file format reader speed regression caused by #10
+   (implemented ArchiveCache)
 0.13.2
  - enh: make sure people don't think they can load a data file
    with a different spring constant or sensitivity

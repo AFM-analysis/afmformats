@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import copy
 import functools
 import zipfile
@@ -10,7 +11,43 @@ from .. import meta
 from . import jpk_data, jpk_meta
 
 
-__all__ = ["JPKReader"]
+__all__ = ["ArchiveCache", "JPKReader"]
+
+
+class ArchiveCache:
+    """Archive cache for fast access to zip data
+
+    If every :class:`JPKReader` has its own instance of `ZipFile`,
+    then on macOS (and possibly other OSes), we might run into an
+    OSError; [Errno 24] Too many open files
+    (https://github.com/AFM-analysis/afmformats/issues/10).
+    The problem is, that if we don't leave the `ZipFile`, we
+    have to re-open it every time we want to access some data.
+    This is a huge overhead.
+
+    The solution is `ArchiveCache`, which keeps a reference to the
+    last `max_archives=32` archives and closes the ones that were
+    used least.
+    """
+    open_archives = OrderedDict()
+    max_archives = 32
+
+    @staticmethod
+    def get(zip_path):
+        """Return the (possibly cached) `ZipFile` object for `zip_path`"""
+        if zip_path in ArchiveCache.open_archives:
+            arc = ArchiveCache.open_archives.pop(zip_path)
+        else:
+            arc = zipfile.ZipFile(zip_path, mode="r")
+        ArchiveCache.open_archives[zip_path] = arc
+        # remove any open archives
+        too_many = len(ArchiveCache.open_archives) - ArchiveCache.max_archives
+        if too_many > 0:
+            to_remove = list(ArchiveCache.open_archives.keys())[:too_many]
+            for key in to_remove:
+                old_arc = ArchiveCache.open_archives.pop(key)
+                old_arc.close()
+        return arc
 
 
 class JPKReader(object):
@@ -25,8 +62,8 @@ class JPKReader(object):
     @functools.lru_cache()
     def files(self):
         """List of files and folders in the archive"""
-        with self.get_archive() as arc:
-            nlist = arc.namelist()
+        arc = ArchiveCache.get(self.path)
+        nlist = arc.namelist()
         maxdigits = int(np.ceil(np.log10(len(nlist)))) + 1
         repstr = "{:0" + "{}".format(maxdigits) + "d}"
 
@@ -58,9 +95,9 @@ class JPKReader(object):
     @functools.lru_cache()
     def _properties_general(self):
         """Return content of "header.properties"""
-        with self.get_archive() as arc:
-            with arc.open("header.properties", "r") as fd:
-                props = jprops.load_properties(fd)
+        arc = ArchiveCache.get(self.path)
+        with arc.open("header.properties", "r") as fd:
+            props = jprops.load_properties(fd)
         return props
 
     @property
@@ -69,9 +106,9 @@ class JPKReader(object):
         """Return content of "shared-data/header.properties"""
         path = "shared-data/header.properties"
         if path in self.files:
-            with self.get_archive() as arc:
-                with arc.open(path, "r") as fd:
-                    props = jprops.load_properties(fd)
+            arc = ArchiveCache.get(self.path)
+            with arc.open(path, "r") as fd:
+                props = jprops.load_properties(fd)
         else:
             props = {}
         return props
@@ -90,17 +127,16 @@ class JPKReader(object):
         """
         # 1. Properties of index
         p_index = self.get_index_path(index) + "header.properties"
-        with self.get_archive() as arc:
-            with arc.open(p_index, "r") as fd:
-                prop = jprops.load_properties(fd)
+        arc = ArchiveCache.get(self.path)
+        with arc.open(p_index, "r") as fd:
+            prop = jprops.load_properties(fd)
 
         # 2. Properties of segment (if applicable)
         if segment is not None:
             p_segment = self.get_index_segment_path(index, segment) \
                         + "segment-header.properties"
-            with self.get_archive() as arc:
-                with arc.open(p_segment, "r") as fd:
-                    prop.update(jprops.load_properties(fd))
+            with arc.open(p_segment, "r") as fd:
+                prop.update(jprops.load_properties(fd))
 
         # 3. Substitute shared properties
         psprop = self._properties_shared
@@ -140,9 +176,6 @@ class JPKReader(object):
             except BaseException:
                 pass
         return prop
-
-    def get_archive(self):
-        return zipfile.ZipFile(self.path, mode="r")
 
     def get_data(self, column, index, segment=None):
         """Return data for a given column, index, or segment
@@ -194,11 +227,11 @@ class JPKReader(object):
             p_seg = self.get_index_segment_path(index, segment)
             loc_list = [ff for ff in self.files if ff.count(p_seg)]
             name, slot, dat = jpk_data.find_column_dat(loc_list, column)
-            with self.get_archive() as arc:
-                with arc.open(dat, "r") as fd:
-                    data, unit, _ = jpk_data.load_dat_unit(fd, name=name,
-                                                           properties=prop,
-                                                           slot=slot)
+            arc = ArchiveCache.get(self.path)
+            with arc.open(dat, "r") as fd:
+                data, unit, _ = jpk_data.load_dat_unit(fd, name=name,
+                                                       properties=prop,
+                                                       slot=slot)
             # verify unit
             if unit != jpk_data.JPK_UNITS[column]:
                 raise jpk_data.ReadJPKError("Unknown unit for {}: {}".format(

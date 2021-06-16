@@ -1,5 +1,7 @@
 """Test of basic opening functionalities"""
 import pathlib
+import shutil
+import tempfile
 
 import numpy as np
 import pytest
@@ -7,8 +9,22 @@ import pytest
 import afmformats
 import afmformats.errors
 
+from afmformats.fmt_jpk.jpk_reader import ArchiveCache
 
-datadir = pathlib.Path(__file__).resolve().parent / "data"
+
+data_path = pathlib.Path(__file__).resolve().parent / "data"
+
+
+def test_archive_cache():
+    td = pathlib.Path(tempfile.mkdtemp(prefix="archive_cache_jpk_"))
+    ziplist = []
+    for ii in range(ArchiveCache.max_archives + 1):
+        pnew = td / f"spot_{ii:03d}.jpk-force"
+        shutil.copy2(data_path / "spot3-0192.jpk-force", pnew)
+        ziplist.append(ArchiveCache.get(pnew))
+    assert ziplist[0].fp is None  # we are one over `max_archives`
+    assert not ziplist[1].fp is None
+    assert not ziplist[-1].fp is None
 
 
 @pytest.mark.parametrize("name, is_valid",
@@ -17,7 +33,7 @@ datadir = pathlib.Path(__file__).resolve().parent / "data"
      ("calibration_force-save-2015.02.04-11.25.21.294.jpk-force", False),
      ])
 def test_detect_jpk(name, is_valid):
-    jpkfile = datadir / name
+    jpkfile = data_path / name
     if is_valid:
         afmlist = afmformats.load_data(path=jpkfile)
         assert afmlist
@@ -27,7 +43,7 @@ def test_detect_jpk(name, is_valid):
 
 
 def test_load_jpk_map():
-    jpkfile = datadir / "map2x2_extracted.jpk-force-map"
+    jpkfile = data_path / "map2x2_extracted.jpk-force-map"
     afmlist = afmformats.load_data(path=jpkfile)
 
     assert len(afmlist) == 4
@@ -44,7 +60,7 @@ def test_load_jpk_map():
 
 
 def test_load_jpk_simple():
-    jpkfile = datadir / "spot3-0192.jpk-force"
+    jpkfile = data_path / "spot3-0192.jpk-force"
     afmlist = afmformats.load_data(path=jpkfile)
     ds = afmlist[0]
     assert ds.metadata["enum"] == 0
@@ -52,7 +68,7 @@ def test_load_jpk_simple():
 
 
 def test_load_jpk_piezo():
-    jpkfile = datadir / "spot3-0192.jpk-force"
+    jpkfile = data_path / "spot3-0192.jpk-force"
     afmlist = afmformats.load_data(path=jpkfile)
     ds = afmlist[0]
     assert np.allclose(ds["height (piezo)"][0], 2.878322343068329e-05)
