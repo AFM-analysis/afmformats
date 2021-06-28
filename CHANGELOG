@@ -1,4 +1,5 @@
 0.14.0
+ - feat: introduced afmformats.AFMGroup, a container for AFMData
  - ref: renamed submodule afm_fdist to mod_force_distance
 0.13.3
  - enh: improve speed when loading data by avoiding accessing

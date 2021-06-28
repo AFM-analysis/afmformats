@@ -14,8 +14,8 @@ To install afmformats, use one of the following methods
     ``pip install -e .``
 
 
-Usage
-=====
+Basic Usage
+===========
 
 .. ipython::
 
@@ -23,7 +23,7 @@ Usage
 
     In [2]: dslist = afmformats.load_data("data/force-save-example.jpk-force")
 
-    # dslist is a list of Force-Distance curves
+    # dslist is a list of force-distance curves
     In [3]: dslist
 
     # available data columns of the first curve
