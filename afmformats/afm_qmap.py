@@ -6,8 +6,7 @@ from .afm_group import AFMGroup
 from .meta import META_FIELDS
 
 
-class DataMissingWarning(UserWarning):
-    pass
+__all__ = ["AFMQMap", "unit_scales"]
 
 
 class AFMQMap(object):

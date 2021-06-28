@@ -198,7 +198,7 @@ class AFMData(abc.ABC):
             fd.write("\t".join(items) + "\r\n")
 
     def export(self, out, metadata=True, fmt="tab"):
-        """Export all columns to a file
+        """Export all data columns to a file
 
         Parameters
         ----------
