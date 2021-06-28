@@ -13,8 +13,7 @@ class AFMQMap(object):
     """Management of quantitative AFM data on a grid"""
     def __init__(self, path_or_group, meta_override=None, callback=None,
                  data_classes_by_modality=None):
-        """Quantitative force spectroscopy map handling
-
+        """
         Parameters
         ----------
         path_or_group: str or pathlib.Path or afmformats.afm_group.AFMGroup
