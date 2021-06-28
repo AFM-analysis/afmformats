@@ -7,12 +7,12 @@ import numpy as np
 import afmformats
 
 
-datadir = pathlib.Path(__file__).resolve().parent / "data"
+data_dir = pathlib.Path(__file__).resolve().parent / "data"
 
 
 def test_export_hdf5():
     """Test for hotfixes in 0.7.1"""
-    jpkfile = datadir / "spot3-0192.jpk-force"
+    jpkfile = data_dir / "spot3-0192.jpk-force"
     fdat = afmformats.load_data(jpkfile, modality="force-distance")[0]
     _, path = tempfile.mkstemp(suffix=".h5", prefix="afmformats_test_")
 
@@ -26,8 +26,21 @@ def test_export_hdf5():
         assert h5["0"]["force"].attrs["unit"] == "N"
 
 
+def test_load_custom_class():
+    class TESTAFMData(afmformats.AFMForceDistance):
+        pass
+    jpkfile = data_dir / "spot3-0192.jpk-force"
+    fdat = afmformats.load_data(jpkfile,
+                                modality="force-distance",
+                                data_classes_by_modality={
+                                    "force-distance": TESTAFMData
+                                }
+                                )[0]
+    assert isinstance(fdat, TESTAFMData)
+
+
 def test_segment():
-    jpkfile = datadir / "spot3-0192.jpk-force"
+    jpkfile = data_dir / "spot3-0192.jpk-force"
     fdat = afmformats.load_data(jpkfile, modality="force-distance")[0]
 
     s1 = fdat.appr["segment"]

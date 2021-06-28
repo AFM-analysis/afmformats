@@ -169,7 +169,7 @@ def get_recipe(path, modality=None):
 
     Returns
     -------
-    recipe: dict
+    recipe: AFMFormatRecipe
         file format recipe
     """
     path = pathlib.Path(path)
@@ -256,7 +256,7 @@ def register_format(recipe):
         formats_by_modality[afr.modality] = []
     formats_by_modality[afr.modality].append(afr)
     # supported extensions
-    if afr.suffix not in supported_extensions:  # avoid duplucates
+    if afr.suffix not in supported_extensions:  # avoid duplicates
         supported_extensions.append(afr.suffix)
     supported_extensions.sort()
 
