@@ -18,7 +18,7 @@ datadir = pathlib.Path(__file__).resolve().parent / "data"
 def test_length(name, size, meta):
     jpkfile = datadir / name
     fdat = afmformats.load_data(jpkfile,
-                                mode="force-distance",
+                                modality="force-distance",
                                 meta_override=meta,
                                 )[0]
     assert len(fdat) == size

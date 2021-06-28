@@ -81,7 +81,7 @@ recipe_jpk_force = {
     "detect": detect,
     "loader": load_jpk,
     "maker": "JPK Instruments",
-    "mode": "force-distance",
+    "modality": "force-distance",
     "suffix": ".jpk-force",
 }
 
@@ -90,7 +90,7 @@ recipe_jpk_force_map = {
     "detect": detect,
     "loader": load_jpk,
     "maker": "JPK Instruments",
-    "mode": "force-distance",
+    "modality": "force-distance",
     "suffix": ".jpk-force-map",
 }
 
@@ -99,6 +99,6 @@ recipe_jpk_force_qi = {
     "detect": detect,
     "loader": load_jpk,
     "maker": "JPK Instruments",
-    "mode": "force-distance",
+    "modality": "force-distance",
     "suffix": ".jpk-qi-data",
 }

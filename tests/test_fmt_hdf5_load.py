@@ -12,10 +12,10 @@ datadir = pathlib.Path(__file__).resolve().parent / "data"
 
 def test_save_open_with_metadata():
     jpkfile = datadir / "spot3-0192.jpk-force"
-    fdat = afmformats.load_data(jpkfile, mode="force-distance")[0]
+    fdat = afmformats.load_data(jpkfile, modality="force-distance")[0]
     _, path = tempfile.mkstemp(suffix=".h5", prefix="afmformats_test_")
-    fdat.export(path, metadata=True, fmt="hdf5")
-    fdat2 = afmformats.load_data(path, mode="force-distance")[0]
+    fdat.export_data(path, metadata=True, fmt="hdf5")
+    fdat2 = afmformats.load_data(path, modality="force-distance")[0]
     # compare metadata
     for key in fdat.metadata:
         if key in ["path", "format"]:
@@ -28,10 +28,10 @@ def test_save_open_with_metadata():
 
 def test_hdf5_metadata_contains():
     jpkfile = datadir / "spot3-0192.jpk-force"
-    fdat = afmformats.load_data(jpkfile, mode="force-distance")[0]
+    fdat = afmformats.load_data(jpkfile, modality="force-distance")[0]
     _, path = tempfile.mkstemp(suffix=".h5", prefix="afmformats_test_")
-    fdat.export(path, metadata=True, fmt="hdf5")
-    fdat2 = afmformats.load_data(path, mode="force-distance")[0]
+    fdat.export_data(path, metadata=True, fmt="hdf5")
+    fdat2 = afmformats.load_data(path, modality="force-distance")[0]
     assert "force" in fdat2
 
 

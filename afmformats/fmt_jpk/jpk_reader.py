@@ -346,7 +346,7 @@ class JPKReader(object):
                 raise jpk_meta.ReadJPKMetaKeyError(msg)
 
         # Currently, only force-distance mode is supported!
-        md["imaging mode"] = "force-distance"
+        md["imaging modality"] = "force-distance"
         if int(segment) == 0:
             curseg = "approach"
         else:

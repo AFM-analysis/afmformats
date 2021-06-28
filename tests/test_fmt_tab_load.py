@@ -22,7 +22,7 @@ def generate_tab_file():
         fd.write('#   "enum": 0,\r\n')
         fd.write('#   "feedback mode": "contact",\r\n')
         fd.write('#   "format": "JPK Instruments (binary FD data)",\r\n')
-        fd.write('#   "imaging mode": "force-distance",\r\n')
+        fd.write('#   "imaging modality": "force-distance",\r\n')
         fd.write('#   "instrument": "JPK00758-CellHesion-200",\r\n')
         fd.write('#   "point count": 8400,\r\n')
         fd.write('#   "position x": -0.0021247991071428572,\r\n')
@@ -73,10 +73,10 @@ def test_open_simple():
 
 def test_save_open_with_metadata():
     jpkfile = datadir / "spot3-0192.jpk-force"
-    fdat = afmformats.load_data(jpkfile, mode="force-distance")[0]
+    fdat = afmformats.load_data(jpkfile, modality="force-distance")[0]
     _, path = tempfile.mkstemp(suffix=".tab", prefix="afmformats_test_")
-    fdat.export(path, metadata=True, fmt="tab")
-    fdat2 = afmformats.load_data(path, mode="force-distance")[0]
+    fdat.export_data(path, metadata=True, fmt="tab")
+    fdat2 = afmformats.load_data(path, modality="force-distance")[0]
     # compare metadata
     for key in fdat.metadata:
         if key in ["path", "format"]:

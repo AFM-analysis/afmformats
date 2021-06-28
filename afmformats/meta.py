@@ -23,7 +23,7 @@ META_FIELDS = {
             # mode with an added vibration on the cantilever".
             "force-modulation",
         ])],
-        "imaging mode": ["Imaging modality", "", vd_str_in([
+        "imaging modality": ["Imaging modality", "", vd_str_in([
             # force-distance measurements
             "force-distance",
         ])],

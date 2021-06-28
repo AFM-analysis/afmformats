@@ -1,7 +1,11 @@
 0.14.0
+ - BREAKING CHANGE: changed 'mode' to 'modality' throughout afmformats
  - feat: introduced afmformats.AFMGroup, a container for AFMData (#11)
  - feat: introduced afmformats.AFMQMap for managing quantitative
    AFMData (#11)
+ - feat: allow to use other derived classes of AFMData when loading
+   experimental data via the `data_classes_by_modality` option
+ - ref: `AFMData.export` is deprecated in favor of `AFMData.export_data`
  - ref: renamed submodule afm_fdist to mod_force_distance
 0.13.3
  - enh: improve speed when loading data by avoiding accessing

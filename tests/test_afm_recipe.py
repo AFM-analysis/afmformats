@@ -15,7 +15,7 @@ def test_bad_recipe_loader_missing():
     recipe = {
         "descr": "unknown description",
         "maker": "unknown maker",
-        "mode": "force-distance",
+        "modality": "force-distance",
         "suffix": ".unknown",
     }
     with pytest.raises(ValueError):
@@ -27,26 +27,26 @@ def test_bad_recipe_loader_not_callable():
         "descr": "unknown description",
         "loader": "peter",
         "maker": "unknown maker",
-        "mode": "force-distance",
+        "modality": "force-distance",
         "suffix": ".unknown",
     }
     with pytest.raises(ValueError):
         afmformats.formats.register_format(recipe)
 
 
-def test_bad_recipe_mode_invlaid():
+def test_bad_recipe_modality_invlaid():
     recipe = {
         "descr": "unknown description",
         "loader": lambda x: x,
         "maker": "unknown maker",
         "suffix": ".unknown",
-        "mode": "invalid",
+        "modality": "invalid",
     }
     with pytest.raises(ValueError):
         afmformats.formats.register_format(recipe)
 
 
-def test_bad_recipe_mode_missing():
+def test_bad_recipe_modality_missing():
     recipe = {
         "descr": "unknown description",
         "loader": lambda x: x,
@@ -62,7 +62,7 @@ def test_bad_recipe_suffix_invalid():
         "descr": "unknown description",
         "loader": lambda x: x,
         "maker": "unknown maker",
-        "mode": "force-distance",
+        "modality": "force-distance",
     }
     with pytest.raises(ValueError):
         afmformats.formats.register_format(recipe)

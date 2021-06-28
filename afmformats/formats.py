@@ -12,8 +12,8 @@ from .mod_force_distance import AFMForceDistance
 
 
 __all__ = ["AFMFormatRecipe", "find_data", "get_recipe", "load_data",
-           "formats_available", "formats_by_suffix", "formats_by_mode",
-           "supported_extensions"]
+           "default_data_classes_by_modality", "formats_available",
+           "formats_by_suffix", "formats_by_modality", "supported_extensions"]
 
 
 #: supported imaging modalities
@@ -37,10 +37,10 @@ class AFMFormatRecipe(object):
                 "'loader' must be callable: '{}'".format(self.loader))
         self.origin = self.loader.__module__
 
-        # check mode
-        if self.mode not in IMAGING_MODALITIES:
-            raise ValueError("'mode' must be in {}, got '{}'!".format(
-                IMAGING_MODALITIES, self.mode))
+        # check modality
+        if self.modality not in IMAGING_MODALITIES:
+            raise ValueError("'modality' must be in {}, got '{}'!".format(
+                IMAGING_MODALITIES, self.modality))
 
         # check detect
         if "detect" in self.recipe:
@@ -78,12 +78,12 @@ class AFMFormatRecipe(object):
         return self.recipe.get("maker", "unknown maker")
 
     @property
-    def mode(self):
+    def modality(self):
         """key describing the AFM recording modality"""
-        if "mode" in self.recipe:
-            return self.recipe["mode"]
+        if "modality" in self.recipe:
+            return self.recipe["modality"]
         else:
-            raise ValueError("No mode defined for recipe {}!".format(self))
+            raise ValueError("No modality defined for recipe {}!".format(self))
 
     @property
     def suffix(self):
@@ -123,15 +123,15 @@ class AFMFormatRecipe(object):
         return valid
 
 
-def find_data(path, mode=None):
+def find_data(path, modality=None):
     """Recursively find valid AFM data files
 
     Parameters
     ----------
     path: str or pathlib.Path
         file or directory
-    mode: str
-        mode of the measurement ("force-distance")
+    modality: str
+        modality of the measurement ("force-distance")
 
     Returns
     -------
@@ -144,10 +144,10 @@ def find_data(path, mode=None):
         # recurse into subdirectories
         for pp in path.rglob("*"):
             if pp.is_file():
-                file_list += find_data(pp, mode=mode)
+                file_list += find_data(pp, modality=modality)
     else:
         try:
-            get_recipe(path=path, mode=mode)
+            get_recipe(path=path, modality=modality)
         except errors.FileFormatNotSupportedError:
             # not a valid file format
             pass
@@ -157,15 +157,15 @@ def find_data(path, mode=None):
     return file_list
 
 
-def get_recipe(path, mode=None):
+def get_recipe(path, modality=None):
     """Return the file format recipe for a given path
 
     Parameters
     ----------
     path: str or pathlib.Path
         file or directory
-    mode: str
-        mode of the measurement ("force-distance")
+    modality: str
+        modality of the measurement ("force-distance")
 
     Returns
     -------
@@ -173,10 +173,10 @@ def get_recipe(path, mode=None):
         file format recipe
     """
     path = pathlib.Path(path)
-    if mode is None:
+    if modality is None:
         # TODO:
-        # - Try to figure out the mode somehow
-        mode = "force-distance"
+        # - Collect all modality candidates and raise an error on ambiguities
+        modality = "force-distance"
 
     if path.suffix not in formats_by_suffix:
         raise errors.FileFormatNotSupportedError(
@@ -184,7 +184,7 @@ def get_recipe(path, mode=None):
 
     recipes = formats_by_suffix[path.suffix]
     for rec in recipes:
-        if rec.mode == mode and rec.detect(path):
+        if rec.modality == modality and rec.detect(path):
             break
     else:
         raise errors.FileFormatNotSupportedError(
@@ -193,38 +193,50 @@ def get_recipe(path, mode=None):
     return rec
 
 
-def load_data(path, mode=None, diskcache=False, callback=None,
-              meta_override=None):
+def load_data(path, meta_override=None, modality=None,
+              data_classes_by_modality=None, diskcache=False,
+              callback=None):
     """Load AFM data
 
     Parameters
     ----------
     path: str or pathlib.Path
         Path to AFM data file
-    mode: str
-        Which acquisition mode to use (currently only "force-distance")
+    meta_override: dict
+        Metadata dictionary that overrides experimental metadata
+    modality: str
+        Which acquisition modality to use (currently only "force-distance")
+    data_classes_by_modality: dict
+        Override the default AFMData class to use for managing the data
+        (see :data:`default_data_classes_by_modality`)
     diskcache: bool
         Whether to use caching (not implemented)
     callback: callable
         A method that accepts a float between 0 and 1
         to externally track the process of loading the data
-    meta_override: dict
-        Metadata dictionary that overrides experimental metadata
     """
     if meta_override is None:
         meta_override = {}
+    if data_classes_by_modality is None:
+        data_classes_by_modality = {}
     path = pathlib.Path(path)
     if path.suffix in formats_by_suffix:
         afmdata = []
-        cur_recipe = get_recipe(path, mode)
+        cur_recipe = get_recipe(path, modality=modality)
+        if modality is None:
+            modality = cur_recipe.modality
         loader = cur_recipe.loader
+        if modality in data_classes_by_modality:
+            afm_data_class = data_classes_by_modality[modality]
+        else:
+            afm_data_class = default_data_classes_by_modality[modality]
         for dd in loader(path, callback=callback,
                          meta_override=meta_override):
             dd["metadata"]["format"] = "{} ({})".format(cur_recipe["maker"],
                                                         cur_recipe["descr"])
-            ddi = AFMForceDistance(data=dd["data"],
-                                   metadata=dd["metadata"],
-                                   diskcache=diskcache)
+            ddi = afm_data_class(data=dd["data"],
+                                 metadata=dd["metadata"],
+                                 diskcache=diskcache)
             afmdata.append(ddi)
     else:
         raise ValueError("Unsupported file extension: '{}'!".format(path))
@@ -239,15 +251,20 @@ def register_format(recipe):
     if afr.suffix not in formats_by_suffix:
         formats_by_suffix[afr.suffix] = []
     formats_by_suffix[afr.suffix].append(afr)
-    # mode
-    if afr.mode not in formats_by_mode:
-        formats_by_mode[afr.mode] = []
-    formats_by_mode[afr.mode].append(afr)
+    # modality
+    if afr.modality not in formats_by_modality:
+        formats_by_modality[afr.modality] = []
+    formats_by_modality[afr.modality].append(afr)
     # supported extensions
     if afr.suffix not in supported_extensions:  # avoid duplucates
         supported_extensions.append(afr.suffix)
     supported_extensions.sort()
 
+
+#: dictionary with default data classes for each modality
+default_data_classes_by_modality = {
+    "force-distance": AFMForceDistance,
+}
 
 #: available/supported file formats
 formats_available = []
@@ -255,8 +272,9 @@ formats_available = []
 #: available file formats in a dictionary with suffix keys
 formats_by_suffix = {}
 
-#: available file formats in a dictionary with modality keys
-formats_by_mode = {}
+#: available file formats in a dictionary for each modality
+formats_by_modality = {}
+
 
 #: list of supported extensions
 supported_extensions = []

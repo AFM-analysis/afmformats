@@ -11,7 +11,7 @@ datadir = pathlib.Path(__file__).resolve().parent / "data"
 
 def test_open_with_metadata():
     jpkfile = datadir / "U3_3_p10004.ibw"
-    fdat = afmformats.load_data(jpkfile, mode="force-distance")[0]
+    fdat = afmformats.load_data(jpkfile, modality="force-distance")[0]
     for col in ['force', 'height (measured)', 'height (piezo)', 'segment']:
         assert col in fdat
     assert fdat.metadata["sensitivity"] == 2.0364e-07
@@ -27,7 +27,7 @@ def test_open_with_metadata():
 def test_open_issue_8():
     # test file provided by María Tenorio (CC0)
     jpkfile = datadir / "SiN_FD_plot.ibw"
-    fdat = afmformats.load_data(jpkfile, mode="force-distance")[0]
+    fdat = afmformats.load_data(jpkfile, modality="force-distance")[0]
     assert fdat.metadata["time"] == "10:47:31"
 
 

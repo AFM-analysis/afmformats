@@ -3,6 +3,7 @@ import copy
 import io
 import json
 import pathlib
+import warnings
 
 import h5py
 import numpy as np
@@ -97,7 +98,7 @@ class AFMData(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def mode(self):
+    def modality(self):
         """Imaging modality (e.g. force-distance)"""
 
     @property
@@ -197,7 +198,12 @@ class AFMData(abc.ABC):
                     items.append("{:.8g}".format(data[cc][ii]))
             fd.write("\t".join(items) + "\r\n")
 
-    def export(self, out, metadata=True, fmt="tab"):
+    def export(self, *args, **kwargs):
+        warnings.warn("Pleas use `export_data` for data export!",
+                      DeprecationWarning)
+        return self.export_data(*args, **kwargs)
+
+    def export_data(self, out, metadata=True, fmt="tab"):
         """Export all data columns to a file
 
         Parameters

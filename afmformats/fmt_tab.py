@@ -137,6 +137,6 @@ recipe_tab = {
     "detect": detect_tab,
     "loader": load_tab,
     "suffix": ".tab",
-    "mode": "force-distance",
+    "modality": "force-distance",
     "maker": "afmformats",
 }

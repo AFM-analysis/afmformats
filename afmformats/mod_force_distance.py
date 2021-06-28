@@ -30,7 +30,7 @@ class AFMForceDistance(AFMData):
         return Segment(self._raw_data, self._data, which="approach")
 
     @property
-    def mode(self):
+    def modality(self):
         """Imaging modality"""
         return "force-distance"
 
