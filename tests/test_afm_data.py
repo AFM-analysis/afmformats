@@ -6,7 +6,7 @@ import pytest
 
 import afmformats
 
-datadir = pathlib.Path(__file__).resolve().parent / "data"
+data_dir = pathlib.Path(__file__).resolve().parent / "data"
 
 
 @pytest.mark.parametrize("name,size,meta", [
@@ -16,10 +16,19 @@ datadir = pathlib.Path(__file__).resolve().parent / "data"
      {"sensitivity": 61, "spring constant": 0.055}),
     ])
 def test_length(name, size, meta):
-    jpkfile = datadir / name
+    jpkfile = data_dir / name
     fdat = afmformats.load_data(jpkfile,
                                 modality="force-distance",
                                 meta_override=meta,
                                 )[0]
     assert len(fdat) == size
     assert np.all(fdat["index"] == np.arange(size))
+
+
+def test_repr_str():
+    jpkfile = data_dir / "spot3-0192.jpk-force"
+    fd = afmformats.load_data(jpkfile)[0]
+    assert "AFMForceDistance" in str(fd)
+    assert "spot3-0192.jpk-force" in str(fd)
+    assert "AFMForceDistance" in repr(fd)
+    assert "spot3-0192.jpk-force" in repr(fd)

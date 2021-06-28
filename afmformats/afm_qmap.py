@@ -11,7 +11,8 @@ __all__ = ["AFMQMap", "unit_scales"]
 
 class AFMQMap(object):
     """Management of quantitative AFM data on a grid"""
-    def __init__(self, path_or_group, meta_override=None, callback=None):
+    def __init__(self, path_or_group, meta_override=None, callback=None,
+                 data_classes_by_modality=None):
         """Quantitative force spectroscopy map handling
 
         Parameters
@@ -24,6 +25,12 @@ class AFMQMap(object):
         callback: callable or None
             A method that accepts a float between 0 and 1
             to externally track the process of loading the data.
+        data_classes_by_modality: dict
+            Override the default AFMData class to use for managing the data
+            (see :data:`default_data_classes_by_modality`): This is e.g.
+            used by :ref:`nanite:index` to pass `Indentation` (which is a
+            subclass of the default `AFMForceDistance`) for handling
+            "force-indentation" data.
         """
         if isinstance(path_or_group, AFMGroup):
             group = path_or_group
@@ -34,7 +41,8 @@ class AFMQMap(object):
         else:
             group = AFMGroup(path=path_or_group,
                              meta_override=meta_override,
-                             callback=callback)
+                             callback=callback,
+                             data_classes_by_modality=data_classes_by_modality)
         #: AFM data (instance of :class:`afmformats.afm_group.AFMGroup`)
         self.group = group
 

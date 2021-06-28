@@ -9,7 +9,8 @@ __all__ = ["AFMGroup"]
 
 class AFMGroup(object):
     """Container for :class:`afmformats.afm_data.AFMData`"""
-    def __init__(self, path=None, meta_override=None, callback=None):
+    def __init__(self, path=None, meta_override=None, callback=None,
+                 data_classes_by_modality=None):
         """
         Parameters
         ----------
@@ -22,15 +23,24 @@ class AFMGroup(object):
         callback: callable or None
             A method that accepts a float between 0 and 1
             to externally track the process of loading the data.
+        data_classes_by_modality: dict
+            Override the default AFMData class to use for managing the data
+            (see :data:`default_data_classes_by_modality`): This is e.g.
+            used by :ref:`nanite:index` to pass `Indentation` (which is a
+            subclass of the default `AFMForceDistance`) for handling
+            "force-indentation" data.
         """
         if path is not None:
             path = pathlib.Path(path)
         self._mmlist = []
 
         if path is not None:
-            self += load_data(path,
-                              callback=callback,
-                              meta_override=meta_override)
+            self += load_data(
+                path,
+                callback=callback,
+                meta_override=meta_override,
+                data_classes_by_modality=data_classes_by_modality
+            )
         elif meta_override is not None:
             raise ValueError("Specifying `meta_override` without specifying "
                              "`path` is meaningless.")
@@ -61,10 +71,10 @@ class AFMGroup(object):
         return len(self._mmlist)
 
     def __repr__(self):
-        return f"<AFMGroup: '{self.path}' at {hex(id(self))}>"
+        return f"<{self.__class__.__name__}: '{self.path}' at {hex(id(self))}>"
 
     def __str__(self):
-        rep = ["AFMGroup: '{}'".format(self.path)]
+        rep = [f"{self.__class__.__name__}: '{self.path}'"]
         for afmdata in self._mmlist:
             rep.append("- {}".format(afmdata))
         return "\n".join(rep)

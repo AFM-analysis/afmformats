@@ -72,9 +72,15 @@ class AFMData(abc.ABC):
             length = self._metadata["point count"]
         return length
 
-    @abc.abstractmethod
+    def __str__(self):
+        strre = "{} '{}'[{}]".format(
+            self.__class__.__name__, self.path, self.enum)
+        return strre
+
     def __repr__(self):
-        """Meaningful repr string"""
+        repre = "<{} '{}'[{}] at {}>".format(
+            self.__class__.__name__, self.path, self.enum, hex(id(self)))
+        return repre
 
     @property
     def columns(self):

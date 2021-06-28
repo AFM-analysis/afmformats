@@ -10,12 +10,6 @@ class AFMForceDistance(AFMData):
     A force-distance dataset consists of an approach and
     a retract curve.
     """
-
-    def __repr__(self):
-        repre = "<Force-Distance Data '{}'[{}] at {}>".format(
-            self.path, self.enum, hex(id(self)))
-        return repre
-
     def __setitem__(self, key, values):
         if len(values) != len(self):
             raise ValueError(

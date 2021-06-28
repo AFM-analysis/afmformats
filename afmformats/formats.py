@@ -208,12 +208,20 @@ def load_data(path, meta_override=None, modality=None,
         Which acquisition modality to use (currently only "force-distance")
     data_classes_by_modality: dict
         Override the default AFMData class to use for managing the data
-        (see :data:`default_data_classes_by_modality`)
+        (see :data:`default_data_classes_by_modality`): This is e.g.
+        used by :ref:`nanite:index` to pass `Indentation` (which is a
+        subclass of the default `AFMForceDistance`) for handling
+        "force-indentation" data.
     diskcache: bool
         Whether to use caching (not implemented)
     callback: callable
         A method that accepts a float between 0 and 1
         to externally track the process of loading the data
+
+    Returns
+    -------
+    afm_list: list of afmformats.afm_data.AFMData
+        List where each element is on AFMData curve
     """
     if meta_override is None:
         meta_override = {}
@@ -274,7 +282,6 @@ formats_by_suffix = {}
 
 #: available file formats in a dictionary for each modality
 formats_by_modality = {}
-
 
 #: list of supported extensions
 supported_extensions = []
