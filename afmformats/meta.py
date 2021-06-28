@@ -122,6 +122,7 @@ class MetaData(dict):
             # nan values are ignored
             return
         super(MetaData, self).__setitem__(key, value)
+        self._autocomplete_grid_metadata()
 
     def __getitem__(self, key):
         if key == "curve id":
@@ -137,6 +138,58 @@ class MetaData(dict):
             msg = "Unknown meta key: '{}'!".format(key)
             raise KeyError(msg)
         return super(MetaData, self).__getitem__(key)
+
+    def _autocomplete_grid_metadata(self):
+        """Compute missing grid metadata in-place
+
+        - supplements "grid index x" and "grid index y" if possible
+        """
+        md = self
+        for ax in ["x", "y"]:
+            if (f"grid index {ax}" not in self
+                and f"grid center {ax}" in self
+                and f"grid shape {ax}" in self
+                and f"grid size {ax}" in self
+                    and f"position {ax}" in self):
+                idx = self._convert_position_to_index(
+                    pos_m=md[f"position {ax}"],
+                    size_m=md[f"grid size {ax}"],
+                    center_m=md[f"grid center {ax}"],
+                    size_px=md[f"grid shape {ax}"])
+                super(MetaData, self).__setitem__(f"grid index {ax}", idx)
+
+    @staticmethod
+    def _convert_position_to_index(pos_m, size_m, center_m, size_px):
+        """Convert qmap positions from [m] to array coordinates in [px]
+
+        Parameters
+        ----------
+        pos_m: float
+            positions [m]
+        size_m: float
+            grid size [m]
+        center_m: float
+            grid center position [m]
+        size_px: int
+            grid size [px]
+
+        Returns
+        -------
+        pos_px: int
+            index position of `pos_m`
+        """
+        if size_px != int(size_px):
+            raise ValueError(
+                "`size_px` must be integer, got {}!".format(size_px))
+        size_px = int(size_px)
+        s1 = center_m - size_m / 2
+        s2 = center_m + size_m / 2
+
+        x, dx = np.linspace(s1, s2, size_px, endpoint=False, retstep=True)
+        x += dx / 2
+
+        xpx = np.nanargmin(np.abs(x - pos_m))
+        return xpx
 
     def _get_curve_id(self):
         # already set?

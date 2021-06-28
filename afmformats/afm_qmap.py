@@ -9,7 +9,7 @@ from .meta import META_FIELDS
 __all__ = ["AFMQMap", "unit_scales"]
 
 
-class AFMQMap(object):
+class AFMQMap:
     """Management of quantitative AFM data on a grid"""
     def __init__(self, path_or_group, meta_override=None, callback=None,
                  data_classes_by_modality=None):

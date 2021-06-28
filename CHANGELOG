@@ -1,3 +1,5 @@
+0.14.1
+ - ref: move QMap grid index computation to MetaData class
 0.14.0
  - BREAKING CHANGE: changed 'mode' to 'modality' throughout afmformats
  - feat: introduced afmformats.AFMGroup, a container for AFMData (#11)

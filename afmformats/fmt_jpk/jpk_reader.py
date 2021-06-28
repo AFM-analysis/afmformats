@@ -356,21 +356,6 @@ class JPKReader(object):
         md["enum"] = int(self.get_index_numbers()[index])
         md["path"] = self.path
 
-        if ("position x" in md and "position y" in md
-                and "grid size x" in md and "grid size y" in md
-                and "grid center x" in md and "grid center y" in md
-                and "grid shape x" in md and "grid shape y" in md):
-            pxpx = jpk_meta.position_m2px(pos_m=md["position x"],
-                                          size_m=md["grid size x"],
-                                          center_m=md["grid center x"],
-                                          size_px=md["grid shape x"])
-            pypx = jpk_meta.position_m2px(pos_m=md["position y"],
-                                          size_m=md["grid size y"],
-                                          center_m=md["grid center y"],
-                                          size_px=md["grid shape y"])
-            md["grid index x"] = pxpx
-            md["grid index y"] = pypx
-
         # 2. Populate with secondary metadata
         recipe_2 = jpk_meta.get_secondary_meta_recipe()
         md_im = {}
