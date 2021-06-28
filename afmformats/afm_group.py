@@ -9,19 +9,19 @@ __all__ = ["AFMGroup"]
 
 class AFMGroup(object):
     """Container for :class:`afmformats.afm_data.AFMData`"""
-    def __init__(self, path=None, callback=None, meta_override=None):
+    def __init__(self, path=None, meta_override=None, callback=None):
         """
         Parameters
         ----------
         path: str or pathlib.Path or None
             If this option is specified, then an AFMGroup is generated
             directly from a datafile.
-        callback: callable or None
-            A method that accepts a float between 0 and 1
-            to externally track the process of loading the data.
         meta_override: dict
             Dictionary with metadata that is used when loading the data
             in `path`.
+        callback: callable or None
+            A method that accepts a float between 0 and 1
+            to externally track the process of loading the data.
         """
         if path is not None:
             path = pathlib.Path(path)
