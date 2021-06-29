@@ -1,5 +1,6 @@
 0.14.1
  - fix: populate AFMQMap grid metadata for AFM workshop format (#12)
+ - enh: speed-up QMap computation by decorator-based caching
  - ref: move QMap grid index computation to MetaData class
 0.14.0
  - BREAKING CHANGE: changed 'mode' to 'modality' throughout afmformats

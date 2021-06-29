@@ -6,7 +6,77 @@ from .afm_group import AFMGroup
 from .meta import META_FIELDS
 
 
-__all__ = ["AFMQMap", "unit_scales"]
+__all__ = ["AFMQMap", "qmap_feature", "unit_scales"]
+
+
+def qmap_feature(name, unit, cache=False):
+    """Decorator for labeling AFMQMap features
+
+    The name and unit are stored as properties of the wrapped function.
+    In addition, the return value of the function can be cached (see
+    `cache` argument).
+
+    Parameters
+    ----------
+    name: str
+        Name of the feature
+    unit: str
+        Unit of the returned feature
+    cache: bool or callable
+        If boolean, determines whether the feature data should be
+        cached or not. If callable, the callable gets an instance
+        of AFMData as an argument and should return an identifier
+        (str) for the current value. If that identifier is the
+        same as in the cache, then the cached value is used.
+    """
+    def attribute_setter(func):
+        """Decorator that sets the necessary attributes
+
+        The outer decorator is used to obtain the attributes.
+        This inner decorator returns the actual function that
+        wraps the feature function.
+        """
+        func.name = name
+        func.unit = unit
+        if isinstance(cache, bool):
+            if cache:
+                # cache everything once
+                func.cache_mode = "static"
+                func.cache_values = {}
+            else:
+                # disable caching
+                func.cache_mode = "disabled"
+        else:
+            assert isinstance(cache, callable)
+            func.cache_mode = "variable"
+            func.cache_values = {}
+            func.cache_ids = {}
+            func.cache_getid = cache
+
+        @functools.wraps(func)
+        def cached_func(afmdata):
+            afmdataid = hex(id(afmdata))
+            if func.cache_mode == "disabled":
+                # no caching
+                return func(afmdata)
+            elif func.cache_mode == "static":
+                # caching is done only once
+                if afmdataid not in func.cache_values:
+                    func.cache_values[afmdataid] = func(afmdata)
+                return func.cache_values[afmdataid]
+            else:
+                # we have to check whether we have to recompute
+                cid = func.cache_getid(afmdata)
+                assert cid, "Must not be empty string"
+                if func.cache_ids.get(afmdataid, "") != cid:
+                    # recompute the value
+                    func.cache_values[afmdataid] = func(afmdata)
+                    func.cache_ids[afmdataid] = cid
+                return func.cache_values[afmdataid]
+
+        return cached_func
+
+    return attribute_setter
 
 
 class AFMQMap:
@@ -62,14 +132,11 @@ class AFMQMap:
         fnames = [f for f in dir(self) if f.startswith("feat_")]
         for fn in fnames:
             func = getattr(self, fn)
-            name, unit = func.__doc__.split("\n")[0].split("[", 1)
-            name = name.strip()
-            unit = unit.strip().strip("]")
-            assert name not in self._feature_funcs
-            assert name not in self._feature_units
-            self._feature_funcs[name] = func
-            self._feature_units[name] = unit
-            self.features.append(name)
+            assert func.name not in self._feature_funcs
+            assert func.name not in self._feature_units
+            self._feature_funcs[func.name] = func
+            self._feature_units[func.name] = func.unit
+            self.features.append(func.name)
 
     def _map_grid(self, coords, map_data):
         """Create a 2D map from 1D coordinates and data
@@ -122,12 +189,12 @@ class AFMQMap:
     @functools.lru_cache(maxsize=32)
     def extent(self):
         """extent (x1, x2, y1, y2) [µm]"""
-        idnt0 = self.group[0]
+        afmdata0 = self.group[0]
         # get extent of the map
-        sx = idnt0.metadata["grid size x"] * 1e6
-        sy = idnt0.metadata["grid size y"] * 1e6
-        cx = idnt0.metadata["grid center x"] * 1e6
-        cy = idnt0.metadata["grid center y"] * 1e6
+        sx = afmdata0.metadata["grid size x"] * 1e6
+        sy = afmdata0.metadata["grid size y"] * 1e6
+        cx = afmdata0.metadata["grid center x"] * 1e6
+        cy = afmdata0.metadata["grid center y"] * 1e6
         extent = (cx - sx/2, cx + sx/2,
                   cy - sy/2, cy + sy/2,
                   )
@@ -137,24 +204,30 @@ class AFMQMap:
     @functools.lru_cache(maxsize=32)
     def shape(self):
         """shape of the map [px]"""
-        idnt0 = self.group[0]
+        afmdata0 = self.group[0]
         # get shape of the map
-        shape = (idnt0.metadata["grid shape x"],
-                 idnt0.metadata["grid shape y"]
+        shape = (afmdata0.metadata["grid shape x"],
+                 afmdata0.metadata["grid shape y"]
                  )
         return shape
 
     @staticmethod
-    def feat_core_data_min_height_measured_um(idnt):
-        """data: lowest height [µm]"""
-        height = np.min(idnt["height (measured)"])
+    @qmap_feature(name="data: lowest height",
+                  unit="µm",
+                  cache=True)
+    def feat_core_data_min_height_measured_um(afmdata):
+        """Compute the lowest height (measured)"""
+        height = np.min(afmdata["height (measured)"])
         value = height / unit_scales["µ"]
         return value
 
     @staticmethod
-    def feat_core_meta_scan_order(idnt):
-        """meta: scan order []"""
-        return idnt.enum
+    @qmap_feature(name="meta: scan order",
+                  unit="",
+                  cache=True)
+    def feat_core_meta_scan_order(afmdata):
+        """Return the enumeration of the dataset"""
+        return afmdata.enum
 
     @functools.lru_cache(maxsize=32)
     def get_coords(self, which="px"):
@@ -177,10 +250,10 @@ class AFMQMap:
             ky = "position y"
             mult = 1e6
         coords = []
-        for idnt in self.group:
+        for afmdata in self.group:
             # We assume that kx and ky are given. This has to be
             # ensured by the file format reader for qmaps.
-            cc = [idnt.metadata[kx] * mult, idnt.metadata[ky] * mult]
+            cc = [afmdata.metadata[kx] * mult, afmdata.metadata[ky] * mult]
             coords.append(cc)
         return np.array(coords)
 
@@ -207,8 +280,8 @@ class AFMQMap:
 
         map_data = []
         ffunc = self._feature_funcs[feature]
-        for idnt in self.group:
-            val = ffunc(idnt)
+        for afmdata in self.group:
+            val = ffunc(afmdata)
             map_data.append(val)
 
         x, y, qmap = self._map_grid(coords=coords, map_data=map_data)
