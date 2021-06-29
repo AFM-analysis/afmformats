@@ -3,6 +3,8 @@ import pathlib
 import warnings
 import zipfile
 
+import numpy as np
+
 from .ws_single import AFMWorkshopFormatWarning, load_csv
 
 __all__ = ["load_map"]
@@ -83,4 +85,19 @@ def load_map(path, callback=None, meta_override=None):
                                   f"got {cur_enum})!",
                                   AFMWorkshopFormatWarning)
                 datasets += dd
+    # Populate missing grid metadata
+    xvals = list(set([ad["metadata"]["position x"] for ad in datasets]))
+    yvals = list(set([ad["metadata"]["position y"] for ad in datasets]))
+    mdgrid = {
+        "grid center x": np.mean(xvals),
+        "grid center y": np.mean(yvals),
+        "grid shape x": len(xvals),
+        "grid shape y": len(yvals),
+        # grid size in um includes boundaries of pixels
+        "grid size x": np.ptp(xvals)*(1 + 1/(len(xvals)-1)),
+        "grid size y": np.ptp(yvals)*(1 + 1/(len(yvals)-1)),
+    }
+    # Update with new metadata (note that grid index x/y is populated via
+    # MetaData._autocomplete_grid_metadata)
+    [ad["metadata"].update(mdgrid) for ad in datasets]
     return datasets

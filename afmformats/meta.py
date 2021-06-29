@@ -50,8 +50,10 @@ META_FIELDS = {
         "grid index y": ["Vertical grid position index", "", fint],
         "grid shape x": ["Horizontal grid shape", "px", fint],
         "grid shape y": ["Vertical grid shape", "px", fint],
-        "grid size x": ["Horizontal grid size", "m", float],
-        "grid size y": ["Vertical grid size", "m", float],
+        # The grid size is the actual size when you include the
+        # boundary of the image (i.e. (grid_shape + 1) * pixel_size).
+        "grid size x": ["Horizontal grid image size", "m", float],
+        "grid size y": ["Vertical grid image size", "m", float],
         "position x": ["Horizontal position", "m", float],
         "position y": ["Vertical position", "m", float],
     },
