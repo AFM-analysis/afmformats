@@ -13,8 +13,8 @@ class AFMForceDistance(AFMData):
     def __setitem__(self, key, values):
         if len(values) != len(self):
             raise ValueError(
-                "Cannot set data of length '{}' ".format(len(values))
-                + "for AFMForceDistance of length '{}'!".format(len(self)))
+                f"Cannot set data '{key}' of length '{len(values)}' "
+                + f"for AFMForceDistance of length '{len(self)}'!")
         # do not touch raw data
         self._data[key] = values
 

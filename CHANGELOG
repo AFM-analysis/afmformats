@@ -2,8 +2,10 @@
  - fix: partially revert breaking change in 0.14.0 ("imaging mode"
    was previously used when exporting data in PyJibe and this metadata
    key should not change)
- - tests: add .tab and .h5 test files
+ - fix: add detect function for HDF5 format (afmformats attempted to
+   load nanite rating containers)
  - enh: added height span for QMap data
+ - tests: add .tab and .h5 test files
  - ref: renamed QMap feature "lowest height" to "height base point"
  - ref: changed prefix to "data" for all QMap data
 0.14.1

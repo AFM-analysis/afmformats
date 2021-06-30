@@ -66,6 +66,8 @@ def test_open_0_13_3():
     fdat = afmformats.load_data(data_path / "version_0.13.3.tab")[0]
     assert fdat.metadata["imaging mode"] == "force-distance"
     assert fdat["force"][2000] == -6.7762282e-10  # cropped compared to h5 file
+    # set the tip position
+    fdat["tip position"] = fdat["height (measured)"]*1.01
 
 
 def test_open_simple():

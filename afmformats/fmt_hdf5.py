@@ -66,6 +66,21 @@ class H5DictReader(object):
         return cols
 
 
+def detect_hdf5(path):
+    """Detect HDF5 file format"""
+    with h5py.File(path, mode="r") as h5:
+        if "software" not in h5.attrs:
+            return False
+        elif "software version" not in h5.attrs:
+            return False
+        elif "0" not in h5:
+            return False
+        elif h5["0"].attrs["imaging mode"] != "force-distance":
+            return False
+        else:
+            return True
+
+
 def load_hdf5(path_or_h5, callback=None, meta_override=None):
     """Loads HDF5 files as exported by afmformats
 
@@ -134,6 +149,7 @@ def load_hdf5(path_or_h5, callback=None, meta_override=None):
 
 recipe_hdf5 = {
     "descr": "HDF5-based",
+    "detect": detect_hdf5,
     "loader": load_hdf5,
     "suffix": ".h5",
     "modality": "force-distance",
