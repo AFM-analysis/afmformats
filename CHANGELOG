@@ -1,4 +1,8 @@
 0.14.2
+ - fix: partially revert breaking change in 0.14.0 ("imaging mode"
+   was previously used when exporting data in PyJibe and this metadata
+   key should not change)
+ - tests: add .tab and .h5 test files
  - enh: added height span for QMap data
  - ref: renamed QMap feature "lowest height" to "height base point"
  - ref: changed prefix to "data" for all QMap data

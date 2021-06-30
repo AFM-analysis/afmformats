@@ -124,7 +124,7 @@ def test_load_jpk():
     jpkfile = datadir / "spot3-0192.jpk-force"
     jpkr = JPKReader(jpkfile)
     md = jpkr.get_metadata(0, 1)
-    assert md["imaging modality"] == "force-distance"
+    assert md["imaging mode"] == "force-distance"
     assert len(jpkr) == 1, "Only one measurement"
     assert len(jpkr.get_index_segment_numbers(0)) == 2, "approach and retract"
 

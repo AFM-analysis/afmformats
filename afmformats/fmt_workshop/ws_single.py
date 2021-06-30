@@ -89,7 +89,7 @@ def load_csv(path, callback=None, meta_override=None, mode="single"):
     # get the metadata
     for ii, line in enumerate(csvdata):
         if line.count("Force-Distance Curve"):
-            metadata["imaging modality"] = "force-distance"
+            metadata["imaging mode"] = "force-distance"
         elif line.startswith("Date:"):
             _, m, d, y = [a.strip(", ") for a in line.split(":")[1].split()]
             metadata["date"] = "{:04d}-{:02d}-{:02d}".format(int(y),
@@ -124,7 +124,7 @@ def load_csv(path, callback=None, meta_override=None, mode="single"):
     else:
         fmult = metadata["sensitivity"] * metadata["spring constant"]
 
-    if "imaging modality" not in metadata:
+    if "imaging mode" not in metadata:
         raise errors.FileFormatNotSupportedError(
             "Unknown file format: {}".format(path))
 

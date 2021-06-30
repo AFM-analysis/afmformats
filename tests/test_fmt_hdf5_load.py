@@ -7,11 +7,26 @@ import numpy as np
 import afmformats
 
 
-datadir = pathlib.Path(__file__).resolve().parent / "data"
+data_path = pathlib.Path(__file__).resolve().parent / "data"
+
+
+def test_open_0_13_3():
+    fdat = afmformats.load_data(data_path / "version_0.13.3.h5")[0]
+    assert fdat.metadata["imaging mode"] == "force-distance"
+    assert fdat["force"][2000] == -7.038311459845539e-10
+
+
+def test_hdf5_metadata_contains():
+    jpkfile = data_path / "spot3-0192.jpk-force"
+    fdat = afmformats.load_data(jpkfile, modality="force-distance")[0]
+    _, path = tempfile.mkstemp(suffix=".h5", prefix="afmformats_test_")
+    fdat.export_data(path, metadata=True, fmt="hdf5")
+    fdat2 = afmformats.load_data(path, modality="force-distance")[0]
+    assert "force" in fdat2
 
 
 def test_save_open_with_metadata():
-    jpkfile = datadir / "spot3-0192.jpk-force"
+    jpkfile = data_path / "spot3-0192.jpk-force"
     fdat = afmformats.load_data(jpkfile, modality="force-distance")[0]
     _, path = tempfile.mkstemp(suffix=".h5", prefix="afmformats_test_")
     fdat.export_data(path, metadata=True, fmt="hdf5")
@@ -25,14 +40,6 @@ def test_save_open_with_metadata():
     for col in fdat.columns:
         assert np.allclose(fdat[col], fdat2[col], atol=0)
 
-
-def test_hdf5_metadata_contains():
-    jpkfile = datadir / "spot3-0192.jpk-force"
-    fdat = afmformats.load_data(jpkfile, modality="force-distance")[0]
-    _, path = tempfile.mkstemp(suffix=".h5", prefix="afmformats_test_")
-    fdat.export_data(path, metadata=True, fmt="hdf5")
-    fdat2 = afmformats.load_data(path, modality="force-distance")[0]
-    assert "force" in fdat2
 
 
 if __name__ == "__main__":

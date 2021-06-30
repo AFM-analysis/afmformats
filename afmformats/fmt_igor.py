@@ -48,7 +48,7 @@ def load_igor(path, callback=None, meta_override=None):
     # Metadata
     metadata = {}
     # acquisition
-    metadata["imaging modality"] = "force-distance"
+    metadata["imaging mode"] = "force-distance"
     metadata["feedback mode"] = notes["ImagingMode"].lower()
     metadata["rate approach"] = float(notes["NumPtsPerSec"])
     metadata["rate retract"] = float(notes["NumPtsPerSec"])

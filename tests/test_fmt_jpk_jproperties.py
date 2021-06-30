@@ -53,7 +53,7 @@ def test_meta_single():
     jpkfile = datadir / "spot3-0192.jpk-force"
     jpkr = JPKReader(jpkfile)
     md = jpkr.get_metadata(index=0, segment=0)
-    assert md["imaging modality"] == "force-distance"
+    assert md["imaging mode"] == "force-distance"
     assert md["duration"] == 0.9999999999999998
 
 
