@@ -212,20 +212,28 @@ class AFMQMap:
         return shape
 
     @staticmethod
-    @qmap_feature(name="data: lowest height",
+    @qmap_feature(name="data: height base point",
                   unit="µm",
                   cache=True)
-    def feat_core_data_min_height_measured_um(afmdata):
+    def feat_core_data_height_base_point_um(afmdata):
         """Compute the lowest height (measured)"""
         height = np.min(afmdata["height (measured)"])
         value = height / unit_scales["µ"]
         return value
 
     @staticmethod
-    @qmap_feature(name="meta: scan order",
+    @qmap_feature(name="data: height span",
+                  unit="µm",
+                  cache=True)
+    def feat_core_data_height_span_um(afmdata):
+        """Compute peak-to-peak height range"""
+        return afmdata.metadata["z range"] / unit_scales["µ"]
+
+    @staticmethod
+    @qmap_feature(name="data: scan order",
                   unit="",
                   cache=True)
-    def feat_core_meta_scan_order(afmdata):
+    def feat_core_data_scan_order(afmdata):
         """Return the enumeration of the dataset"""
         return afmdata.enum
 

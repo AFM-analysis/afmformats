@@ -1,3 +1,7 @@
+0.14.2
+ - enh: added height span for QMap data
+ - ref: renamed QMap feature "lowest height" to "height base point"
+ - ref: changed prefix to "data" for all QMap data
 0.14.1
  - fix: populate AFMQMap grid metadata for AFM workshop format (#12)
  - enh: speed-up QMap computation by decorator-based caching
