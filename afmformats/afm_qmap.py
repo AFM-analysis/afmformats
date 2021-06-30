@@ -222,11 +222,11 @@ class AFMQMap:
         return value
 
     @staticmethod
-    @qmap_feature(name="data: height span",
+    @qmap_feature(name="data: piezo range",
                   unit="µm",
                   cache=True)
-    def feat_core_data_height_span_um(afmdata):
-        """Compute peak-to-peak height range"""
+    def feat_core_data_piezo_range_um(afmdata):
+        """Compute peak-to-peak piezo range"""
         return afmdata.metadata["z range"] / unit_scales["µ"]
 
     @staticmethod
