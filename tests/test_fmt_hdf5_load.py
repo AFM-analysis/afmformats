@@ -41,7 +41,6 @@ def test_save_open_with_metadata():
         assert np.allclose(fdat[col], fdat2[col], atol=0)
 
 
-
 if __name__ == "__main__":
     # Run all tests
     _loc = locals()
