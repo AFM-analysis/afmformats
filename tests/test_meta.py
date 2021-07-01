@@ -1,4 +1,6 @@
 """MetaData class"""
+import copy
+
 import numpy as np
 
 import afmformats.meta as am
@@ -28,6 +30,63 @@ def test_get_ids():
     # override curve
     md["curve id"] = "hans"
     assert md["curve id"] == "hans"
+
+
+def test_lazy_metadata():
+    md = am.MetaData({"enum": "2",
+                      "z range": am.LazyMetaValue(np.abs, -3),
+                      "imaging mode": "force-distance"})
+    value1 = super(am.MetaData, md).__getitem__("z range")
+    assert isinstance(value1, am.LazyMetaValue)
+    value2 = md["z range"]
+    assert not isinstance(value2, am.LazyMetaValue)
+    assert value2 == 3
+    # the LazyMetaValue should have been replaced with the value
+    value3 = super(am.MetaData, md).__getitem__("z range")
+    assert not isinstance(value3, am.LazyMetaValue)
+    assert value3 == 3
+
+
+def test_lazy_metadata_copy():
+    md = am.MetaData({"enum": "2",
+                      "z range": am.LazyMetaValue(np.abs, -3),
+                      "imaging mode": "force-distance"})
+    mdc = md.copy()
+    value1 = super(am.MetaData, md).__getitem__("z range")
+    value2 = super(am.MetaData, mdc).__getitem__("z range")
+    assert isinstance(value1, am.LazyMetaValue)
+    assert isinstance(value2, am.LazyMetaValue)
+    assert value1 is value2, "LazyMetaValue should not be copied"
+    # access it and make sure that LazyMetaValue is overridden in md
+    assert md["z range"] == 3
+    value3 = super(am.MetaData, md).__getitem__("z range")
+    assert not isinstance(value3, am.LazyMetaValue)
+    # for mdc, this should not have happened
+    value4 = super(am.MetaData, mdc).__getitem__("z range")
+    assert isinstance(value4, am.LazyMetaValue)
+    # but the value should be set
+    assert value4.value == 3
+
+
+def test_lazy_metadata_deepcopy():
+    md = am.MetaData({"enum": "2",
+                      "z range": am.LazyMetaValue(np.abs, -3),
+                      "imaging mode": "force-distance"})
+    mdc = copy.deepcopy(md)
+    value1 = super(am.MetaData, md).__getitem__("z range")
+    value2 = super(am.MetaData, mdc).__getitem__("z range")
+    assert isinstance(value1, am.LazyMetaValue)
+    assert isinstance(value2, am.LazyMetaValue)
+    assert value1 is value2, "LazyMetaValue should not be copied"
+    # access it and make sure that LazyMetaValue is overridden in md
+    assert md["z range"] == 3
+    value3 = super(am.MetaData, md).__getitem__("z range")
+    assert not isinstance(value3, am.LazyMetaValue)
+    # for mdc, this should not have happened
+    value4 = super(am.MetaData, mdc).__getitem__("z range")
+    assert isinstance(value4, am.LazyMetaValue)
+    # but the value should be set
+    assert value4.value == 3
 
 
 def test_values_with_lazy_meta():

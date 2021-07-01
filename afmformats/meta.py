@@ -125,6 +125,28 @@ class MetaData(dict):
             if key not in self.valid_keys:
                 raise KeyError("Unknown metadata key: '{}'".format(key))
 
+    def __copy__(self):
+        """Create a copy of the metadata
+
+        Returns
+        -------
+        mdc: MetaData
+            Copy of the MetaData class (LazyMetaValue not copied)
+        """
+        cls = MetaData()
+        for key in self:
+            # This will just pass the LazyMetaValue instance and
+            # not create a copy of it.
+            cls[key] = super(MetaData, self).__getitem__(key)
+        return cls
+
+    def __deepcopy__(self, memo):
+        # Since MetaData is not a nested dictionary, we just do a copy.
+        # And LazyMetaValue should not be copied.
+        result = self.__copy__()
+        memo[id(self)] = result
+        return result
+
     def __setitem__(self, key, value):
         """Set a metadata key
 
@@ -163,7 +185,6 @@ class MetaData(dict):
         if isinstance(value, LazyMetaValue):
             # Evaluate LazyMetaValue and assign value to self
             value = value()
-            print(value)
             super(MetaData, self).__setitem__(key, value)
         return value
 
@@ -254,6 +275,16 @@ class MetaData(dict):
         for key in self:
             realdict[key] = self[key]
         return realdict
+
+    def copy(self):
+        """Create a copy of the metadata
+
+        Returns
+        -------
+        mdc: MetaData
+            Copy of the MetaData class (LazyMetaValue not copied)
+        """
+        return self.__copy__()
 
     def get(self, key, default=None):
         if key in self:
