@@ -42,6 +42,13 @@ def test_detect_jpk(name, is_valid):
             afmformats.load_data(path=jpkfile)
 
 
+def test_get_z_range():
+    jpkfile = data_path / "spot3-0192.jpk-force"
+    ds = afmformats.load_data(path=jpkfile)[0]
+    assert np.allclose(ds.metadata["z range"], 4.280850000996709e-06,
+                       atol=0, rtol=1e-6)
+
+
 def test_load_jpk_map():
     jpkfile = data_path / "map2x2_extracted.jpk-force-map"
     afmlist = afmformats.load_data(path=jpkfile)

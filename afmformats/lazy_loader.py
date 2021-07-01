@@ -1,3 +1,5 @@
+import functools
+
 __all__ = ["LazyData"]
 
 
@@ -20,6 +22,8 @@ class LazyData(object):
     def __contains__(self, key):
         return key in self.loaders
 
+    # cache a few curves so everything is more responsive
+    @functools.lru_cache(maxsize=100)
     def __getitem__(self, key):
         if key in self:
             func, kwargs = self.loaders[key]

@@ -90,6 +90,24 @@ class MetaDataMissingError(BaseException):
     pass
 
 
+class LazyMetaValue:
+    """A metadata value that is evaluated lazily in :class:`MetaData`"""
+    def __init__(self, func, *args, **kwargs):
+        self.func = func
+        self.args = args
+        self.kwargs = kwargs
+        self.value = None
+
+    def __call__(self):
+        if self.value is None:
+            # When metadata is copied, LazyMetaValue is copied along with
+            # it. If in the copy, this function here is called, then we
+            # store it in self.value, so it does not have to be recomputed
+            # in another copy.
+            self.value = self.func(*self.args, **self.kwargs)
+        return self.value
+
+
 class MetaData(dict):
     """Management of meta data variables
 
@@ -139,7 +157,15 @@ class MetaData(dict):
         elif key not in self:
             msg = "Unknown meta key: '{}'!".format(key)
             raise KeyError(msg)
-        return super(MetaData, self).__getitem__(key)
+
+        value = super(MetaData, self).__getitem__(key)
+
+        if isinstance(value, LazyMetaValue):
+            # Evaluate LazyMetaValue and assign value to self
+            value = value()
+            print(value)
+            super(MetaData, self).__setitem__(key, value)
+        return value
 
     def _autocomplete_grid_metadata(self):
         """Compute missing grid metadata in-place
@@ -217,6 +243,24 @@ class MetaData(dict):
             raise MetaDataMissingError("Key 'session id' not set!")
         return thisid
 
+    def as_dict(self):
+        """Convert to real dictionary
+
+        This is needed e.g. for `self.items` such that `json.dump`
+        works in combination with `LazyMetaValue` (which is not
+        JSON serializable)
+        """
+        realdict = {}
+        for key in self:
+            realdict[key] = self[key]
+        return realdict
+
+    def get(self, key, default=None):
+        if key in self:
+            return self[key]
+        else:
+            return default
+
     def get_summary(self):
         """Convenience function returning the meta data summary
 
@@ -230,10 +274,16 @@ class MetaData(dict):
                 summary[sec][key] = self.get(key, np.nan)
         return summary
 
+    def items(self):
+        return self.as_dict().items()
+
     def update(self, *args, **kwargs):
         # make sure everything goes through __set__
         for k, v in dict(*args, **kwargs).items():
             self[k] = v
+
+    def values(self):
+        return self.as_dict().values()
 
 
 def parse_time(value):

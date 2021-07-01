@@ -1,6 +1,7 @@
 import numpy as np
 
 from ..lazy_loader import LazyData
+from ..meta import LazyMetaValue
 
 from .jpk_reader import JPKReader
 from .jpk_meta import ReadJPKMetaKeyError
@@ -65,8 +66,9 @@ def load_jpk(path, callback=None, meta_override=None):
                                       kwargs={"column": column,
                                               "index": index})
         metadata = jpkr.get_metadata(index=index)
-        # TODO: the following line slows things down, refactor?
-        metadata["z range"] = np.ptp(lazy_data["height (piezo)"])
+        metadata["z range"] = LazyMetaValue(
+            lambda data: np.ptp(data["height (piezo)"]),
+            lazy_data)
         metadata.update(meta_override)
         dataset.append({"data": lazy_data,
                         "metadata": metadata,

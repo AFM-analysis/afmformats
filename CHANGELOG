@@ -1,3 +1,6 @@
+0.14.3
+ - enh: implement LazyMetaValue to speed-up loading JPK files
+ - enh: perform caching in LazyData (minor speed-up)
 0.14.2
  - fix: partially revert breaking change in 0.14.0 ("imaging mode"
    was previously used when exporting data in PyJibe and this metadata

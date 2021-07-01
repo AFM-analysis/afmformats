@@ -1,4 +1,6 @@
 """MetaData class"""
+import numpy as np
+
 import afmformats.meta as am
 
 
@@ -26,6 +28,12 @@ def test_get_ids():
     # override curve
     md["curve id"] = "hans"
     assert md["curve id"] == "hans"
+
+
+def test_values_with_lazy_meta():
+    md = am.MetaData({"enum": "2",
+                      "z range": am.LazyMetaValue(np.abs, -3)})
+    assert list(md.values()) == ["2", 3]
 
 
 if __name__ == "__main__":
