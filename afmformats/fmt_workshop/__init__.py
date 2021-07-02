@@ -3,7 +3,7 @@ from .ws_map import load_map
 
 
 recipe_workshop_map = {
-    "descr": "zipped comma-separated values",
+    "descr": "QMAP as zipped comma-separated values",
     "loader": load_map,
     "suffix": ".zip",
     "modality": "force-distance",
