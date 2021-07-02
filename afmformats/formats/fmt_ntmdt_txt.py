@@ -32,7 +32,7 @@ def detect_txt(path):
     valid = False
     try:
         rawdata = np.loadtxt(path, converters=converters, max_rows=10)
-    except ValueError:
+    except (ValueError, IndexError):
         pass
     else:
         if np.issubdtype(rawdata.dtype, np.floating):
