@@ -1,7 +1,7 @@
 import numpy as np
 
-from ..lazy_loader import LazyData
-from ..meta import LazyMetaValue
+from ...lazy_loader import LazyData
+from ...meta import LazyMetaValue
 
 from .jpk_reader import JPKReader
 from .jpk_meta import ReadJPKMetaKeyError

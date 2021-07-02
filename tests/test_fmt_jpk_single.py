@@ -3,8 +3,8 @@ import pathlib
 
 import numpy as np
 
-from afmformats.fmt_jpk import jpk_data, jpk_meta, load_jpk
-from afmformats.fmt_jpk.jpk_reader import ArchiveCache, JPKReader
+from afmformats.formats.fmt_jpk import jpk_data, jpk_meta, load_jpk
+from afmformats.formats.fmt_jpk.jpk_reader import ArchiveCache, JPKReader
 
 
 datadir = pathlib.Path(__file__).resolve().parent / "data"

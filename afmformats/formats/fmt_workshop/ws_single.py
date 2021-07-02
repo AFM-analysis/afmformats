@@ -4,7 +4,7 @@ import warnings
 
 import numpy as np
 
-from .. import errors
+from ... import errors
 
 
 class AFMWorkshopFormatWarning(UserWarning):

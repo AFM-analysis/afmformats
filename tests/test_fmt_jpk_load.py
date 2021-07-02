@@ -9,7 +9,7 @@ import pytest
 import afmformats
 import afmformats.errors
 
-from afmformats.fmt_jpk.jpk_reader import ArchiveCache
+from afmformats.formats.fmt_jpk.jpk_reader import ArchiveCache
 
 
 data_path = pathlib.Path(__file__).resolve().parent / "data"

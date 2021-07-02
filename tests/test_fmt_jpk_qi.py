@@ -4,7 +4,7 @@ import pathlib
 import numpy as np
 
 import afmformats
-from afmformats.fmt_jpk import load_jpk
+from afmformats.formats.fmt_jpk import load_jpk
 
 
 datadir = pathlib.Path(__file__).resolve().parent / "data"

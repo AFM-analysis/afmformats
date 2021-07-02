@@ -3,7 +3,7 @@ import pathlib
 
 import numpy as np
 
-from .afm_data import column_dtypes, known_columns
+from ..afm_data import column_dtypes, known_columns
 
 
 __all__ = ["load_tab"]

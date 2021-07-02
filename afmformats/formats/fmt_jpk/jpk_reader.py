@@ -6,7 +6,7 @@ import zipfile
 import jprops
 import numpy as np
 
-from .. import meta
+from ... import meta
 
 from . import jpk_data, jpk_meta
 

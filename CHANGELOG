@@ -1,3 +1,5 @@
+0.14.4
+ - ref: separate submodule for formats
 0.14.3
  - enh: implement LazyMetaValue to speed-up loading JPK files
  - enh: perform caching in LazyData (minor speed-up)

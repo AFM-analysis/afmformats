@@ -1,6 +1,6 @@
 import numpy as np
 
-from ..errors import FileFormatNotSupportedError
+from ...errors import FileFormatNotSupportedError
 
 
 __all__ = ["JPK_COLUMNS",

@@ -1,6 +1,6 @@
 import numpy as np
 
-from . import errors
+from .. import errors
 
 
 __all__ = ["load_txt"]

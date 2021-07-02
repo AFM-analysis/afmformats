@@ -4,7 +4,7 @@ import pathlib
 import h5py
 import numpy as np
 
-from .afm_data import column_dtypes, known_columns
+from ..afm_data import column_dtypes, known_columns
 
 
 __all__ = ["H5DictReader", "load_hdf5"]

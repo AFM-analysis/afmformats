@@ -1,6 +1,6 @@
 import pathlib
 
-from . import errors
+from .. import errors
 from .fmt_hdf5 import recipe_hdf5
 from .fmt_igor import recipe_ibw
 from .fmt_jpk import recipe_jpk_force, recipe_jpk_force_map, \
@@ -8,7 +8,7 @@ from .fmt_jpk import recipe_jpk_force, recipe_jpk_force_map, \
 from .fmt_tab import recipe_tab
 from .fmt_ntmdt_txt import recipe_ntmdt_txt
 from .fmt_workshop import recipe_workshop_single, recipe_workshop_map
-from .mod_force_distance import AFMForceDistance
+from ..mod_force_distance import AFMForceDistance
 
 
 __all__ = ["AFMFormatRecipe", "find_data", "get_recipe", "load_data",
