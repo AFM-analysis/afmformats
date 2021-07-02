@@ -299,10 +299,12 @@ class AFMQMap:
             return x, y, qmap
 
 
-unit_scales = {"": 1,
-               "k": 1e3,
-               "m": 1e-3,
-               "µ": 1e-6,
-               "n": 1e-9,
-               "p": 1e-12
-               }
+#: Scale conversion helper
+unit_scales = {
+    "": 1,
+    "k": 1e3,
+    "m": 1e-3,
+    "µ": 1e-6,
+    "n": 1e-9,
+    "p": 1e-12
+    }

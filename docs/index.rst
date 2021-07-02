@@ -13,6 +13,7 @@ Documentation
 
    sec_getting_started
    sec_advanced_usage
+   sec_new_formats
 
 .. toctree::
    :maxdepth: 1

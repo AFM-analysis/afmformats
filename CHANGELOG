@@ -1,4 +1,5 @@
 0.14.4
+ - docs: add section for implementing new file formats (#13)
  - fix: IndexError when trying to open .txt files that are no AFM files
  - ref: separate submodule for formats
 0.14.3

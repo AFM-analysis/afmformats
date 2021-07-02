@@ -6,7 +6,7 @@ from .parse_funcs import fint, vd_str_in
 
 
 __all__ = ["META_FIELDS", "DEF_ALL", "KEYS_VALID", "MetaDataMissingError",
-           "MetaData", "parse_time"]
+           "LazyMetaValue", "MetaData", "parse_time"]
 
 
 #: Compendium of all allowed meta data keys, sorted by topic, and
@@ -93,6 +93,24 @@ class MetaDataMissingError(BaseException):
 class LazyMetaValue:
     """A metadata value that is evaluated lazily in :class:`MetaData`"""
     def __init__(self, func, *args, **kwargs):
+        """
+
+        Example usage::
+
+           meta = afmformats.meta.MetaData
+           meta["z range"] = afmformats.meta.LazyMetaValue(
+                np.ptp,
+                np.arange(10))
+
+        Parameters
+        ----------
+        func: callable
+            Function to call to get the metadata value
+        args:
+            arguments to ``func``
+        kwargs:
+            Keyword arguments to ``func``
+        """
         self.func = func
         self.args = args
         self.kwargs = kwargs
