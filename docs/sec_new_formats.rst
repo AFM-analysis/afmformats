@@ -28,6 +28,8 @@ that
     pip install pytest
     pytest tests
 
+- the data files for examples are named according to ``fmt-NAME-MOD_filename.suffix``
+  where ``MOD`` can be e.g. ``fd`` for force-distance data.
 
 If you cannot or will not work with GitHub, you may paste your code in the
 corresponding issue. If the file format is not too complicated, let's just
