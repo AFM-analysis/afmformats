@@ -11,13 +11,13 @@ data_path = pathlib.Path(__file__).resolve().parent / "data"
 
 
 def test_open_0_13_3():
-    fdat = afmformats.load_data(data_path / "version_0.13.3.h5")[0]
+    fdat = afmformats.load_data(data_path / "fmt-hdf5-fd_version_0.13.3.h5")[0]
     assert fdat.metadata["imaging mode"] == "force-distance"
     assert fdat["force"][2000] == -7.038311459845539e-10
 
 
 def test_hdf5_metadata_contains():
-    jpkfile = data_path / "spot3-0192.jpk-force"
+    jpkfile = data_path / "fmt-jpk-fd_spot3-0192.jpk-force"
     fdat = afmformats.load_data(jpkfile, modality="force-distance")[0]
     _, path = tempfile.mkstemp(suffix=".h5", prefix="afmformats_test_")
     fdat.export_data(path, metadata=True, fmt="hdf5")
@@ -26,7 +26,7 @@ def test_hdf5_metadata_contains():
 
 
 def test_save_open_with_metadata():
-    jpkfile = data_path / "spot3-0192.jpk-force"
+    jpkfile = data_path / "fmt-jpk-fd_spot3-0192.jpk-force"
     fdat = afmformats.load_data(jpkfile, modality="force-distance")[0]
     _, path = tempfile.mkstemp(suffix=".h5", prefix="afmformats_test_")
     fdat.export_data(path, metadata=True, fmt="hdf5")

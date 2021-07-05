@@ -63,7 +63,7 @@ def test_detect_bad():
 
 
 def test_open_0_13_3():
-    fdat = afmformats.load_data(data_path / "version_0.13.3.tab")[0]
+    fdat = afmformats.load_data(data_path / "fmt-tab-fd_version_0.13.3.tab")[0]
     assert fdat.metadata["imaging mode"] == "force-distance"
     assert fdat["force"][2000] == -6.7762282e-10  # cropped compared to h5 file
     # set the tip position
@@ -80,7 +80,7 @@ def test_open_simple():
 
 
 def test_save_open_with_metadata():
-    jpkfile = data_path / "spot3-0192.jpk-force"
+    jpkfile = data_path / "fmt-jpk-fd_spot3-0192.jpk-force"
     fdat = afmformats.load_data(jpkfile, modality="force-distance")[0]
     _, path = tempfile.mkstemp(suffix=".tab", prefix="afmformats_test_")
     fdat.export_data(path, metadata=True, fmt="tab")

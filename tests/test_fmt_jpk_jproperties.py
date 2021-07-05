@@ -7,11 +7,11 @@ import afmformats
 from afmformats.formats.fmt_jpk import JPKReader
 
 
-datadir = pathlib.Path(__file__).resolve().parent / "data"
+data_path = pathlib.Path(__file__).resolve().parent / "data"
 
 
 def test_meta_extracted_map():
-    jpkfile = datadir / "map2x2_extracted.jpk-force-map"
+    jpkfile = data_path / "fmt-jpk-fd_map2x2_extracted.jpk-force-map"
     md = afmformats.load_data(jpkfile)[0].metadata
     summary = md.get_summary()
     for sec in ["acquisition", "dataset", "setup", "storage", "qmap"]:
@@ -22,7 +22,7 @@ def test_meta_extracted_map():
 
 
 def test_meta_extracted_map2():
-    jpkfile = datadir / "map0d_extracted.jpk-force-map"
+    jpkfile = data_path / "fmt-jpk-fd_map0d_extracted.jpk-force-map"
     md = afmformats.load_data(jpkfile)[0].metadata
     summary = md.get_summary()
     for sec in ["acquisition", "dataset", "setup", "storage", "qmap"]:
@@ -33,7 +33,7 @@ def test_meta_extracted_map2():
 
 
 def test_meta_extracted_single():
-    jpkfile = datadir / "spot3-0192.jpk-force"
+    jpkfile = data_path / "fmt-jpk-fd_spot3-0192.jpk-force"
     md = afmformats.load_data(jpkfile)[0].metadata
     summary = md.get_summary()
     for sec in ["acquisition", "dataset", "setup", "storage"]:
@@ -44,13 +44,13 @@ def test_meta_extracted_single():
 
 
 def test_meta_simple():
-    jpkfilemap = datadir / "map0d_extracted.jpk-force-map"
+    jpkfilemap = data_path / "fmt-jpk-fd_map0d_extracted.jpk-force-map"
     jpkr = JPKReader(jpkfilemap)
     jpkr.get_metadata(index=0, segment=0)
 
 
 def test_meta_single():
-    jpkfile = datadir / "spot3-0192.jpk-force"
+    jpkfile = data_path / "fmt-jpk-fd_spot3-0192.jpk-force"
     jpkr = JPKReader(jpkfile)
     md = jpkr.get_metadata(index=0, segment=0)
     assert md["imaging mode"] == "force-distance"

@@ -1,3 +1,5 @@
+0.14.5
+ - tests: rename test data files to reflect format
 0.14.4
  - docs: add section for implementing new file formats (#13)
  - fix: IndexError when trying to open .txt files that are no AFM files

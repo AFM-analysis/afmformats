@@ -6,11 +6,11 @@ import numpy as np
 import afmformats
 
 
-datadir = pathlib.Path(__file__).resolve().parent / "data"
+data_path = pathlib.Path(__file__).resolve().parent / "data"
 
 
 def test_map_grid():
-    tf = datadir / "AFM-workshop_FD_mapping_16_2018-08-01_13.07.zip"
+    tf = data_path / "fmt-afm-workshop-fd_mapping_16_2018-08-01_13.07.zip"
     k = 20
     sens = .01e-6
     qmap = afmformats.AFMQMap(tf, meta_override={"spring constant": k,
@@ -30,7 +30,7 @@ def test_map_grid():
 
 
 def test_map_open():
-    tf = datadir / "AFM-workshop_FD_mapping_16_2018-08-01_13.07.zip"
+    tf = data_path / "fmt-afm-workshop-fd_mapping_16_2018-08-01_13.07.zip"
     k = 20
     sens = .01e-6
     data = afmformats.load_data(tf, meta_override={"spring constant": k,
@@ -46,7 +46,7 @@ def test_map_open():
 
 
 def test_missing_sens():
-    tf = datadir / "AFM-workshop_FD_single_2018-08-01_13.06.09.csv"
+    tf = data_path / "fmt-afm-workshop-fd_single_2018-08-01_13.06.09.csv"
     try:
         afmformats.load_data(tf)
     except afmformats.errors.MissingMetaDataError:
@@ -54,7 +54,7 @@ def test_missing_sens():
 
 
 def test_single_conversion():
-    tf = datadir / "AFM-workshop_FD_single_2018-08-01_13.06.09.csv"
+    tf = data_path / "fmt-afm-workshop-fd_single_2018-08-01_13.06.09.csv"
     k = 20
     sens = .01e-6
     data = afmformats.load_data(tf, meta_override={"spring constant": k,
@@ -65,7 +65,7 @@ def test_single_conversion():
 
 
 def test_single_open():
-    tf = datadir / "AFM-workshop_FD_single_2020-02-14_13.41.25.csv"
+    tf = data_path / "fmt-afm-workshop-fd_single_2020-02-14_13.41.25.csv"
     data = afmformats.load_data(tf)[0]
     assert "force" in data.columns
     assert np.allclose(data["force"][0], 1276.4373e-9)

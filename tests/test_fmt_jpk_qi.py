@@ -7,11 +7,11 @@ import afmformats
 from afmformats.formats.fmt_jpk import load_jpk
 
 
-datadir = pathlib.Path(__file__).resolve().parent / "data"
+data_path = pathlib.Path(__file__).resolve().parent / "data"
 
 
 def test_open_jpk_qi():
-    jpkfile = datadir / "2020.02.07-16.29.05.036.jpk-qi-data"
+    jpkfile = data_path / "fmt-jpk-fd_2020.02.07-16.29.05.036.jpk-qi-data"
     dataset = load_jpk(jpkfile)
     data = dataset[0]["data"]
     force = data["force"]
@@ -22,7 +22,7 @@ def test_open_jpk_qi():
 
 
 def test_open_jpk_map_enum():
-    jpkfile = datadir / "2020.02.07-16.29.05.036.jpk-qi-data"
+    jpkfile = data_path / "fmt-jpk-fd_2020.02.07-16.29.05.036.jpk-qi-data"
     data = afmformats.load_data(jpkfile)
     # Correct enumeration
     assert data[0].metadata["enum"] == 0
@@ -32,7 +32,7 @@ def test_open_jpk_map_enum():
 
 
 def test_open_jpk_map2():
-    jpkfile = datadir / "2020.02.07-16.29.05.036.jpk-qi-data"
+    jpkfile = data_path / "fmt-jpk-fd_2020.02.07-16.29.05.036.jpk-qi-data"
     dataset = load_jpk(jpkfile)
     assert len(dataset) == 4
     assert dataset[0]["metadata"]["grid index x"] == 0

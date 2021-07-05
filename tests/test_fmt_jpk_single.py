@@ -7,11 +7,11 @@ from afmformats.formats.fmt_jpk import jpk_data, jpk_meta, load_jpk
 from afmformats.formats.fmt_jpk.jpk_reader import ArchiveCache, JPKReader
 
 
-datadir = pathlib.Path(__file__).resolve().parent / "data"
+data_path = pathlib.Path(__file__).resolve().parent / "data"
 
 
 def test_open_jpk_simple():
-    jpkfile = datadir / "spot3-0192.jpk-force"
+    jpkfile = data_path / "fmt-jpk-fd_spot3-0192.jpk-force"
     jpkr = JPKReader(jpkfile)
     p_seg = jpkr.get_index_segment_path(0, 0)
     loc_list = [ff for ff in jpkr.files if ff.count(p_seg)]
@@ -25,7 +25,8 @@ def test_open_jpk_simple():
 
 
 def test_open_jpk_calibration():
-    cf = datadir / "calibration_force-save-2015.02.04-11.25.21.294.jpk-force"
+    cf = data_path / \
+         "fmt-jpk-fd_calibration_force-save-2015.02.04-11.25.21.294.jpk-force"
     try:
         load_jpk(cf)
     except jpk_meta.ReadJPKMetaKeyError:
@@ -35,7 +36,7 @@ def test_open_jpk_calibration():
 
 
 def test_open_jpk_conversion():
-    jpkfile = datadir / "spot3-0192.jpk-force"
+    jpkfile = data_path / "fmt-jpk-fd_spot3-0192.jpk-force"
     jpkr = JPKReader(jpkfile)
     p_seg = jpkr.get_index_segment_path(0, 0)
     loc_list = [ff for ff in jpkr.files if ff.count(p_seg)]
@@ -55,7 +56,7 @@ def test_open_jpk_conversion():
 
 
 def test_get_both_metadata():
-    jpkfile = datadir / "spot3-0192.jpk-force"
+    jpkfile = data_path / "fmt-jpk-fd_spot3-0192.jpk-force"
     jpkr = JPKReader(jpkfile)
     md1 = jpkr.get_metadata(index=0, segment=0)
     md2 = jpkr.get_metadata(index=0, segment=1)
@@ -74,7 +75,7 @@ def test_get_both_metadata():
 
 
 def test_get_single_curves():
-    jpkfile = datadir / "spot3-0192.jpk-force"
+    jpkfile = data_path / "fmt-jpk-fd_spot3-0192.jpk-force"
     jpkr = JPKReader(jpkfile)
     jpkr.get_data(column="force", index=0, segment=0)
     jpkr.get_data(column="height (piezo)", index=0, segment=0)
@@ -82,7 +83,7 @@ def test_get_single_curves():
 
 
 def test_get_time():
-    jpkfile = datadir / "spot3-0192.jpk-force"
+    jpkfile = data_path / "fmt-jpk-fd_spot3-0192.jpk-force"
     jpkr = JPKReader(jpkfile)
     time1 = jpkr.get_data(column="time", index=0, segment=0)
     time2 = jpkr.get_data(column="time", index=0, segment=1)
@@ -99,7 +100,7 @@ def test_get_time():
 
 
 def test_get_single_custom_slot():
-    jpkfile = datadir / "spot3-0192.jpk-force"
+    jpkfile = data_path / "fmt-jpk-fd_spot3-0192.jpk-force"
     jpkr = JPKReader(jpkfile)
     p_seg = jpkr.get_index_segment_path(0, 0)
     loc_list = [ff for ff in jpkr.files if ff.count(p_seg)]
@@ -114,14 +115,14 @@ def test_get_single_custom_slot():
 
 
 def test_meta():
-    jpkfile = datadir / "spot3-0192.jpk-force"
+    jpkfile = data_path / "fmt-jpk-fd_spot3-0192.jpk-force"
     jpkr = JPKReader(jpkfile)
     md = jpkr.get_metadata(0, 1)
     assert md["spring constant"] == 0.043493666407368466
 
 
 def test_load_jpk():
-    jpkfile = datadir / "spot3-0192.jpk-force"
+    jpkfile = data_path / "fmt-jpk-fd_spot3-0192.jpk-force"
     jpkr = JPKReader(jpkfile)
     md = jpkr.get_metadata(0, 1)
     assert md["imaging mode"] == "force-distance"

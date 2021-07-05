@@ -8,17 +8,19 @@ import pytest
 import afmformats
 
 
-datadir = pathlib.Path(__file__).resolve().parent / "data"
+data_path = pathlib.Path(__file__).resolve().parent / "data"
 
 
 def test_detect():
-    path = datadir / "2015_01_17_gel4-0,1_mQ_adh_6B_Curve_DFL_Height_51.txt"
+    path = data_path / ("fmt-ntmdt-txt-fd_2015_01_17_gel4-0,1_mQ_adh"
+                        + "_6B_Curve_DFL_Height_51.txt")
     recipe = afmformats.formats.get_recipe(path)
     assert recipe.descr == "exported by NT-MDT Nova"
 
 
 def test_detect_bad():
-    path = datadir / "2015_01_17_gel4-0,1_mQ_adh_6B_Curve_DFL_Height_51.txt"
+    path = data_path / ("fmt-ntmdt-txt-fd_2015_01_17_gel4-0,1_mQ_adh"
+                        + "_6B_Curve_DFL_Height_51.txt")
     _, tf = tempfile.mkstemp(suffix=".txt", prefix="afmformats_test")
     data = pathlib.Path(path).read_text()
     data.replace("\t", ",")
@@ -32,7 +34,8 @@ def test_detect_bad():
 
 
 def test_open_simple():
-    path = datadir / "2015_01_17_gel4-0,1_mQ_adh_6B_Curve_DFL_Height_51.txt"
+    path = data_path / ("fmt-ntmdt-txt-fd_2015_01_17_gel4-0,1_mQ_adh"
+                        + "_6B_Curve_DFL_Height_51.txt")
     meta_override = {}
     meta_override["spring constant"] = 0.055
     meta_override["sensitivity"] = 61
