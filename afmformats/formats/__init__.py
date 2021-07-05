@@ -17,7 +17,11 @@ __all__ = ["AFMFormatRecipe", "find_data", "get_recipe", "load_data",
 
 
 #: supported imaging modalities
-IMAGING_MODALITIES = ["force-distance"]
+IMAGING_MODALITIES = [
+    "creep-compliance",
+    "force-distance",
+    "stress-relaxation"
+]
 
 
 class AFMFormatRecipe(object):
@@ -38,9 +42,9 @@ class AFMFormatRecipe(object):
         self.origin = self.loader.__module__
 
         # check modality
-        if self.modality not in IMAGING_MODALITIES:
-            raise ValueError("'modality' must be in {}, got '{}'!".format(
-                IMAGING_MODALITIES, self.modality))
+        if not set(self.modalities) <= set(IMAGING_MODALITIES):
+            raise ValueError("'modalities' must be in {}, got '{}'!".format(
+                IMAGING_MODALITIES, self.modalities))
 
         # check detect
         if "detect" in self.recipe:
@@ -78,12 +82,12 @@ class AFMFormatRecipe(object):
         return self.recipe.get("maker", "unknown maker")
 
     @property
-    def modality(self):
-        """key describing the AFM recording modality"""
-        if "modality" in self.recipe:
-            return self.recipe["modality"]
+    def modalities(self):
+        """list of supported AFM imaging modalities"""
+        if "modalities" in self.recipe:
+            return self.recipe["modalities"]
         else:
-            raise ValueError("No modality defined for recipe {}!".format(self))
+            raise ValueError(f"No modalities defined for recipe {self}!")
 
     @property
     def suffix(self):
@@ -121,6 +125,19 @@ class AFMFormatRecipe(object):
             valid = fdetect(path)
 
         return valid
+
+    def get_modality(self, path):
+        """Determine modality of a path
+
+        If a recipe provides several modalities, load the
+        dataset and get the modality from the metadata.
+        """
+        if len(self.modalities) == 1:
+            modality = self.modalities[0]
+        else:
+            metadata = self.loader(path)[0]["metadata"]
+            modality = metadata["imaging mode"]
+        return modality
 
 
 def find_data(path, modality=None):
@@ -165,7 +182,7 @@ def get_recipe(path, modality=None):
     path: str or pathlib.Path
         file or directory
     modality: str
-        modality of the measurement ("force-distance")
+        modality of the measurement (see :const:`IMAGING_MODALITIES`)
 
     Returns
     -------
@@ -173,10 +190,6 @@ def get_recipe(path, modality=None):
         file format recipe
     """
     path = pathlib.Path(path)
-    if modality is None:
-        # TODO:
-        # - Collect all modality candidates and raise an error on ambiguities
-        modality = "force-distance"
 
     if path.suffix not in formats_by_suffix:
         raise errors.FileFormatNotSupportedError(
@@ -184,7 +197,8 @@ def get_recipe(path, modality=None):
 
     recipes = formats_by_suffix[path.suffix]
     for rec in recipes:
-        if rec.modality == modality and rec.detect(path):
+        if ((modality is None or modality in rec.modalities)
+                and rec.detect(path)):
             break
     else:
         raise errors.FileFormatNotSupportedError(
@@ -205,7 +219,7 @@ def load_data(path, meta_override=None, modality=None,
     meta_override: dict
         Metadata dictionary that overrides experimental metadata
     modality: str
-        Which acquisition modality to use (currently only "force-distance")
+        Which acquisition modality to use (e.g. "force-distance")
     data_classes_by_modality: dict
         Override the default AFMData class to use for managing the data
         (see :data:`default_data_classes_by_modality`): This is e.g.
@@ -231,9 +245,9 @@ def load_data(path, meta_override=None, modality=None,
     if path.suffix in formats_by_suffix:
         afmdata = []
         cur_recipe = get_recipe(path, modality=modality)
-        if modality is None:
-            modality = cur_recipe.modality
         loader = cur_recipe.loader
+        if modality is None:
+            modality = cur_recipe.get_modality(path)
         if modality in data_classes_by_modality:
             afm_data_class = data_classes_by_modality[modality]
         else:
@@ -260,9 +274,10 @@ def register_format(recipe):
         formats_by_suffix[afr.suffix] = []
     formats_by_suffix[afr.suffix].append(afr)
     # modality
-    if afr.modality not in formats_by_modality:
-        formats_by_modality[afr.modality] = []
-    formats_by_modality[afr.modality].append(afr)
+    for modality in afr.modalities:
+        if modality not in formats_by_modality:
+            formats_by_modality[modality] = []
+        formats_by_modality[modality].append(afr)
     # supported extensions
     if afr.suffix not in supported_extensions:  # avoid duplicates
         supported_extensions.append(afr.suffix)

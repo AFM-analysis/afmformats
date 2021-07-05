@@ -345,8 +345,24 @@ class JPKReader(object):
                 msg = "Missing meta data: '{}'".format(mkey)
                 raise jpk_meta.ReadJPKMetaKeyError(msg)
 
-        # Currently, only force-distance mode is supported!
-        md["imaging mode"] = "force-distance"
+        num_segments = len(self.get_index_segment_numbers(0))
+        if num_segments == 2:
+            md["imaging mode"] = "force-distance"
+        elif num_segments == 3:
+            pause = prop['force-scan-series.header.force-settings.'
+                         + 'extended-pause-time']
+            if pause == 0:
+                raise ValueError("Got three segments but zero-length pause!")
+            paus_opt = prop['force-scan-series.header.force-settings.'
+                            + 'z-end-pause-option.type']
+            if paus_opt == "feedback-on":
+                md["imaging mode"] = "creep-compliance"
+            elif paus_opt == "constant-height":
+                md["imaging mode"] = "stress-relaxation"
+            else:
+                raise ValueError(f"Unexprected pause option '{paus_opt}'!")
+        else:
+            raise ValueError(f"Unexpected number of segments: {num_segments}!")
         if int(segment) == 0:
             curseg = "approach"
         else:
@@ -368,12 +384,12 @@ class JPKReader(object):
 
         md["curve id"] = "{}:{:g}".format(md["session id"],
                                           md_im["position index"])
-        md["setpoint"] = md_im["setpoint [V]"] * \
-            md["spring constant"] * md["sensitivity"]
-
-        md["rate " + curseg] = md["point count"] / md["duration"]
-        zrange = abs(md_im["z start"] - md_im["z end"])
-        md["speed " + curseg] = zrange / md["duration"]
+        if md["imaging mode"] == "force-distance":
+            md["setpoint"] = md_im["setpoint [V]"] * \
+                md["spring constant"] * md["sensitivity"]
+            md["rate " + curseg] = md["point count"] / md["duration"]
+            zrange = abs(md_im["z start"] - md_im["z end"])
+            md["speed " + curseg] = zrange / md["duration"]
         # date and time
         md["date"], md["time"], _ = md_im["time stamp"].split()
 

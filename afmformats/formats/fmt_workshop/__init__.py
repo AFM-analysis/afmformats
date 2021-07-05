@@ -6,7 +6,7 @@ recipe_workshop_map = {
     "descr": "QMAP as zipped comma-separated values",
     "loader": load_map,
     "suffix": ".zip",
-    "modality": "force-distance",
+    "modalities": ["force-distance"],
     "maker": "AFM workshop",
 }
 
@@ -14,6 +14,6 @@ recipe_workshop_single = {
     "descr": "comma-separated values",
     "loader": load_csv,
     "suffix": ".csv",
-    "modality": "force-distance",
+    "modalities": ["force-distance"],
     "maker": "AFM workshop",
 }

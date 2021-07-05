@@ -82,7 +82,7 @@ def qmap_feature(name, unit, cache=False):
 class AFMQMap:
     """Management of quantitative AFM data on a grid"""
     def __init__(self, path_or_group, meta_override=None, callback=None,
-                 data_classes_by_modality=None):
+                 modality=None, data_classes_by_modality=None):
         """
         Parameters
         ----------
@@ -111,6 +111,7 @@ class AFMQMap:
             group = AFMGroup(path=path_or_group,
                              meta_override=meta_override,
                              callback=callback,
+                             modality=modality,
                              data_classes_by_modality=data_classes_by_modality)
         #: AFM data (instance of :class:`afmformats.afm_group.AFMGroup`)
         self.group = group

@@ -10,7 +10,7 @@ __all__ = ["AFMGroup"]
 class AFMGroup(object):
     """Container for :class:`afmformats.afm_data.AFMData`"""
     def __init__(self, path=None, meta_override=None, callback=None,
-                 data_classes_by_modality=None):
+                 modality=None, data_classes_by_modality=None):
         """
         Parameters
         ----------
@@ -39,6 +39,7 @@ class AFMGroup(object):
                 path,
                 callback=callback,
                 meta_override=meta_override,
+                modality=modality,
                 data_classes_by_modality=data_classes_by_modality
             )
         elif meta_override is not None:

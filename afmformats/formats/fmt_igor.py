@@ -124,6 +124,6 @@ recipe_ibw = {
     "descr": "binarywave",
     "loader": load_igor,
     "suffix": ".ibw",
-    "modality": "force-distance",
+    "modalities": ["force-distance"],
     "maker": "Asylum Research",
 }

@@ -120,6 +120,6 @@ recipe_ntmdt_txt = {
     "detect": detect_txt,
     "loader": load_txt,
     "suffix": ".txt",
-    "modality": "force-distance",
+    "modalities": ["force-distance"],
     "maker": "NT-MDT Spectrum Instruments",
 }

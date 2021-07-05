@@ -152,6 +152,6 @@ recipe_hdf5 = {
     "detect": detect_hdf5,
     "loader": load_hdf5,
     "suffix": ".h5",
-    "modality": "force-distance",
+    "modalities": ["force-distance"],
     "maker": "afmformats",
 }

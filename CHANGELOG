@@ -1,4 +1,7 @@
-0.14.5
+0.15.0
+ - feat: generally support creep-compliance and stress-relaxation data
+   via the new "modalities" (supercedes "modality") recipe key
+ - ref: add separate meta data section for modality-related keys
  - tests: rename test data files to reflect format
 0.14.4
  - docs: add section for implementing new file formats (#13)
