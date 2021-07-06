@@ -102,8 +102,10 @@ def load_txt(path, callback=None, meta_override=None):
     data["segment"] = np.concatenate((np.zeros(raw_apr.shape[0], dtype=bool),
                                       np.ones(raw_ret.shape[0], dtype=bool)))
 
-    metadata = {"path": path,
-                "enum": 0}
+    metadata = {"enum": 0,
+                "imaging mode": "force-distance",
+                "path": path,
+                }
     metadata.update(meta_override)
 
     dd = {"data": data,

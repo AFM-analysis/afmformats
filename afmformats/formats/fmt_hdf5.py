@@ -5,6 +5,7 @@ import h5py
 import numpy as np
 
 from ..afm_data import column_dtypes, known_columns
+from ..meta import IMAGING_MODALITIES
 
 
 __all__ = ["H5DictReader", "load_hdf5"]
@@ -75,7 +76,7 @@ def detect_hdf5(path):
             return False
         elif "0" not in h5:
             return False
-        elif h5["0"].attrs["imaging mode"] != "force-distance":
+        elif h5["0"].attrs["imaging mode"] not in IMAGING_MODALITIES:
             return False
         else:
             return True

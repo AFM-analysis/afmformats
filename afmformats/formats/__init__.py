@@ -241,6 +241,9 @@ def load_data(path, meta_override=None, modality=None,
         loader = cur_recipe.loader
         if modality is None:
             modality = cur_recipe.get_modality(path)
+            fix_modality = False
+        else:
+            fix_modality = True
         if modality in data_classes_by_modality:
             afm_data_class = data_classes_by_modality[modality]
         else:
@@ -249,6 +252,9 @@ def load_data(path, meta_override=None, modality=None,
                          meta_override=meta_override):
             dd["metadata"]["format"] = "{} ({})".format(cur_recipe["maker"],
                                                         cur_recipe["descr"])
+            if fix_modality and dd["metadata"]["imaging mode"] != modality:
+                # The user explicitly requested this modality.
+                continue
             ddi = afm_data_class(data=dd["data"],
                                  metadata=dd["metadata"],
                                  diskcache=diskcache)
