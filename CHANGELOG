@@ -1,7 +1,11 @@
 0.15.0
  - feat: generally support creep-compliance and stress-relaxation data
    via the new "modalities" (supercedes "modality") recipe key
+ - feat: support for JPK creep-compliance data
+ - enh: extract segment duration from JPK files
+ - fix: ignore NaN values in JPK property files
  - ref: add separate meta data section for modality-related keys
+ - ref: improvements of JPK metadata reader
  - tests: rename test data files to reflect format
 0.14.4
  - docs: add section for implementing new file formats (#13)

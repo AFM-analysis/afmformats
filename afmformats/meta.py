@@ -5,9 +5,19 @@ import numpy as np
 from .parse_funcs import fint, vd_str_in
 
 
-__all__ = ["META_FIELDS", "DEF_ALL", "KEYS_VALID", "MetaDataMissingError",
-           "LazyMetaValue", "MetaData", "parse_time"]
+__all__ = ["IMAGING_MODALITIES", "META_FIELDS", "DEF_ALL", "KEYS_VALID",
+           "MetaDataMissingError", "LazyMetaValue", "MetaData", "parse_time"]
 
+
+#: supported imaging modalities
+IMAGING_MODALITIES = [
+    # creep-compliance (constant force)
+    "creep-compliance",
+    # force-distance (indent until setpoint and retract)
+    "force-distance",
+    # stress-relaxation (constant indentation)
+    "stress-relaxation",
+    ]
 
 #: Compendium of all allowed meta data keys, sorted by topic, and
 #: including units and validation methods
@@ -23,27 +33,29 @@ META_FIELDS = {
             # mode with an added vibration on the cantilever".
             "force-modulation",
         ])],
-        "imaging mode": ["Imaging modality", "", vd_str_in([
-            # force-distance measurements
-            "force-distance",
-        ])],
+        "imaging mode": ["Imaging modality", "",
+                         vd_str_in(IMAGING_MODALITIES)],
         "sensitivity": ["Sensitivity", "m/V", float],
         "spring constant": ["Cantilever spring constant", "N/m", float],
     },
     # dataset parameters
     "dataset": {
         "duration": ["Duration", "s", float],
+        "duration approach": ["Duration of approach segment", "s", float],
+        "duration retract": ["Duration of retract segment", "s", float],
         "enum": ["Dataset index within the experiment", "", fint],
         "point count": ["Size of the dataset in points", "", fint],
+        "rate approach": ["Sampling rate of approach segment", "Hz", float],
+        "rate retract": ["Sampling rate of retract segment", "Hz", float],
+        "setpoint": ["Target indentation force", "N", float],
+        "speed approach": ["Piezo speed of approach segment", "m/s", float],
+        "speed retract": ["Piezo speed of retract segment", "m/s", float],
         "z range": ["Axial piezo range", "m", float],
     },
-    # force-distance modality
-    "mod force-distance": {
-        "rate approach": ["Sampling rate (approach)", "Hz", float],
-        "rate retract": ["Sampling rate (retract)", "Hz", float],
-        "speed approach": ["Piezo speed (approach)", "m/s", float],
-        "speed retract": ["Piezo speed (retract)", "m/s", float],
-        "setpoint": ["Active feedback loop setpoint", "N", float],
+    # parameters specific for creep-compliance
+    "dataset-mod creep-compliance": {
+        "duration intermediate": ["Duration of intermediate segment",
+                                  "s", float],
     },
     # QMap related dataset metadata
     "qmap": {
@@ -321,9 +333,19 @@ class MetaData(dict):
         """
         summary = {}
         for sec in META_FIELDS:
-            summary[sec] = {}
+            if sec.startswith("dataset-mod"):
+                if self["imaging mode"] not in sec:
+                    # Ignore metadata that do not belong to the current
+                    # imaging modality.
+                    continue
+                else:
+                    # Write "dataset-mod" metadata to the "dataset" section
+                    sum_sec = "dataset"
+            else:
+                sum_sec = sec
+            summary.setdefault(sum_sec, {})
             for key in META_FIELDS[sec]:
-                summary[sec][key] = self.get(key, np.nan)
+                summary[sum_sec][key] = self.get(key, np.nan)
         return summary
 
     def items(self):

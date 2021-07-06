@@ -169,12 +169,15 @@ class JPKReader(object):
         # (for "single" hierarchy, this coincides with index properties)
         prop.update(self._properties_general)
 
-        # 5. Try to convert numbers to floats
-        for p in prop:
+        # 5. Try to convert numbers to floats and remove NaNs
+        for p in list(prop.keys()):
             try:
                 prop[p] = float(prop[p])
             except BaseException:
                 pass
+            else:
+                if np.isnan(prop[p]):
+                    prop.pop(p)
         return prop
 
     def get_data(self, column, index, segment=None):
@@ -345,28 +348,6 @@ class JPKReader(object):
                 msg = "Missing meta data: '{}'".format(mkey)
                 raise jpk_meta.ReadJPKMetaKeyError(msg)
 
-        num_segments = len(self.get_index_segment_numbers(0))
-        if num_segments == 2:
-            md["imaging mode"] = "force-distance"
-        elif num_segments == 3:
-            pause = prop['force-scan-series.header.force-settings.'
-                         + 'extended-pause-time']
-            if pause == 0:
-                raise ValueError("Got three segments but zero-length pause!")
-            paus_opt = prop['force-scan-series.header.force-settings.'
-                            + 'z-end-pause-option.type']
-            if paus_opt == "feedback-on":
-                md["imaging mode"] = "creep-compliance"
-            elif paus_opt == "constant-height":
-                md["imaging mode"] = "stress-relaxation"
-            else:
-                raise ValueError(f"Unexprected pause option '{paus_opt}'!")
-        else:
-            raise ValueError(f"Unexpected number of segments: {num_segments}!")
-        if int(segment) == 0:
-            curseg = "approach"
-        else:
-            curseg = "retract"
         md["software"] = "JPK"
 
         md["enum"] = int(self.get_index_numbers()[index])
@@ -382,16 +363,47 @@ class JPKReader(object):
                     md_im[key] = prop[vari]
                     break
 
+        curve_type = md_im["curve type"]
+        curve_conv = {"extend": "approach",
+                      "pause": "intermediate",
+                      "retract": "retract"}
+        curseg = curve_conv[curve_type]
+
+        if curseg in ["approach", "retract"]:
+            md[f"rate {curseg}"] = md["point count"] / \
+                                   md_im["segment duration"]
+            zrange = abs(md_im["z start"] - md_im["z end"])
+            md[f"speed {curseg}"] = zrange / md_im["segment duration"]
+        md[f"duration {curseg}"] = md_im["segment duration"]
+
+        num_segments = len(self.get_index_segment_numbers(0))
+        if num_segments == 2:
+            md["imaging mode"] = "force-distance"
+        elif num_segments == 3:
+            if segment == 1:
+                # for creep-compliance and stress-relaxation, we get the
+                # extra information from segment 1.
+                if md_im["curve type"] != "pause":
+                    raise ValueError("Segment 1 must be of type 'pause'!")
+                pause_type = md_im["segment pause type"]
+                if pause_type == "constant-force-pause":
+                    md["imaging mode"] = "creep-compliance"
+                elif pause_type == "constant-height-pause":  # not sure
+                    md["imaging mode"] = "stress-relaxation"
+                else:
+                    raise ValueError(f"Unexprected pause type '{pause_type}'!")
+        else:
+            raise ValueError(f"Unexpected number of segments: {num_segments}!")
+
         md["curve id"] = "{}:{:g}".format(md["session id"],
                                           md_im["position index"])
-        if md["imaging mode"] == "force-distance":
+        if "setpoint [V]" in md_im:
             md["setpoint"] = md_im["setpoint [V]"] * \
-                md["spring constant"] * md["sensitivity"]
-            md["rate " + curseg] = md["point count"] / md["duration"]
-            zrange = abs(md_im["z start"] - md_im["z end"])
-            md["speed " + curseg] = zrange / md["duration"]
+                             md["spring constant"] * md["sensitivity"]
+
         # date and time
-        md["date"], md["time"], _ = md_im["time stamp"].split()
+        if curseg == "approach":
+            md["date"], md["time"], _ = md_im["time stamp"].split()
 
         # Convert designated keys to integers
         integer_keys = ["grid shape x",

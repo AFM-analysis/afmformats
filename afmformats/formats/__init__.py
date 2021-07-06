@@ -1,6 +1,7 @@
 import pathlib
 
 from .. import errors
+from .. import meta
 from .fmt_hdf5 import recipe_hdf5
 from .fmt_igor import recipe_ibw
 from .fmt_jpk import recipe_jpk_force, recipe_jpk_force_map, \
@@ -14,14 +15,6 @@ from ..mod_force_distance import AFMForceDistance
 __all__ = ["AFMFormatRecipe", "find_data", "get_recipe", "load_data",
            "default_data_classes_by_modality", "formats_available",
            "formats_by_suffix", "formats_by_modality", "supported_extensions"]
-
-
-#: supported imaging modalities
-IMAGING_MODALITIES = [
-    "creep-compliance",
-    "force-distance",
-    "stress-relaxation"
-]
 
 
 class AFMFormatRecipe(object):
@@ -42,9 +35,9 @@ class AFMFormatRecipe(object):
         self.origin = self.loader.__module__
 
         # check modality
-        if not set(self.modalities) <= set(IMAGING_MODALITIES):
+        if not set(self.modalities) <= set(meta.IMAGING_MODALITIES):
             raise ValueError("'modalities' must be in {}, got '{}'!".format(
-                IMAGING_MODALITIES, self.modalities))
+                meta.IMAGING_MODALITIES, self.modalities))
 
         # check detect
         if "detect" in self.recipe:
