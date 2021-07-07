@@ -26,7 +26,7 @@ def test_open_jpk_simple():
 
 def test_open_jpk_calibration():
     cf = data_path / \
-         "fmt-jpk-fd_calibration_force-save-2015.02.04-11.25.21.294.jpk-force"
+         "fmt-jpk-cl_calibration_force-save-2015.02.04-11.25.21.294.jpk-force"
     try:
         load_jpk(cf)
     except jpk_meta.ReadJPKMetaKeyError:

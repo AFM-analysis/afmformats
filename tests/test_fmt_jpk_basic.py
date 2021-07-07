@@ -27,10 +27,24 @@ def test_archive_cache():
     assert not ziplist[-1].fp is None
 
 
+def test_creep_compliance1():
+    jpkfile = data_path / "fmt-jpk-cc_pr14-brain-2021.06.30.jpk-force"
+    ds = afmformats.load_data(path=jpkfile)[0]
+    assert np.allclose(ds.metadata["duration intermediate"], 3,
+                       atol=0, rtol=1e-12)
+
+
+def test_creep_compliance2():
+    jpkfile = data_path / "fmt-jpk-cc_pr14-polymergel-2021.06.30.jpk-force"
+    ds = afmformats.load_data(path=jpkfile)[0]
+    assert np.allclose(ds.metadata["duration intermediate"], 3,
+                       atol=0, rtol=1e-12)
+
+
 @pytest.mark.parametrize("name, is_valid",
     [("fmt-jpk-fd_spot3-0192.jpk-force", True),  # noqa: E128
      ("fmt-jpk-fd_map2x2_extracted.jpk-force-map", True),
-     ("fmt-jpk-fd_calibration_force-save-2015.02.04-11.25.21.294.jpk-force",
+     ("fmt-jpk-cl_calibration_force-save-2015.02.04-11.25.21.294.jpk-force",
       False),
      ])
 def test_detect_jpk(name, is_valid):

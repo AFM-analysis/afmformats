@@ -10,6 +10,7 @@ from .fmt_tab import recipe_tab
 from .fmt_ntmdt_txt import recipe_ntmdt_txt
 from .fmt_workshop import recipe_workshop_single, recipe_workshop_map
 from ..mod_force_distance import AFMForceDistance
+from ..mod_creep_compliance import AFMCreepCompliance
 
 
 __all__ = ["AFMFormatRecipe", "find_data", "get_recipe", "load_data",
@@ -286,6 +287,7 @@ def register_format(recipe):
 #: dictionary with default data classes for each modality
 default_data_classes_by_modality = {
     "force-distance": AFMForceDistance,
+    "creep-compliance": AFMCreepCompliance,
 }
 
 #: available/supported file formats

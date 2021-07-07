@@ -9,9 +9,8 @@ import afmformats.errors
 data_path = pathlib.Path(__file__).parent / "data"
 
 
-# pass all available files
-@pytest.mark.parametrize("path", afmformats.find_data(data_path))
-def test_load_all_with_callback(path):
+@pytest.mark.parametrize("path", data_path.glob("fmt-*-fd_*"))
+def test_load_force_distance_with_callback(path):
     """Make sure that the callback function is properly implemented"""
     calls = []
 
@@ -25,4 +24,24 @@ def test_load_all_with_callback(path):
                              callback=callback,
                              meta_override={"spring constant": 20,
                                             "sensitivity": .01e-6})
+    assert calls[-1] == 1
+
+
+@pytest.mark.parametrize("path", data_path.glob("fmt-*-cc_*"))
+def test_load_creep_compliance_with_callback(path):
+    """Make sure that the callback function is properly implemented"""
+    calls = []
+
+    def callback(value):
+        calls.append(value)
+
+    try:
+        afmd = afmformats.load_data(path=path, callback=callback)
+    except afmformats.errors.MissingMetaDataError:
+        afmd = afmformats.load_data(path=path,
+                                    callback=callback,
+                                    meta_override={"spring constant": 20,
+                                                   "sensitivity": .01e-6})
+    for cc in afmd:
+        assert cc.modality == "creep-compliance"
     assert calls[-1] == 1

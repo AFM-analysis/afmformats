@@ -71,7 +71,7 @@ def test_bad_recipe_suffix_invalid():
 @pytest.mark.parametrize("name, is_valid",
     [("fmt-jpk-fd_spot3-0192.jpk-force", True),  # noqa: E128
      ("fmt-jpk-fd_map2x2_extracted.jpk-force-map", True),
-     ("fmt-jpk-fd_calibration_force-save-2015.02.04-11.25.21.294.jpk-force",
+     ("fmt-jpk-cl_calibration_force-save-2015.02.04-11.25.21.294.jpk-force",
       False),
      ])
 def test_find_data(name, is_valid):
@@ -89,7 +89,7 @@ def test_find_data_recursively():
     shutil.copy2(data_path / "fmt-jpk-fd_spot3-0192.jpk-force", td2)
     shutil.copy2(
         data_path /
-        "fmt-jpk-fd_calibration_force-save-2015.02.04-11.25.21.294.jpk-force",
+        "fmt-jpk-cl_calibration_force-save-2015.02.04-11.25.21.294.jpk-force",
         td3)
     file_list = afmformats.find_data(td)
     assert len(file_list) == 1
