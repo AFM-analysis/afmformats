@@ -69,6 +69,22 @@ def test_single_open():
     data = afmformats.load_data(tf)[0]
     assert "force" in data.columns
     assert np.allclose(data["force"][0], 1276.4373e-9)
+    assert data.metadata["date"] == "2020-02-14"
+    assert data.metadata["time"] == "13:41:26"
+
+
+def test_single_open_issue_17():
+    tf = data_path / "fmt-afm-workshop-fd_single_2021-01-15.csv"
+    k = 20
+    sens = .01e-6
+    data = afmformats.load_data(tf, meta_override={"spring constant": k,
+                                                   "sensitivity": sens})[0]
+    assert "force" in data.columns
+    assert np.allclose(data["force"][0], 1.6524e-07)
+    assert data.metadata["spring constant"] == k
+    assert data.metadata["software version"] == "4.0.0.62"
+    assert data.metadata["date"] == "2021-01-15"
+    assert data.metadata["time"] == "13:11:45"
 
 
 if __name__ == "__main__":

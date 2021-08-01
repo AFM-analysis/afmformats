@@ -82,19 +82,18 @@ def load_csv(path, callback=None, meta_override=None, mode="single"):
         path.seek(0)  # required for np.loadtxt below
     else:
         path = pathlib.Path(path)
-        with path.open() as fd:
-            csvdata = fd.readlines()
+        csvdata = path.read_text(encoding="utf-8").split("\n")
         metadata["path"] = path
 
     # get the metadata
     for ii, line in enumerate(csvdata):
         if line.count("Force-Distance Curve"):
             metadata["imaging mode"] = "force-distance"
+        elif line.startswith("Software Version"):
+            metadata["software version"] = line.split(":")[1].strip()
         elif line.startswith("Date:"):
-            _, m, d, y = [a.strip(", ") for a in line.split(":")[1].split()]
-            metadata["date"] = "{:04d}-{:02d}-{:02d}".format(int(y),
-                                                             months[m],
-                                                             int(d))
+            cdate = parse_date(line.split(":")[1])
+            metadata["date"] = cdate
         elif line.startswith("Time:"):
             metadata["time"] = line.split(":", 1)[1]
         elif line.startswith("Mode:"):
@@ -108,6 +107,14 @@ def load_csv(path, callback=None, meta_override=None, mode="single"):
             metadata["position x"] = float(line.split(":")[1]) * 1e-6
         elif line.startswith("Y, um:"):
             metadata["position y"] = float(line.split(":")[1]) * 1e-6
+        elif line.startswith("Light Lever Gain, mV/nm:"):
+            value = float(line.split(":")[1])
+            if value != 1:  # ignore default values
+                metadata["sensitivity"] = 1 / (value * 1e-3 / 1e9)
+        elif line.startswith("Force Constant, nN/nm:"):
+            value = float(line.split(":")[1])
+            if value != 1:  # ignore default values
+                metadata["spring constant"] = value
         elif line.count(",") >= 3:
             header_index = ii
             header_line = line
@@ -177,3 +184,19 @@ def load_csv(path, callback=None, meta_override=None, mode="single"):
     if callback is not None:
         callback(1)
     return [dd]
+
+
+def parse_date(datestr):
+    """Heuristic function for parsin AFM workshop dates"""
+    datestr = datestr.strip()
+
+    if datestr.count(",") == 2:
+        # Friday, February 14, 2020
+        _, m, d, y = [a.strip(", ") for a in datestr.split()]
+    elif datestr.count(",") == 0:
+        # 15 January 2021
+        d, m, y = [a.strip("") for a in datestr.split()]
+    else:
+        raise errors.FileFormatMetaDataError(f"Cannot parse date '{datestr}'!")
+
+    return f"{int(y):04d}-{months[m]:02d}-{int(d):02d}"
