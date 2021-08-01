@@ -110,7 +110,7 @@ def load_csv(path, callback=None, meta_override=None, mode="single"):
         elif line.startswith("Light Lever Gain, mV/nm:"):
             value = float(line.split(":")[1])
             if value != 1:  # ignore default values
-                metadata["sensitivity"] = 1 / (value * 1e-3 / 1e9)
+                metadata["sensitivity"] = 1 / (value * 1e-3 / 1e-9)
         elif line.startswith("Force Constant, nN/nm:"):
             value = float(line.split(":")[1])
             if value != 1:  # ignore default values

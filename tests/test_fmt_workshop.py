@@ -1,7 +1,9 @@
 """Test AFM workshop format"""
 import pathlib
+import tempfile
 
 import numpy as np
+import pytest
 
 import afmformats
 
@@ -85,6 +87,33 @@ def test_single_open_issue_17():
     assert data.metadata["software version"] == "4.0.0.62"
     assert data.metadata["date"] == "2021-01-15"
     assert data.metadata["time"] == "13:11:45"
+
+
+def test_single_open_issue_17_no_or_invalid_metadata():
+    tf = data_path / "fmt-afm-workshop-fd_single_2021-01-15.csv"
+    with pytest.raises(afmformats.errors.MissingMetaDataError,
+                       match="specify sensitivity and spring constant"):
+        afmformats.load_data(tf)[0]
+
+
+def test_single_open_issue_17_valid_metadata():
+    tf = data_path / "fmt-afm-workshop-fd_single_2021-01-15.csv"
+    tmpd = pathlib.Path(tempfile.mkdtemp("modified"))
+    tf2 = tmpd / tf.name
+
+    rawdata = tf.read_text()
+    rawdata = rawdata.replace("Light Lever Gain, mV/nm:	1.000000",
+                              "Light Lever Gain, mV/nm:	100")
+    rawdata = rawdata.replace("Force Constant, nN/nm:	1.000000",
+                              "Force Constant, nN/nm:	20.0")
+
+    tf2.write_text(rawdata)
+
+    data = afmformats.load_data(tf2)[0]
+
+    assert "force" in data.columns
+    assert data.metadata["spring constant"] == 20
+    assert data.metadata["sensitivity"] == .01e-6
 
 
 if __name__ == "__main__":
