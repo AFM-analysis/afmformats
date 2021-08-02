@@ -104,7 +104,7 @@ def load_igor(path, callback=None, meta_override=None):
                 * metadata["spring constant"]
             break
 
-    data["segment"] = np.zeros(wdata.shape[0], dtype=bool)
+    data["segment"] = np.zeros(wdata.shape[0], dtype=np.uint8)
 
     # missing metadata
     metadata["z range"] = np.ptp(data["height (piezo)"])

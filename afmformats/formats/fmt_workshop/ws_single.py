@@ -140,8 +140,8 @@ def load_csv(path, callback=None, meta_override=None, mode="single"):
     segsize = rawdata.shape[0]
     data = {"height (measured)": np.zeros(2*segsize, dtype=float)*np.nan,
             "force": np.zeros(2*segsize, dtype=float)*np.nan,
-            "segment": np.concatenate((np.zeros(segsize, dtype=bool),
-                                       np.ones(segsize, dtype=bool)))
+            "segment": np.concatenate((np.zeros(segsize, dtype=np.uint8),
+                                       np.ones(segsize, dtype=np.uint8)))
             }
     columns = header_line.strip().split(",")
     for jj, cc in enumerate(columns):

@@ -124,9 +124,11 @@ def load_tab(path, callback=None, meta_override=None):
 
 def string_to_dtype(astring, dtype):
     astring = astring.strip()
-    if dtype == bool:
-        return astring.lower() == "true"
-    elif dtype in [float, int]:
+    if astring == "False":
+        astring = "0"
+    elif astring == "True":
+        astring = "1"
+    if dtype in [float, int, np.uint8]:
         return dtype(astring)
     else:
         raise ValueError("No conversion rule for dtype '{}'!".format(dtype))

@@ -198,10 +198,7 @@ class AFMData(abc.ABC):
         for ii in range(len(self)):
             items = []
             for cc in self.columns:
-                if cc in column_dtypes and column_dtypes[cc] == bool:
-                    items.append("{}".format(data[cc][ii]))
-                else:
-                    items.append("{:.8g}".format(data[cc][ii]))
+                items.append("{:.8g}".format(data[cc][ii]))
             fd.write("\t".join(items) + "\r\n")
 
     def export(self, *args, **kwargs):
@@ -288,7 +285,7 @@ column_dtypes = {
     "height (measured)": float,
     "height (piezo)": float,
     "index": int,
-    "segment": bool,
+    "segment": np.uint8,
     "time": float,
     "tip position": float,
 }

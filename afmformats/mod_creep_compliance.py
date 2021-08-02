@@ -46,7 +46,7 @@ class Segment(object):
         if which not in ["approach", "intermediate", "retract"]:
             raise ValueError("`which` must be 'approach', 'intermediate', "
                              + f"or 'retract', got '{which}'!")
-        #: The segment type (approach or retract)
+        #: The segment type (approach, intermediate, or retract)
         self.which = which
         if which == "approach":
             self.idx = 0

@@ -220,11 +220,7 @@ class JPKReader(object):
             return np.linspace(start, start + md["duration"],
                                md["point count"], endpoint=False)
         elif column == "segment":
-            if len(numsegs) <= 2:
-                dtype = bool
-            else:
-                dtype = np.uint8
-            return np.ones(md["point count"], dtype=dtype) * dtype(segment)
+            return np.ones(md["point count"], dtype=np.uint8) * segment
         else:
             # get the segment's data list
             p_seg = self.get_index_segment_path(index, segment)

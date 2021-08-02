@@ -1,4 +1,6 @@
-0.15.1
+0.16.0
+ - BREAKING CHANGE: "segment" column is no longer boolean, so it
+   cannot be used directly for indexing (#15)
  - fix: support modified AFM workshop file format (#17)
 0.15.0
  - feat: generally support creep-compliance and stress-relaxation data

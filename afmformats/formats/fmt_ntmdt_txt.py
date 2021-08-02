@@ -99,8 +99,9 @@ def load_txt(path, callback=None, meta_override=None):
     fmult = meta_override["sensitivity"] * meta_override["spring constant"]
     data["force"] = np.concatenate((raw_apr[::-1, 1],
                                     raw_ret[:, 1])) * fmult * 1e-9
-    data["segment"] = np.concatenate((np.zeros(raw_apr.shape[0], dtype=bool),
-                                      np.ones(raw_ret.shape[0], dtype=bool)))
+    data["segment"] = np.concatenate(
+        (np.zeros(raw_apr.shape[0], dtype=np.uint8),
+         np.ones(raw_ret.shape[0], dtype=np.uint8)))
 
     metadata = {"enum": 0,
                 "imaging mode": "force-distance",

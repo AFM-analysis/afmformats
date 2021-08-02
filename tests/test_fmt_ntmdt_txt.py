@@ -36,12 +36,11 @@ def test_detect_bad():
 def test_open_simple():
     path = data_path / ("fmt-ntmdt-txt-fd_2015_01_17_gel4-0,1_mQ_adh"
                         + "_6B_Curve_DFL_Height_51.txt")
-    meta_override = {}
-    meta_override["spring constant"] = 0.055
-    meta_override["sensitivity"] = 61
+    meta_override = {"spring constant": 0.055, "sensitivity": 61}
     data = afmformats.load_data(path=path, meta_override=meta_override)[0]
     assert data["force"].size == 1644
-    assert np.sum(~data["segment"]) == np.argmax(data["force"])+1
+    # maximum force is at end of 1st segment
+    assert np.sum(data["segment"] == 0) == np.argmax(data["force"])+1
 
 
 if __name__ == "__main__":
