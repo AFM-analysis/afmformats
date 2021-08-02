@@ -91,9 +91,9 @@ def test_lazy_metadata_deepcopy():
 
 
 def test_values_with_lazy_meta():
-    md = am.MetaData({"enum": "2",
+    md = am.MetaData({"enum": 2,
                       "z range": am.LazyMetaValue(np.abs, -3)})
-    assert list(md.values()) == ["2", 3]
+    assert list(md.values()) == [2, 3]
 
 
 if __name__ == "__main__":

@@ -6,10 +6,8 @@ def fbool(value):
             value = False
         elif value == "true":
             value = True
-        elif value:
-            value = bool(float(value))
         else:
-            raise ValueError("empty string")
+            value = bool(float(value))
     else:
         value = bool(float(value))
     return value
@@ -24,10 +22,8 @@ def fint(value):
             value = 0
         elif value == "true":
             value = 1
-        elif value:
-            value = int(float(value))
         else:
-            raise ValueError("empty string")
+            value = int(float(value))
     else:
         value = int(float(value))
     return value

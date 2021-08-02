@@ -205,6 +205,9 @@ class MetaData(dict):
         if isinstance(value, float) and np.isnan(value):
             # nan values are ignored
             return
+        if not isinstance(value, LazyMetaValue):
+            # parse the value
+            value = DEF_ALL[key][2](value)
         super(MetaData, self).__setitem__(key, value)
         self._autocomplete_grid_metadata()
 
@@ -227,6 +230,8 @@ class MetaData(dict):
         if isinstance(value, LazyMetaValue):
             # Evaluate LazyMetaValue and assign value to self
             value = value()
+            # parse the value
+            value = DEF_ALL[key][2](value)
             super(MetaData, self).__setitem__(key, value)
         return value
 

@@ -1,5 +1,4 @@
 import abc
-import copy
 import io
 import json
 import pathlib
@@ -185,12 +184,9 @@ class AFMData(abc.ABC):
         fd.write("# afmformats {}\r\n".format(version))
         fd.write("#\r\n")
         if metadata_dict:
-            # convert path to string for export (json)
-            if "path" in metadata_dict:
-                metadata_dict = copy.deepcopy(metadata_dict)
-                metadata_dict["path"] = str(metadata_dict["path"])
             # write metadata
-            dump = json.dumps(metadata_dict, sort_keys=True, indent=2)
+            dump = json.dumps(metadata_dict, sort_keys=True, indent=2,
+                              default=json_path_serializer)
             fd.write("# BEGIN METADATA\r\n")
             for dl in dump.split("\n"):
                 fd.write("# " + dl + "\r\n")
@@ -245,10 +241,12 @@ class AFMData(abc.ABC):
           format
         """
         if isinstance(metadata, (list, tuple)):
+            # list of keys
             metadata_dict = {}
             for key in metadata:
                 metadata_dict[key] = self.metadata[key]
         elif isinstance(metadata, bool) and metadata:
+            # all metadata
             metadata_dict = self.metadata
         else:
             raise ValueError("Metadata must be list, tuple, or bool, got "
@@ -285,6 +283,15 @@ class AFMData(abc.ABC):
                 h5.close()
         else:
             raise ValueError("Unexpected string for 'fmt': {}".format(fmt))
+
+
+def json_path_serializer(obj):
+    """Used to convert pathlib.Path to str in metadata"""
+    if isinstance(obj, pathlib.Path):
+        return str(obj)
+    else:
+        raise TypeError(f"TypeError: Object of type {obj.__class__} "
+                        + "is not JSON serializable")
 
 
 #: Data types of all known columns (all other columns are assumed to be float)

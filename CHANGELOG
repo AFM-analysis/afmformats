@@ -9,6 +9,7 @@
  - enh: add "segment count" key to meta data
  - enh: optimize segment handling: new class AFMSegment that caches
    segment indices (#16)
+ - enh: properly test data types of metadata when setting them
 0.15.0
  - feat: generally support creep-compliance and stress-relaxation data
    via the new "modalities" (supercedes "modality") recipe key
