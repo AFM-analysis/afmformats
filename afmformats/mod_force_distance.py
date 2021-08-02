@@ -44,9 +44,9 @@ class Segment(object):
         #: The segment type (approach or retract)
         self.which = which
         if which == "approach":
-            self.idx = False
+            self.idx = 0
         else:
-            self.idx = True
+            self.idx = 1
         self.raw_data = raw_data
         self.data = data
 
