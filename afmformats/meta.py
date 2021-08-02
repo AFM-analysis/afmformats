@@ -47,6 +47,7 @@ META_FIELDS = {
         "point count": ["Size of the dataset in points", "", fint],
         "rate approach": ["Sampling rate of approach segment", "Hz", float],
         "rate retract": ["Sampling rate of retract segment", "Hz", float],
+        "segment count": ["Number of segments", "", fint],
         "setpoint": ["Target indentation force", "N", float],
         "speed approach": ["Piezo speed of approach segment", "m/s", float],
         "speed retract": ["Piezo speed of retract segment", "m/s", float],
@@ -193,6 +194,14 @@ class MetaData(dict):
             raise KeyError("Unknown metadata key: '{}'".format(key))
         elif key == "time":
             value = parse_time(value)
+        elif key == "imaging mode" and "segment count" not in self:
+            if value == "force-distance":
+                self["segment count"] = 2
+            elif value in ["creep-compliance", "stress-relaxation"]:
+                self["segment count"] = 3
+            else:
+                # Dear future self...
+                raise ValueError(f"Please add '{value}' to this case!")
         if isinstance(value, float) and np.isnan(value):
             # nan values are ignored
             return

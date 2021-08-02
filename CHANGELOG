@@ -2,6 +2,7 @@
  - BREAKING CHANGE: "segment" column is no longer boolean, so it
    cannot be used directly for indexing (#15)
  - fix: support modified AFM workshop file format (#17)
+ - enh: add "segment count" key to meta data
 0.15.0
  - feat: generally support creep-compliance and stress-relaxation data
    via the new "modalities" (supercedes "modality") recipe key

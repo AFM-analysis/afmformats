@@ -45,6 +45,7 @@ def test_lazy_metadata():
     value3 = super(am.MetaData, md).__getitem__("z range")
     assert not isinstance(value3, am.LazyMetaValue)
     assert value3 == 3
+    assert md["segment count"] == 2
 
 
 def test_lazy_metadata_copy():
