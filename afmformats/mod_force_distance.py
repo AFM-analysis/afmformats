@@ -1,7 +1,7 @@
 from .afm_data import AFMData
+from .afm_segment import AFMSegment
 
-
-__all__ = ["AFMForceDistance", "Segment"]
+__all__ = ["AFMForceDistance"]
 
 
 class AFMForceDistance(AFMData):
@@ -10,58 +10,22 @@ class AFMForceDistance(AFMData):
     A force-distance dataset consists of an approach and
     a retract curve.
     """
-    def __setitem__(self, key, values):
-        if len(values) != len(self):
-            raise ValueError(
-                f"Cannot set data '{key}' of length '{len(values)}' "
-                + f"for AFMForceDistance of length '{len(self)}'!")
-        # do not touch raw data
-        self._data[key] = values
+    def __init__(self, *args, **kwargs):
+        super(AFMForceDistance, self).__init__(*args, **kwargs)
+        #: Dictionary-like interface to the approach segment
+        self.appr = AFMSegment(self._raw_data, self._data, segment=0)
+        #: Dictionary-like interface to the retract segment
+        self.retr = AFMSegment(self._raw_data, self._data, segment=1)
 
-    @property
-    def appr(self):
-        """Dictionary-like interface to the approach segment"""
-        return Segment(self._raw_data, self._data, which="approach")
+    def __setitem__(self, key, value):
+        super(AFMForceDistance, self).__setitem__(key, value)
+        if key == "segment":
+            # The user changed the segment, which means we have to clear
+            # the segment cache.
+            self.appr.clear_cache()
+            self.retr.clear_cache()
 
     @property
     def modality(self):
         """Imaging modality"""
         return "force-distance"
-
-    @property
-    def retr(self):
-        """Dictionary-like interface to the retract segment"""
-        return Segment(self._raw_data, self._data, which="retract")
-
-
-class Segment(object):
-    """Simple wrapper around dict-like `data` to expose a single segment"""
-
-    def __init__(self, raw_data, data, which="approach"):
-        if which not in ["approach", "retract"]:
-            raise ValueError("`which` must be 'approach' or 'retract', "
-                             + "got '{}'!".format(which))
-        #: The segment type (approach or retract)
-        self.which = which
-        if which == "approach":
-            self.idx = 0
-        else:
-            self.idx = 1
-        self.raw_data = raw_data
-        self.data = data
-
-        # determine segment
-        if "segment" in raw_data:
-            self.segment_index = raw_data["segment"] == self.idx
-        elif "segment" in data:
-            self.segment_index = data["segment"] == self.idx
-        else:
-            raise ValueError("Could not identify segment data!")
-
-    def __getitem__(self, key):
-        if key in self.data:
-            return self.data[key][self.segment_index]
-        elif key in self.raw_data:
-            return self.raw_data[key][self.segment_index].copy()
-        else:
-            raise KeyError("Undefined feature '{}'!".format(key))

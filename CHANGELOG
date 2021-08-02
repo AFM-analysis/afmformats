@@ -2,7 +2,13 @@
  - BREAKING CHANGE: "segment" column is no longer boolean, so it
    cannot be used directly for indexing (#15)
  - fix: support modified AFM workshop file format (#17)
+ - fix: segment data via `AFMData.appr` and `AFMData.retr` did not
+   use user-defined data to identify segments, but the "segment"
+   column from the raw data (this does not affect PyJibe or nanite which
+   fo not make excessive use of these properties)
  - enh: add "segment count" key to meta data
+ - enh: optimize segment handling: new class AFMSegment that caches
+   segment indices (#16)
 0.15.0
  - feat: generally support creep-compliance and stress-relaxation data
    via the new "modalities" (supercedes "modality") recipe key

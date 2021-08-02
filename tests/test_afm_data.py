@@ -33,3 +33,22 @@ def test_repr_str():
     assert "fmt-jpk-fd_spot3-0192.jpk-force" in str(fd)
     assert "AFMForceDistance" in repr(fd)
     assert "fmt-jpk-fd_spot3-0192.jpk-force" in repr(fd)
+
+
+def test_segment():
+    jpkfile = data_path / "fmt-jpk-fd_spot3-0192.jpk-force"
+    fd = afmformats.load_data(jpkfile)[0]
+    assert np.sum(fd["segment"] == 0) == 2000
+    assert fd.appr["segment"].size == 2000
+
+    new_segment = np.zeros_like(fd["segment"])
+    new_segment[500:] = 1
+    fd["segment"] = new_segment
+    assert np.sum(fd["segment"] == 0) == 500
+    assert fd.appr["segment"].size == 500
+
+    new_segment2 = np.zeros_like(fd["segment"])
+    new_segment2[600:] = 1
+    fd["segment"] = new_segment2
+    assert np.sum(fd["segment"] == 0) == 600
+    assert fd.appr["segment"].size == 600

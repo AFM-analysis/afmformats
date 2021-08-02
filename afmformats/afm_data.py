@@ -72,6 +72,14 @@ class AFMData(abc.ABC):
             length = self._metadata["point count"]
         return length
 
+    def __setitem__(self, key, values):
+        if len(values) != len(self):
+            raise ValueError(
+                f"Cannot set data '{key}' of length '{len(values)}' "
+                + f"for AFMForceDistance of length '{len(self)}'!")
+        # do not touch raw data
+        self._data[key] = values
+
     def __str__(self):
         strre = "{} '{}'[{}]".format(
             self.__class__.__name__, self.path, self.enum)
