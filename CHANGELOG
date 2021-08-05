@@ -1,3 +1,8 @@
+0.16.1
+ - enh: support .jpk-qi-series files (by extension)
+ - enh: improve error handling when data exported from the JPK software
+   does not contain encoder scaling offset and multiplier
+ - ref: use f-strings more often
 0.16.0
  - BREAKING CHANGE: "segment" column is no longer boolean, so it
    cannot be used directly for indexing (#15)

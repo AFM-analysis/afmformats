@@ -96,11 +96,20 @@ recipe_jpk_force_map = {
     "suffix": ".jpk-force-map",
 }
 
-recipe_jpk_force_qi = {
+recipe_jpk_force_qi_data = {
     "descr": "binary QMap data",
     "detect": detect,
     "loader": load_jpk,
     "maker": "JPK Instruments",
     "modalities": ["creep-compliance", "force-distance", "stress-relaxation"],
     "suffix": ".jpk-qi-data",
+}
+
+recipe_jpk_force_qi_series = {
+    "descr": "binary QMap data",
+    "detect": detect,
+    "loader": load_jpk,
+    "maker": "JPK Instruments",
+    "modalities": ["creep-compliance", "force-distance", "stress-relaxation"],
+    "suffix": ".jpk-qi-series",
 }

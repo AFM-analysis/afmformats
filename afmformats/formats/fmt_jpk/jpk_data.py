@@ -82,6 +82,36 @@ def find_column_dat(loc_list, column):
     return col, slot, dd
 
 
+def get_property(description, keys, properties):
+    """Helper function to access data from property dictionaries
+
+    Parameters
+    ----------
+    description: str
+        The human readable name of the property key. Used for
+        error handling only to give the user an idea of what went
+        wrong.
+    keys: list of str
+        List of potential property keys
+    properties: dict
+        Property dictionary metadata (see also
+        :func:`JPKReader._get_index_segment_properties`)
+
+    Raises
+    ------
+    ReadJPKError if a key could not be found in `property_dict`
+    """
+    for mk in keys:
+        if mk in properties:
+            mult = properties[mk]
+            break
+    else:
+        raise ReadJPKError(f"Could not find property: '{description}'.\n"
+                           "Please make sure you are working with raw data "
+                           "and not with data exported from the JPK software.")
+    return mult
+
+
 def load_dat_raw(fd, name, properties):
     """Load data from binary JPK .dat files
 
@@ -112,28 +142,26 @@ def load_dat_raw(fd, name, properties):
     load_dat_unit: Includes conversion to useful units
     """
     # Multiplier
-    mult_str1 = "channel.{}.data.encoder.scaling.multiplier".format(name)
-    mult_str2 = "channel.{}.encoder.scaling.multiplier".format(name)
-    try:
-        mult = properties[mult_str1]
-    except BaseException:
-        mult = properties[mult_str2]
+    mult = get_property(
+        description=f"{name} multiplier in {fd}",
+        keys=[f"channel.{name}.data.encoder.scaling.multiplier",
+              f"channel.{name}.encoder.scaling.multiplier"],
+        properties=properties)
 
     # Offset
-    off_str1 = "channel.{}.data.encoder.scaling.offset".format(name)
-    off_str2 = "channel.{}.encoder.scaling.offset".format(name)
-    try:
-        off = properties[off_str1]
-    except BaseException:
-        off = properties[off_str2]
+    off = get_property(
+        description=f"{name} offset in {fd}",
+        keys=[f"channel.{name}.data.encoder.scaling.offset",
+              f"channel.{name}.encoder.scaling.offset"],
+        properties=properties)
 
     # Data type
-    enc_str1 = "channel.{}.data.encoder.type".format(name)
-    enc_str2 = "channel.{}.encoder.type".format(name)
-    try:
-        enc = properties[enc_str1]
-    except BaseException:
-        enc = properties[enc_str2]
+    enc = get_property(
+        description=f"{name} offset in {fd}",
+        keys=[f"channel.{name}.data.encoder.type",
+              f"channel.{name}.encoder.type"],
+        properties=properties)
+
     # determine encoder
     if enc == "signedshort":
         mydtype = np.dtype(">i2")
@@ -267,12 +295,12 @@ def load_dat_unit(fd, name, properties, slot="default"):
     """
     data = load_dat_raw(fd, name=name, properties=properties)
 
-    conv = "channel.{}.conversion-set".format(name)
+    conv = f"channel.{name}.conversion-set"
     if slot == "default":
-        slot = properties[conv + ".conversions.default"]
+        slot = properties[f"{conv}.conversions.default"]
 
     # get base unit
-    base = properties[conv + ".conversions.base"]
+    base = properties[f"{conv}.conversions.base"]
 
     # Now iterate through the conversion sets until we have the base converter.
     # A list of multipliers and offsets
@@ -281,29 +309,25 @@ def load_dat_unit(fd, name, properties, slot="default"):
 
     while curslot != base:
         # Get current slot multipliers and offsets
-        off_str = conv + ".conversion.{}.scaling.offset".format(curslot)
-        off = properties[off_str]
-        mult_str = conv + ".conversion.{}.scaling.multiplier".format(curslot)
-        mult = properties[mult_str]
+        off = properties[f"{conv}.conversion.{curslot}.scaling.offset"]
+        mult = properties[f"{conv}.conversion.{curslot}.scaling.multiplier"]
         converters.append([mult, off])
-        sl_str = conv + ".conversion.{}.base-calibration-slot".format(curslot)
-        curslot = properties[sl_str]
+        curslot = properties[
+            f"{conv}.conversion.{curslot}.base-calibration-slot"
+        ]
 
     # Get raw data
     for c in converters[::-1]:
         data[:] = c[0] * data[:] + c[1]
 
     if base == slot:
-        unit_str = "channel.{}.data.encoder.scaling.unit.unit".format(name)
-        unit = properties[unit_str]
+        unit = properties[f"channel.{name}.data.encoder.scaling.unit.unit"]
     else:
-        try:
-            unit_str = conv + ".conversion.{}.scaling.unit".format(slot)
-            unit = properties[unit_str]
-        except KeyError:
-            unit_str = conv + ".conversion.{}.scaling.unit.unit".format(slot)
-            unit = properties[unit_str]
+        unit = get_property(
+            description=f"scale conversion {name} for {slot} in {fd}",
+            keys=[f"{conv}.conversion.{slot}.scaling.unit",
+                  f"{conv}.conversion.{slot}.scaling.unit.unit"],
+            properties=properties)
 
-    name_str = conv + ".conversion.{}.name".format(slot)
-    out_name = properties[name_str]
-    return data, unit, "{} ({})".format(name, out_name)
+    out_name = properties[f"{conv}.conversion.{slot}.name"]
+    return data, unit, f"{name} ({out_name})"
