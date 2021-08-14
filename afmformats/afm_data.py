@@ -72,6 +72,7 @@ class AFMData(abc.ABC):
         return length
 
     def __setitem__(self, key, values):
+        """Set column data"""
         if len(values) != len(self):
             raise ValueError(
                 f"Cannot set data '{key}' of length '{len(values)}' "

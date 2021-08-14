@@ -52,3 +52,16 @@ def test_segment():
     fd["segment"] = new_segment2
     assert np.sum(fd["segment"] == 0) == 600
     assert fd.appr["segment"].size == 600
+
+
+def test_segment_set_item():
+    jpkfile = data_path / "fmt-jpk-fd_spot3-0192.jpk-force"
+    fd = afmformats.load_data(jpkfile)[0]
+
+    fd["tip position"] = np.ones(len(fd))
+    assert np.all(fd.appr["tip position"] == np.ones(2000))
+    fd.appr["tip position"] = 2*np.ones(2000)
+    assert np.all(fd.appr["tip position"] == 2*np.ones(2000))
+    assert np.all(fd.retr["tip position"] == np.ones(2000))
+    assert np.all(fd["tip position"] == np.concatenate([2*np.ones(2000),
+                                                        np.ones(2000)]))
