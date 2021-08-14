@@ -1,3 +1,6 @@
+0.16.3
+ - fix: setting column data to `AFMSegment` did not work when column
+   did only exist in raw data property
 0.16.2
  - enh: implement `__setitem__` for `AFMSegment`
  - ref: make `data` and `raw_data` private properties of `AFMSegment`

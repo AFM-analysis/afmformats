@@ -65,3 +65,23 @@ def test_segment_set_item():
     assert np.all(fd.retr["tip position"] == np.ones(2000))
     assert np.all(fd["tip position"] == np.concatenate([2*np.ones(2000),
                                                         np.ones(2000)]))
+
+
+def test_segment_set_item_2():
+    jpkfile = data_path / "fmt-jpk-fd_spot3-0192.jpk-force"
+    fd = afmformats.load_data(jpkfile)[0]
+
+    data = fd["height (measured)"]
+    fd.appr["height (measured)"] = np.arange(2000)
+
+    # test override not taking place
+    assert not np.all(data[:2000] == np.arange(2000))
+    # data access tests
+    assert np.all(data[2000:] == fd["height (measured)"][2000:])
+    assert np.all(fd["height (measured)"][2000:]
+                  == fd.retr["height (measured)"])
+    # test with private property
+    assert np.all(fd.appr["height (measured)"]
+                  == fd.appr._data["height (measured)"][:2000])
+    assert not np.all(fd.appr["height (measured)"]
+                      == fd.appr._raw_data["height (measured)"][:2000])

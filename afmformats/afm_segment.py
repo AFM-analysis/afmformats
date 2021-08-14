@@ -1,3 +1,5 @@
+import numpy as np
+
 __all__ = ["AFMSegment"]
 
 
@@ -44,6 +46,8 @@ class AFMSegment(object):
         """Set column data of the segment"""
         if key not in self._data and key not in self._raw_data:
             raise KeyError("Undefined column '{}'!".format(key))
+        elif key not in self._data:
+            self._data[key] = np.array(self._raw_data[key], copy=True)
         self._data[key][self.segment_indices] = data
 
     @property
