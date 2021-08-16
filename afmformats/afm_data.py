@@ -98,6 +98,11 @@ class AFMData(abc.ABC):
         return sorted(set(raw) | set(new))
 
     @property
+    def columns_innate(self):
+        """Data columns available only in the original data file"""
+        return sorted(self._raw_data.keys())
+
+    @property
     def enum(self):
         """Unique index of `self` in `self.path`
 
@@ -284,6 +289,14 @@ class AFMData(abc.ABC):
                 h5.close()
         else:
             raise ValueError("Unexpected string for 'fmt': {}".format(fmt))
+
+    def reset_data(self):
+        """Resets all data to the state they were after loading
+
+        Internally, only `self._data` is `clear`ed, which means
+        that all calls to `__getitem__` fall-back to `self._raw_data`.
+        """
+        self._data.clear()
 
 
 def json_path_serializer(obj):

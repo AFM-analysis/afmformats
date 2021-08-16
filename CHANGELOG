@@ -1,3 +1,9 @@
+0.16.4
+ - enh: implement `AFMData.columns_innate` which is a list of columns
+   present in the original data file
+ - enh: implement `AFMData.reset_data` to remove all user-defined
+   column data (i.e. columns not in `AFMData.columns_innate` or columns
+   that override those)
 0.16.3
  - fix: setting column data to `AFMSegment` did not work when column
    did only exist in raw data property

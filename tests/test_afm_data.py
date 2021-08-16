@@ -35,6 +35,16 @@ def test_repr_str():
     assert "fmt-jpk-fd_spot3-0192.jpk-force" in repr(fd)
 
 
+def test_reset():
+    jpkfile = data_path / "fmt-jpk-fd_spot3-0192.jpk-force"
+    fd = afmformats.load_data(jpkfile)[0]
+    fd["tip position"] = np.linspace(0, 1, len(fd))
+    assert "tip position" in fd
+    assert "tip position" not in fd.columns_innate
+    fd.reset_data()
+    assert "tip position" not in fd
+
+
 def test_segment():
     jpkfile = data_path / "fmt-jpk-fd_spot3-0192.jpk-force"
     fd = afmformats.load_data(jpkfile)[0]
