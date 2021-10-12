@@ -116,6 +116,18 @@ def test_single_open_issue_17_valid_metadata():
     assert data.metadata["sensitivity"] == .01e-6
 
 
+def test_single_open_with_precomputed_force():
+    # This file contains force data in Newtons but no tip position.
+    # afmformats should not request additional metadata, although
+    # nanite may, because it needs it for the computation of the
+    # tip position.
+    tf = data_path / "fmt-afm-workshop-fd_single_2021-10-22_14.16.csv"
+    data = afmformats.load_data(tf)[0]
+    assert "tip position" not in data
+    assert "force" in data
+    assert "spring constant" not in data.metadata
+
+
 if __name__ == "__main__":
     # Run all tests
     _loc = locals()

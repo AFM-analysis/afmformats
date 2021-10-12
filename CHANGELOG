@@ -1,3 +1,6 @@
+0.16.5
+ - tests: add test for files that contain force data but no spring
+   constant
 0.16.4
  - enh: implement `AFMData.columns_innate` which is a list of columns
    present in the original data file
