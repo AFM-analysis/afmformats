@@ -23,7 +23,7 @@ To install the latest release, simply run:
 
 .. |PyPI Version| image:: https://img.shields.io/pypi/v/afmformats.svg
    :target: https://pypi.python.org/pypi/afmformats
-.. |Build Status| image:: https://img.shields.io/github/workflow/status/AFM-analysis/afmformats/Checks
+.. |Build Status| image:: https://img.shields.io/github/actions/workflow/status/AFM-analysis/afmformats/check.yml
    :target: https://github.com/AFM-analysis/afmformats/actions?query=workflow%3AChecks
 .. |Coverage Status| image:: https://img.shields.io/codecov/c/github/AFM-analysis/afmformats/master.svg
    :target: https://codecov.io/gh/AFM-analysis/afmformats
