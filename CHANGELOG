@@ -1,4 +1,5 @@
 0.16.5
+ - setup: migrate from igor to igor2 (Python 3 support)
  - tests: add test for files that contain force data but no spring
    constant
 0.16.4

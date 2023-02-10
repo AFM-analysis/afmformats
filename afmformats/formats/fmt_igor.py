@@ -1,6 +1,6 @@
 import pathlib
 
-from igor import binarywave
+from igor2 import binarywave
 import numpy as np
 
 __all__ = ["load_igor"]
