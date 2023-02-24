@@ -377,14 +377,23 @@ class JPKReader(object):
             md["imaging mode"] = "force-distance"
         elif num_segments == 3:
             if segment == 1:
-                # for creep-compliance and stress-relaxation, we get the
-                # extra information from segment 1.
+                # For creep-compliance, we extract the info from segment 1.
                 if md_im["curve type"] != "pause":
-                    raise ValueError("Segment 1 must be of type 'pause'!")
+                    raise ValueError(
+                        f"Segment {segment} must be of type 'pause'!")
                 pause_type = md_im["segment pause type"]
                 if pause_type == "constant-force-pause":
                     md["imaging mode"] = "creep-compliance"
-                elif pause_type == "constant-height-pause":  # not sure
+                else:
+                    raise ValueError(f"Unexprected pause type '{pause_type}'!")
+        elif num_segments == 4:
+            if segment == 2:
+                # For stress-relaxation, we extract the info from segment 2.
+                if md_im["curve type"] != "pause":
+                    raise ValueError(
+                        f"Segment {segment} must be of type 'pause'!")
+                pause_type = md_im["segment pause type"]
+                if pause_type == "constant-height-pause":
                     md["imaging mode"] = "stress-relaxation"
                 else:
                     raise ValueError(f"Unexprected pause type '{pause_type}'!")
