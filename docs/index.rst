@@ -12,6 +12,7 @@ Documentation
    :maxdepth: 3
 
    sec_getting_started
+   sec_examples
    sec_advanced_usage
    sec_new_formats
 

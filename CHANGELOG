@@ -1,5 +1,6 @@
 0.17.0
  - feat: support loading stress-relaxation data from .jpk-force files (#9)
+ - docs: add example for stress-relaxation data analysis
 0.16.7
  - maintenance release
 0.16.6
