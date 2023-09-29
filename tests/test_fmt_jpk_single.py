@@ -157,3 +157,12 @@ def test_load_jpk():
     assert md["imaging mode"] == "force-distance"
     assert len(jpkr) == 1, "Only one measurement"
     assert len(jpkr.get_index_segment_numbers(0)) == 2, "approach and retract"
+
+
+def test_load_jpk_with_own_metadata():
+    jpkfile = data_path / "fmt-jpk-fd_single-modified_2023.jpk-force"
+    data = afmformats.load_data(jpkfile,
+                                meta_override={"spring constant": 10,
+                                               "sensitivity": .05})
+    apret = data[0]
+    assert np.allclose(apret["force"][0], -0.2454449015321114)

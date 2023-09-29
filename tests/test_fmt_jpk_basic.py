@@ -83,6 +83,27 @@ def test_load_jpk_map():
     assert ds.metadata["session id"] == ds2.metadata["session id"]
 
 
+def test_load_jpk_map_modify_metadata():
+    jpkfile = data_path / "fmt-jpk-fd_map2x2_extracted.jpk-force-map"
+
+    # initial values
+    ds = afmformats.load_data(path=jpkfile)[2]
+    init_force = -5.8540192943834714e-10
+    assert np.allclose(ds["force"][0], init_force)
+    old_spring_constant = ds.metadata["spring constant"]
+    new_spring_constant = 10
+    assert not np.allclose(old_spring_constant,
+                           new_spring_constant), "sanity check"
+
+    # load it again, this time with new metadata
+    # (the spring constant is proportional to the force and there is no offset)
+    ds2 = afmformats.load_data(path=jpkfile,
+                               meta_override={
+                                   "spring constant": new_spring_constant})[2]
+    new_force = init_force / old_spring_constant * new_spring_constant
+    assert np.allclose(ds2["force"][0], new_force)
+
+
 def test_load_jpk_simple():
     jpkfile = data_path / "fmt-jpk-fd_spot3-0192.jpk-force"
     afmlist = afmformats.load_data(path=jpkfile)

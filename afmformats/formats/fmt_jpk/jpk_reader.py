@@ -11,7 +11,6 @@ from ... import meta
 
 from . import jpk_data, jpk_meta
 
-
 __all__ = ["ArchiveCache", "JPKReader"]
 
 
@@ -180,6 +179,33 @@ class JPKReader(object):
             else:
                 if np.isnan(prop[p]):
                     prop.pop(p)
+
+        # 6. sneakily insert spring constant and sensitivity into the property
+        #    lists. This is manipulation of metadata at the lowest possible
+        #    level. We need it in :func:`jpk_data.load_dat_unit` as well
+        #    as in :func:`.get_metadata`.
+        prmet = jpk_meta.get_primary_meta_recipe()
+        for key, base_slot, unit in [
+                ("spring constant", "distance", "N"),
+                ("sensitivity", "volts", "m")]:
+            if key in self._user_metadata:
+                for opt_mult in prmet[key]:
+                    # channel.vDeflection.conversion-set.conversion.
+                    # distance.scaling.multiplier
+                    prop[opt_mult] = self._user_metadata[key]
+                    # channel.vDeflection.conversion-set.conversion.
+                    # distance.scaling.offset
+                    opt_off = opt_mult.rsplit(".", 1)[0] + ".offset"
+                    prop[opt_off] = 0
+                    # channel.vDeflection.conversion-set.conversion.
+                    # distance.scaling.unit
+                    opt_unit = opt_mult.rsplit(".", 1)[0] + ".unit"
+                    prop[opt_unit] = unit
+                    # channel.vDeflection.conversion-set.conversion.
+                    # distance.base-calibration-slot
+                    opt_slot = (opt_mult.rsplit(".", 2)[0]
+                                + ".base-calibration-slot")
+                    prop[opt_slot] = base_slot
         return prop
 
     def get_data(self, column, index, segment=None):
@@ -331,13 +357,10 @@ class JPKReader(object):
                 md.update(mdap)
             return md
 
-        # 1. Populate with primary metadata
+        # 1. Populate with primary metadata. Note that we already manipulated
+        #    the user-defined sensitivity and spring constant metadata in
+        #    the property list in :func:`._get_index_segment_properties`
         md = self.get_metadata_jpk_primary(index=index, segment=segment)
-
-        # Make sure that spring constant and sensitivity are in the metadata,
-        # otherwise fail. We also need those two for computations further
-        # below.
-        md.update(self._user_metadata)
 
         keys_required = ["spring constant", "sensitivity"]
         keys_missing = [k for k in keys_required if k not in md]
@@ -457,3 +480,4 @@ class JPKReader(object):
         self._user_metadata.clear()
         self._user_metadata.update(metadata)
         self.get_metadata.cache_clear()
+        self._get_index_segment_properties.cache_clear()
