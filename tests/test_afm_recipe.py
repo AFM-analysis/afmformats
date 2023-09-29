@@ -88,13 +88,10 @@ def test_find_data_recursively():
     td3 = td / "test" / "recur2"
     td3.mkdir(exist_ok=True, parents=True)
     shutil.copy2(data_path / "fmt-jpk-fd_spot3-0192.jpk-force", td2)
-    shutil.copy2(
-        data_path /
-        "fmt-jpk-cl_calibration_force-save-2015.02.04-11.25.21.294.jpk-force",
-        td3)
+    # just add a file without sense
+    (td3 / "random_file.jpk-force").write_bytes(b"peterpanhook")
     file_list = afmformats.find_data(td)
-    # Since version 0.18.0, afmformats supports opening calibration curves
-    assert len(file_list) == 2
+    assert len(file_list) == 1
     assert file_list[0].samefile(td2 / "fmt-jpk-fd_spot3-0192.jpk-force")
 
 
