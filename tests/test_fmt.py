@@ -3,10 +3,17 @@ import pathlib
 import pytest
 
 import afmformats
+import afmformats.formats
 import afmformats.errors
 
 
 data_path = pathlib.Path(__file__).parent / "data"
+
+
+@pytest.mark.parametrize("path", data_path.glob("fmt-*-fd_*"))
+def test_load_force_distance_modality(path):
+    recipe = afmformats.formats.get_recipe(path)
+    assert recipe.get_modality(path) == "force-distance"
 
 
 @pytest.mark.parametrize("path", data_path.glob("fmt-*-fd_*"))
@@ -25,6 +32,12 @@ def test_load_force_distance_with_callback(path):
                              meta_override={"spring constant": 20,
                                             "sensitivity": .01e-6})
     assert calls[-1] == 1
+
+
+@pytest.mark.parametrize("path", data_path.glob("fmt-*-cc_*"))
+def test_load_creep_compliance_modality(path):
+    recipe = afmformats.formats.get_recipe(path)
+    assert recipe.get_modality(path) == "creep-compliance"
 
 
 @pytest.mark.parametrize("path", data_path.glob("fmt-*-cc_*"))

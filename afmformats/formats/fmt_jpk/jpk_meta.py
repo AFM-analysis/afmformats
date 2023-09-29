@@ -2,17 +2,10 @@ import functools
 import json
 from pkg_resources import resource_filename
 
-from ...errors import FileFormatMetaDataError
 
-
-__all__ = ["ReadJPKMetaKeyError",
-           "get_primary_meta_recipe",
+__all__ = ["get_primary_meta_recipe",
            "get_secondary_meta_recipe",
            ]
-
-
-class ReadJPKMetaKeyError(FileFormatMetaDataError):
-    pass
 
 
 @functools.lru_cache()

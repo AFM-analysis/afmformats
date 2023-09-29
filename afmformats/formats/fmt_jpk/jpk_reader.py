@@ -6,6 +6,7 @@ import zipfile
 import jprops
 import numpy as np
 
+from ...errors import MissingMetaDataError
 from ... import meta
 
 from . import jpk_data, jpk_meta
@@ -53,6 +54,7 @@ class ArchiveCache:
 class JPKReader(object):
     def __init__(self, path):
         self.path = path
+        self._user_metadata = {}
 
     @functools.lru_cache()
     def __len__(self):
@@ -115,7 +117,7 @@ class JPKReader(object):
 
     @functools.lru_cache()
     def _get_index_segment_properties(self, index, segment):
-        """Return properties fro a specific index and segment
+        """Return properties from a specific index and segment
 
         Parameters
         ----------
@@ -328,21 +330,22 @@ class JPKReader(object):
                     md["point count"] += mdap.pop("point count")
                 md.update(mdap)
             return md
-        prop = self._get_index_segment_properties(index=index, segment=segment)
+
         # 1. Populate with primary metadata
-        md = meta.MetaData()
-        recipe = jpk_meta.get_primary_meta_recipe()
-        for key in recipe:
-            for vari in recipe[key]:
-                if vari in prop:
-                    md[key] = prop[vari]
-                    break
-        for mkey in ["spring constant",
-                     "sensitivity",
-                     ]:
-            if mkey not in md:
-                msg = "Missing meta data: '{}'".format(mkey)
-                raise jpk_meta.ReadJPKMetaKeyError(msg)
+        md = self.get_metadata_jpk_primary(index=index, segment=segment)
+
+        # Make sure that spring constant and sensitivity are in the metadata,
+        # otherwise fail. We also need those two for computations further
+        # below.
+        md.update(self._user_metadata)
+
+        keys_required = ["spring constant", "sensitivity"]
+        keys_missing = [k for k in keys_required if k not in md]
+
+        if keys_missing:
+            raise MissingMetaDataError(keys_missing,
+                                       f"Missing meta data: '{keys_missing}'"
+                                       )
 
         md["software"] = "JPK"
 
@@ -350,14 +353,7 @@ class JPKReader(object):
         md["path"] = self.path
 
         # 2. Populate with secondary metadata
-        recipe_2 = jpk_meta.get_secondary_meta_recipe()
-        md_im = {}
-
-        for key in recipe_2:
-            for vari in recipe_2[key]:
-                if vari in prop:
-                    md_im[key] = prop[vari]
-                    break
+        md_im = self.get_metadata_jpk_secondary(index=index, segment=segment)
 
         curve_type = md_im["curve type"]
         curve_conv = {"extend": "approach",
@@ -372,33 +368,7 @@ class JPKReader(object):
             md[f"speed {curseg}"] = zrange / md_im["segment duration"]
         md[f"duration {curseg}"] = md_im["segment duration"]
 
-        num_segments = len(self.get_index_segment_numbers(0))
-        if num_segments == 2:
-            md["imaging mode"] = "force-distance"
-        elif num_segments == 3:
-            if segment == 1:
-                # For creep-compliance, we extract the info from segment 1.
-                if md_im["curve type"] != "pause":
-                    raise ValueError(
-                        f"Segment {segment} must be of type 'pause'!")
-                pause_type = md_im["segment pause type"]
-                if pause_type == "constant-force-pause":
-                    md["imaging mode"] = "creep-compliance"
-                else:
-                    raise ValueError(f"Unexprected pause type '{pause_type}'!")
-        elif num_segments == 4:
-            if segment == 2:
-                # For stress-relaxation, we extract the info from segment 2.
-                if md_im["curve type"] != "pause":
-                    raise ValueError(
-                        f"Segment {segment} must be of type 'pause'!")
-                pause_type = md_im["segment pause type"]
-                if pause_type == "constant-height-pause":
-                    md["imaging mode"] = "stress-relaxation"
-                else:
-                    raise ValueError(f"Unexprected pause type '{pause_type}'!")
-        else:
-            raise ValueError(f"Unexpected number of segments: {num_segments}!")
+        md["imaging mode"] = self.get_imaging_mode()
 
         md["curve id"] = "{}:{:g}".format(md["session id"],
                                           md_im["position index"])
@@ -420,4 +390,70 @@ class JPKReader(object):
         for ik in integer_keys:
             if ik in md:
                 md[ik] = int(round(md[ik]))
+
+        # Update any remaining metadata from the user. This is not spotless
+        # (it might have made more sense to use `dict.setdefault`
+        # more often).
+        md.update(self._user_metadata)
         return md
+
+    def get_metadata_jpk_primary(self, index, segment):
+        prop = self._get_index_segment_properties(index=index, segment=segment)
+        md = meta.MetaData()
+        recipe = jpk_meta.get_primary_meta_recipe()
+        for key in recipe:
+            for vari in recipe[key]:
+                if vari in prop:
+                    md[key] = prop[vari]
+                    break
+        return md
+
+    def get_metadata_jpk_secondary(self, index, segment):
+        prop = self._get_index_segment_properties(index=index, segment=segment)
+        recipe_2 = jpk_meta.get_secondary_meta_recipe()
+        md_im = {}
+
+        for key in recipe_2:
+            for vari in recipe_2[key]:
+                if vari in prop:
+                    md_im[key] = prop[vari]
+                    break
+        return md_im
+
+    @functools.lru_cache()
+    def get_imaging_mode(self):
+        num_segments = len(self.get_index_segment_numbers(0))
+        if num_segments == 2:
+            imaging_mode = "force-distance"
+        elif num_segments == 3:
+            md_im = self.get_metadata_jpk_secondary(index=0, segment=1)
+            # For creep-compliance, we extract the info from segment 1.
+            if md_im["curve type"] != "pause":
+                raise ValueError("Segment 1 must be of type 'pause'!")
+            pause_type = md_im["segment pause type"]
+            if pause_type == "constant-force-pause":
+                imaging_mode = "creep-compliance"
+            else:
+                raise ValueError(f"Unexprected pause type '{pause_type}'!")
+        elif num_segments == 4:
+            md_im = self.get_metadata_jpk_secondary(index=0, segment=2)
+            # For stress-relaxation, we extract the info from segment 2.
+            if md_im["curve type"] != "pause":
+                raise ValueError("Segment 2 must be of type 'pause'!")
+            pause_type = md_im["segment pause type"]
+            if pause_type == "constant-height-pause":
+                imaging_mode = "stress-relaxation"
+            else:
+                raise ValueError(f"Unexprected pause type '{pause_type}'!")
+        else:
+            raise ValueError(f"Unexpected number of segments: {num_segments}!")
+        return imaging_mode
+
+    def set_metadata(self, metadata):
+        """Override internal metadata
+
+        This has a direct effect on :func:`.get_metadata`.
+        """
+        self._user_metadata.clear()
+        self._user_metadata.update(metadata)
+        self.get_metadata.cache_clear()

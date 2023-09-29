@@ -1,16 +1,16 @@
 import numpy as np
 
+from ...errors import MissingMetaDataError
 from ...lazy_loader import LazyData
 from ...meta import LazyMetaValue
 
 from .jpk_reader import JPKReader
-from .jpk_meta import ReadJPKMetaKeyError
 
 
 __all__ = ["load_jpk"]
 
 
-def detect(path):
+def detect(path, return_modality=False):
     """Check whether a file is a valid JPK data file
 
     """
@@ -19,11 +19,16 @@ def detect(path):
     jpkr = JPKReader(path)
     try:
         jpkr.get_metadata(index=0)
-    except ReadJPKMetaKeyError:
+    except MissingMetaDataError:
+        valid = True
+    except BaseException:
         valid = False
     else:
         valid = True
-    return valid
+    if return_modality:
+        return valid, jpkr.get_imaging_mode()
+    else:
+        return valid
 
 
 def load_jpk(path, callback=None, meta_override=None):
@@ -47,14 +52,10 @@ def load_jpk(path, callback=None, meta_override=None):
     """
     if meta_override is None:
         meta_override = {}
-    else:
-        # just make sure nobody expects a different result for the forces
-        for key in ["sensitivity", "spring constant"]:
-            if key in meta_override:
-                raise NotImplementedError(
-                    f"Setting metadata such as '{key}' is not implemented!")
 
     jpkr = JPKReader(path)
+    jpkr.set_metadata(meta_override)
+
     dataset = []
     # iterate over all datasets and add them
     for index in range(len(jpkr)):
@@ -69,7 +70,6 @@ def load_jpk(path, callback=None, meta_override=None):
         metadata["z range"] = LazyMetaValue(
             lambda data: np.ptp(data["height (piezo)"]),
             lazy_data)
-        metadata.update(meta_override)
         dataset.append({"data": lazy_data,
                         "metadata": metadata,
                         })

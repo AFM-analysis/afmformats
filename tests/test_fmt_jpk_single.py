@@ -2,8 +2,11 @@
 import pathlib
 
 import numpy as np
+import pytest
 
-from afmformats.formats.fmt_jpk import jpk_data, jpk_meta, load_jpk
+
+import afmformats.errors
+from afmformats.formats.fmt_jpk import jpk_data, load_jpk
 from afmformats.formats.fmt_jpk.jpk_reader import ArchiveCache, JPKReader
 
 
@@ -27,12 +30,10 @@ def test_open_jpk_simple():
 def test_open_jpk_calibration():
     cf = data_path / \
          "fmt-jpk-cl_calibration_force-save-2015.02.04-11.25.21.294.jpk-force"
-    try:
+
+    with pytest.raises(afmformats.errors.MissingMetaDataError,
+                       match="sensitivity"):
         load_jpk(cf)
-    except jpk_meta.ReadJPKMetaKeyError:
-        pass
-    else:
-        assert False, "no spring constant should raise error"
 
 
 def test_open_jpk_conversion():
@@ -121,6 +122,34 @@ def test_meta():
     assert md["spring constant"] == 0.043493666407368466
 
 
+def test_meta_missing():
+    jpkfile = data_path / "fmt-jpk-fd_single-modified_2023.jpk-force"
+
+    with pytest.raises(afmformats.errors.MissingMetaDataError,
+                       match="spring constant"):
+        load_jpk(jpkfile)
+
+    data_list = load_jpk(jpkfile,
+                         meta_override={"spring constant": 12})
+    meta = data_list[0]["metadata"]
+    assert meta["spring constant"] == 12
+
+
+def test_meta_override_multiple_times():
+    jpkfile = data_path / "fmt-jpk-fd_single-modified_2023.jpk-force"
+    jpkr = JPKReader(jpkfile)
+
+    with pytest.raises(afmformats.errors.MissingMetaDataError,
+                       match="spring constant"):
+        jpkr.get_metadata(index=0)
+
+    jpkr.set_metadata({"spring constant": 10})
+    assert jpkr.get_metadata(index=0)["spring constant"] == 10
+
+    jpkr.set_metadata({"spring constant": 12})
+    assert jpkr.get_metadata(index=0)["spring constant"] == 12
+
+
 def test_load_jpk():
     jpkfile = data_path / "fmt-jpk-fd_spot3-0192.jpk-force"
     jpkr = JPKReader(jpkfile)
@@ -128,11 +157,3 @@ def test_load_jpk():
     assert md["imaging mode"] == "force-distance"
     assert len(jpkr) == 1, "Only one measurement"
     assert len(jpkr.get_index_segment_numbers(0)) == 2, "approach and retract"
-
-
-if __name__ == "__main__":
-    # Run all tests
-    _loc = locals()
-    for _key in list(_loc.keys()):
-        if _key.startswith("test_") and hasattr(_loc[_key], "__call__"):
-            _loc[_key]()

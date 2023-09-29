@@ -41,18 +41,20 @@ def test_creep_compliance2():
                        atol=0, rtol=1e-12)
 
 
-@pytest.mark.parametrize("name, is_valid",
+@pytest.mark.parametrize("name, exp_valid",
     [("fmt-jpk-fd_spot3-0192.jpk-force", True),  # noqa: E128
      ("fmt-jpk-fd_map2x2_extracted.jpk-force-map", True),
+     # Since 0.18.0 afmformats supports opening calibration files
      ("fmt-jpk-cl_calibration_force-save-2015.02.04-11.25.21.294.jpk-force",
-      False),
+      True),
      ])
-def test_detect_jpk(name, is_valid):
+def test_detect_jpk(name, exp_valid):
     jpkfile = data_path / name
-    if is_valid:
-        afmlist = afmformats.load_data(path=jpkfile)
-        assert afmlist
-    else:
+    recipe = afmformats.formats.get_recipe(path=jpkfile)
+    act_valid = recipe.detect(jpkfile)
+    assert exp_valid == act_valid
+
+    if not exp_valid:
         with pytest.raises(afmformats.errors.FileFormatNotSupportedError):
             afmformats.load_data(path=jpkfile)
 
@@ -94,11 +96,3 @@ def test_load_jpk_piezo():
     afmlist = afmformats.load_data(path=jpkfile)
     ds = afmlist[0]
     assert np.allclose(ds["height (piezo)"][0], 2.878322343068329e-05)
-
-
-if __name__ == "__main__":
-    # Run all tests
-    _loc = locals()
-    for _key in list(_loc.keys()):
-        if _key.startswith("test_") and hasattr(_loc[_key], "__call__"):
-            _loc[_key]()

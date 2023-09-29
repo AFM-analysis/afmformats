@@ -1,3 +1,9 @@
+0.18.0
+ - ref: JPK calibration files are now not ignored anymore
+ - ref: allow to specify custom metadata for JPK files
+ - ref: replacef ReadJPKMetaKeyError with MissingMetaDataError
+ - ref: support `return_modality` in `detect` methods of recipes
+ - ref: cleanup of JPK reader class
 0.17.1
  - maintenance release
 0.17.0

@@ -134,8 +134,8 @@ class AFMFormatRecipe(object):
         if len(self.modalities) == 1:
             modality = self.modalities[0]
         else:
-            metadata = self.loader(path)[0]["metadata"]
-            modality = metadata["imaging mode"]
+            fdetect = self.recipe["detect"]
+            _, modality = fdetect(path, return_modality=True)
         return modality
 
 
@@ -254,7 +254,8 @@ def load_data(path, meta_override=None, modality=None,
             afm_data_class = data_classes_by_modality[modality]
         else:
             afm_data_class = default_data_classes_by_modality[modality]
-        for dd in loader(path, callback=callback,
+        for dd in loader(path,
+                         callback=callback,
                          meta_override=meta_override):
             dd["metadata"]["format"] = "{} ({})".format(cur_recipe["maker"],
                                                         cur_recipe["descr"])
