@@ -133,6 +133,10 @@ def test_meta_missing():
                          meta_override={"spring constant": 12})
     meta = data_list[0]["metadata"]
     assert meta["spring constant"] == 12
+    # The sensitivity is stored in the file already.
+    assert np.allclose(data_list[0]["data"]["force"][0],
+                       -5.261711536426128e-07,
+                       atol=1e-12)
 
 
 def test_meta_override_multiple_times():
