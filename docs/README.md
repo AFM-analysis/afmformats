@@ -6,6 +6,7 @@ To install the requirements for building the documentation, run
 
 To compile the documentation, run
 
+    cd docs
     sphinx-build . _build
 
 Notes
