@@ -1,6 +1,6 @@
 0.18.1
  - ref: Migrate from pkg_resources to importlib.resources (#26)
- 0.18.0
+0.18.0
  - ref: JPK calibration files are now not ignored anymore
  - ref: allow to specify custom metadata for JPK files
  - ref: replaced ReadJPKMetaKeyError with MissingMetaDataError
