@@ -4,7 +4,7 @@ lmfit
 matplotlib
 pandas
 seaborn
-sphinx==4.3.0
+sphinx>=5.0
 sphinxcontrib.bibtex>=2.0
 sphinx_rtd_theme==1.0
 
