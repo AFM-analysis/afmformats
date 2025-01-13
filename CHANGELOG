@@ -1,4 +1,5 @@
 0.18.1
+ - docs: release limitations on docs requirements
  - ref: Migrate from pkg_resources to importlib.resources (#26)
 0.18.0
  - ref: JPK calibration files are now not ignored anymore
