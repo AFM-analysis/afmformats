@@ -136,7 +136,8 @@ def load_csv(path, callback=None, meta_override=None, mode="single"):
             "Unknown file format: {}".format(path))
 
     # load data
-    rawdata = np.loadtxt(path, skiprows=header_index+1, delimiter=",")
+    rawdata = np.loadtxt(path, skiprows=header_index+1, delimiter=",",
+                         encoding="bytes")
     segsize = rawdata.shape[0]
     data = {"height (measured)": np.zeros(2*segsize, dtype=float)*np.nan,
             "force": np.zeros(2*segsize, dtype=float)*np.nan,

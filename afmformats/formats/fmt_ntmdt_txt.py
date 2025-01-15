@@ -31,7 +31,8 @@ def detect_txt(path):
     """File should be plain text"""
     valid = False
     try:
-        rawdata = np.loadtxt(path, converters=converters, max_rows=10)
+        rawdata = np.loadtxt(path, converters=converters, max_rows=10,
+                             encoding="bytes")
     except (ValueError, IndexError):
         pass
     else:
@@ -85,7 +86,7 @@ def load_txt(path, callback=None, meta_override=None):
             mis_metadata,
             f"Please specify {' and '.join(mis_metadata)}!")
 
-    rawdata = np.loadtxt(path, converters=converters)
+    rawdata = np.loadtxt(path, converters=converters, encoding="bytes")
 
     if rawdata.shape[1] != 3:
         raise errors.InvalidFileFormatError(
