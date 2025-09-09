@@ -1,4 +1,5 @@
 import numpy as np
+import pathlib
 
 from .. import errors
 
@@ -7,55 +8,42 @@ __all__ = ["load_txt"]
 
 
 
-def format_metadata(_metadata):
-    # todo: known_columns
+def parse_metadata(file_metadata):
 
-    _metadata = [m for m in _metadata if m != '\n']
-    _metadata = [_d.strip('\n').split('\t') for _d in _metadata]
+    file_metadata = [m for m in file_metadata if m != '\n']
+    file_metadata = [_d.strip('\n').split('\t') for _d in file_metadata]
 
     # handle each weirdly written piece of metadata
-    metadata = {}
-    for sublist in _metadata:
+    notes = {}
+    for sublist in file_metadata:
         if len(sublist) % 2 == 0:
             even, odd = sublist[::2], sublist[1::2]
-            metadata.update(dict(zip(even, odd)))
+            notes.update(dict(zip(even, odd)))
         elif len(sublist) == 1:
 
             if sublist[0].count(":") == 1:
-                metadata[sublist[0].split(":")[0]] = sublist[0].split(":")[1]
+                notes[sublist[0].split(":")[0]] = sublist[0].split(":")[1]
                 continue
 
             # try to split by whitespace and units within parentheses
             split_sublist = sublist[0].split(' ')
             if len(split_sublist) % 2 == 0:
-                metadata[split_sublist[0]] = split_sublist[1]
+                notes[split_sublist[0]] = split_sublist[1]
             elif len(split_sublist) == 1:
                 # no value
-                metadata[sublist[0]] = sublist[0]
+                notes[sublist[0]] = sublist[0]
             else:
                 if "(" in sublist[0] and ")" in sublist[0]:
                     assert "(" in split_sublist[1]  # should be the second part
-                    metadata[
+                    notes[
                         split_sublist[0] + " " + split_sublist[1]] = split_sublist[2]
 
     # cleanup trailing whitespaces
-    for key, val in metadata.items():
-        metadata[key] = val.strip()
+    for key, val in notes.items():
+        notes[key] = val.strip()
 
-    return metadata
+    return notes
 
-def crop_beginning(data):
-    """Crop constant padding at the start of the data column"""
-    assert data.shape[1] == 2
-
-    start = data[0, 1]
-    for ii in range(1, data.shape[0]):
-        if data[ii, 1] != start:
-            break
-    else:
-        raise ValueError("Encountered all-constant data!")
-
-    return data[ii-1:, :]
 def open_check_content(path):
     with path.open() as fd:
         txtdata = fd.readlines()
@@ -111,24 +99,44 @@ def load_txt(path, callback=None, meta_override=None):
         meta_override = {}
 
     _metadata, _columns, _data = open_check_content(path)
-    _metadata = format_metadata(_metadata)
 
-    # raw_apr = crop_beginning(rawdata[:, :2])
-    # raw_ret = crop_beginning(rawdata[:, ::2])
+    data = {"time": _data[:, 0]}
+    data["force"] = _data[:, 1] * 1e-6  # load (uN)
+    data["height (measured)"] = _data[:, 2] * 1e-9  # indentation (nm)
+    data["height (piezo)"] =   _data[:, 4] * 1e-9  # piezo (nm)
 
-    data = {"height (measured)": np.concatenate((raw_apr[::-1, 0],
-                                                 raw_ret[:, 0])) * 1e-9}
-    fmult = meta_override["sensitivity"] * meta_override["spring constant"]
-    data["force"] = np.concatenate((raw_apr[::-1, 1],
-                                    raw_ret[:, 1])) * fmult * 1e-9
-    data["segment"] = np.concatenate(
-        (np.zeros(raw_apr.shape[0], dtype=np.uint8),
-         np.ones(raw_ret.shape[0], dtype=np.uint8)))
+    notes = parse_metadata(_metadata)
 
-    metadata = {"enum": 0,
-                "imaging mode": "force-distance",
-                "path": path,
-                }
+    # Metadata
+    metadata = {}
+    metadata["duration"] = float(np.max(data["time"]))
+    # acquisition
+    metadata["imaging mode"] = "force-distance"
+    metadata["feedback mode"] = "contact"
+    # metadata["rate approach"] = float(notes["NumPtsPerSec"])
+    # metadata["rate retract"] = float(notes["NumPtsPerSec"])
+    # metadata["sensitivity"] = float(notes["InvOLS"])
+    # if notes["TriggerChannel"] == "Force":
+    #     metadata["setpoint"] = float(notes["TriggerPoint"])
+    metadata["spring constant"] = float(notes["k (N/m)"])
+
+    # dataset
+    metadata["enum"] = 0
+    # metadata["speed approach"] = float(notes["ApproachVelocity"])
+    # metadata["speed retract"] = float(notes["RetractVelocity"])
+
+    # setup
+    metadata["instrument"] = notes["Device:"]
+    metadata["software"] = notes["Device:"]
+    metadata["software version"] = notes["Software version"]
+
+    # storage
+    metadata["path"] = pathlib.Path(path)
+    metadata["date"] = notes["Date"]
+    metadata["point count"] = data["time"].shape[0]
+    metadata["time"] = notes["Time"]
+
+    metadata.update(_metadata)
     metadata.update(meta_override)
 
     dd = {"data": data,
