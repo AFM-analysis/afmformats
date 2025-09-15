@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["afmformats"]
+include-package-data = true
+
+[project]
+name = "afmformats"
+description = "reading common AFM file formats"
+authors = [
+    {name="Paul Müller", email="dev@craban.de"},
+    {name="Shada Abuhattum"},
+    {name="Eoghan O'Connell", email="eoclives@hotmail.com"},
+]
+dynamic = ["version"]
+readme = "README.rst"
+license = "MIT"
+dependencies=[
+    "h5py",
+    "igor2>=0.5.0",  # Asylum Research .ibw file format
+    "jprops",  # JPK file format
+    "numpy>=1.14.0",
+]
+requires-python=">=3.6, <4"
+keywords=[
+    "atomic force microscopy",
+    "mechanical phenotyping",
+    "tissue analysis"
+]
+classifiers=[
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Visualization",
+    "Intended Audience :: Science/Research"
+]
+
+[project.urls]
+Repository = "https://github.com/AFM-analysis/afmformats"
+Documentation = "https://afmformats.readthedocs.io/en/stable/"
+Changelog = "https://github.com/AFM-analysis/afmformats/blob/master/CHANGELOG"

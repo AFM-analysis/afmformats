@@ -2,7 +2,9 @@ from os.path import dirname, realpath
 from setuptools import setup
 import sys
 
-sys.path.insert(0, realpath(dirname(__file__)) + "/afmformats")
+name = "afmformats"
+
+sys.path.insert(0, realpath(dirname(__file__)) + "/" + name)
 try:
     from _version import version  # noqa: F821
 except BaseException:
