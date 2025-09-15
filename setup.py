@@ -1,47 +1,13 @@
-from os.path import dirname, exists, realpath
-from setuptools import setup, find_packages
+from os.path import dirname, realpath
+from setuptools import setup
 import sys
 
-author = "Paul Müller"
-authors = [author, "Shada Abuhattum"]
-description = 'reading common AFM file formats'
-name = 'afmformats'
-year = "2019"
-
-
-sys.path.insert(0, realpath(dirname(__file__))+"/"+name)
+sys.path.insert(0, realpath(dirname(__file__)) + "/afmformats")
 try:
     from _version import version  # noqa: F821
 except BaseException:
     version = "unknown"
 
-
 setup(
-    name=name,
-    author=author,
-    author_email='dev@craban.de',
-    url='https://github.com/AFM-analysis/afmformats',
-    version=version,
-    packages=find_packages(),
-    package_dir={name: name},
-    include_package_data=True,
-    license="MIT",
-    description=description,
-    long_description=open('README.rst').read() if exists('README.rst') else '',
-    install_requires=["h5py",
-                      "igor2>=0.5.0",  # Asylum Research .ibw file format
-                      "jprops",  # JPK file format
-                      "numpy>=1.14.0",
-                      ],
-    python_requires='>=3.6, <4',
-    keywords=["atomic force microscopy",
-              "mechanical phenotyping",
-              "tissue analysis"],
-    classifiers=[
-        'Operating System :: OS Independent',
-        'Programming Language :: Python :: 3',
-        'Topic :: Scientific/Engineering :: Visualization',
-        'Intended Audience :: Science/Research'
-    ],
-    platforms=['ALL'],
+    version=version
 )
