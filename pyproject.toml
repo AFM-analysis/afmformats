@@ -40,3 +40,8 @@ classifiers=[
 Repository = "https://github.com/AFM-analysis/afmformats"
 Documentation = "https://afmformats.readthedocs.io/en/stable/"
 Changelog = "https://github.com/AFM-analysis/afmformats/blob/master/CHANGELOG"
+
+
+[tool.setuptools_scm]
+write_to = "./afmformats/_version.py"
+version_scheme = "post-release"
