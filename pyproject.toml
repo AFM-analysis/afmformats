@@ -5,15 +5,6 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-packages = ["afmformats"]
-include-package-data = true
-
-[tool.setuptools_scm]
-write_to = "./afmformats/_version.py"
-version_scheme = "post-release"
-
-
 [project]
 name = "afmformats"
 description = "reading common AFM file formats"
@@ -48,3 +39,11 @@ classifiers=[
 Repository = "https://github.com/AFM-analysis/afmformats"
 Documentation = "https://afmformats.readthedocs.io/en/stable/"
 Changelog = "https://github.com/AFM-analysis/afmformats/blob/master/CHANGELOG"
+
+[tool.setuptools]
+packages = ["afmformats"]
+include-package-data = true
+
+[tool.setuptools_scm]
+write_to = "./afmformats/_version.py"
+version_scheme = "post-release"
