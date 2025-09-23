@@ -1,3 +1,5 @@
+0.18.5
+ - setup: migrate to pyproject.toml package file (#39)
 0.18.4
  - fix: update np.loadtxt with old default encoding argument (#29)
 0.18.3

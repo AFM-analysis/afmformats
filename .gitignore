@@ -103,6 +103,7 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+_version.py
 _version_save.py
 
 .idea
