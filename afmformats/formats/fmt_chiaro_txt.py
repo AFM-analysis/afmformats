@@ -122,17 +122,14 @@ def load_txt(path, callback=None, meta_override=None):
     # acquisition
     metadata["imaging mode"] = "force-distance"
     metadata["feedback mode"] = "contact"
-    # metadata["rate approach"] = float(notes["NumPtsPerSec"])
-    # metadata["rate retract"] = float(notes["NumPtsPerSec"])
-    # metadata["sensitivity"] = float(notes["InvOLS"])
-    # if notes["TriggerChannel"] == "Force":
-    #     metadata["setpoint"] = float(notes["TriggerPoint"])
+    metadata["setpoint"] = float(notes["Max load (µN)"])
     metadata["spring constant"] = float(notes["k (N/m)"])
+    metadata["z range"] = float(notes["Piezo position (nm) (Measured)"])
 
     # dataset
     metadata["enum"] = 0
-    # metadata["speed approach"] = float(notes["ApproachVelocity"])
-    # metadata["speed retract"] = float(notes["RetractVelocity"])
+    metadata["speed approach"] = float(notes["Piezo speed  (µm/s)"])
+    metadata["speed retract"] = float(notes["Piezo speed  (µm/s)"])
 
     # setup
     metadata["instrument"] = notes["Device:"]
