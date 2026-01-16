@@ -80,16 +80,13 @@ def detect_txt(path):
 def load_txt(path, callback=None, meta_override=None):
     """Load text files exported by the Optics11 Chiaro Indenter.
 
-    The columns are assumed to be: todo
-
-    This loader does todo
-
-    Test data were provided by todo
+    The chiaro text file columns were matched to existing afmformats data
+    labels by comparison with the example jpk data files.
 
     Parameters
     ----------
     path: str or pathlib.Path or io.TextIOBase
-        path to an chiaro-exported .txt file
+        path to a chiaro-exported .txt file
     callback: callable
         function for progress tracking; must accept a float in
         [0, 1] as an argument.
@@ -104,9 +101,18 @@ def load_txt(path, callback=None, meta_override=None):
     _metadata, _columns, _data = open_check_content(path)
 
     data = {"time": _data[:, 0]}
+    # the following data transformations match the example jpk file
     data["force"] = _data[:, 1] * 1e-6  # load (uN)
-    data["height (measured)"] = _data[:, 2] * 1e-9  # indentation (nm)
-    data["height (piezo)"] = _data[:, 4] * 1e-9  # piezo (nm)
+
+    data["height (measured)"] = _data[:, 2] * 1e-9  # Indentation (nm)
+    data["height (measured)"] *= -1
+
+    data["height (piezo)"] = _data[:, 4] * 1e-9  # Piezo (nm)
+    max_piezo = np.max(data["height (piezo)"])
+    data["height (piezo)"] *= -1
+    data["height (piezo)"] += max_piezo
+
+    data["tip position"] = data["height (measured)"]
 
     max_force_ind = np.argmax(data["force"])
 
