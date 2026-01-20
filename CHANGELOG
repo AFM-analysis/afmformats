@@ -1,4 +1,5 @@
 0.18.5
+ - enh: create chiaro text format loader (#38)
  - setup: migrate to pyproject.toml package file (#39)
 0.18.4
  - fix: update np.loadtxt with old default encoding argument (#29)
