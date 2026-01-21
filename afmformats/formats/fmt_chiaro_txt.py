@@ -41,7 +41,8 @@ def parse_metadata(file_metadata):
 
 
 def open_check_content(path):
-    with path.open() as fd:
+    # encoding found with `chardet.detect`
+    with path.open(encoding='ISO-8859-1') as fd:
         txtdata = fd.readlines()
 
     valid = False
@@ -80,12 +81,6 @@ def detect_txt(path):
 def load_txt(path, callback=None, meta_override=None):
     """Load text files exported by the Optics11 Chiaro Indenter.
 
-    The columns are assumed to be: todo
-
-    This loader does todo
-
-    Test data were provided by todo
-
     Parameters
     ----------
     path: str or pathlib.Path or io.TextIOBase
@@ -103,15 +98,18 @@ def load_txt(path, callback=None, meta_override=None):
 
     _metadata, _columns, _data = open_check_content(path)
 
-    data = {"time": _data[:, 0]}
-    data["force"] = _data[:, 1] * 1e-6  # load (uN)
-    data["height (measured)"] = _data[:, 2] * 1e-9  # Indentation (nm)
+    data = {
+        "time": _data[:, 0],
+        "force": _data[:, 1] * 1e-6,  # load (uN)
+        "height (measured)": _data[:, 2] * 1e-9,  # Indentation (nm)
+        "height (piezo)": _data[:, 4] * 1e-9,  # Piezo (nm)
+    }
     data["height (measured)"] *= -1
-    data["height (piezo)"] = _data[:, 4] * 1e-9  # Piezo (nm)
     data["height (piezo)"] *= -1
 
     cantilever = _data[:, 3] * 1e-9  # Cantilever (nm)
     cantilever *= -1
+    # we use the file tip position, as nanite computes it incorrectly
     data["tip position"] = data["height (piezo)"] - cantilever
 
     max_force_ind = np.argmax(data["force"])
