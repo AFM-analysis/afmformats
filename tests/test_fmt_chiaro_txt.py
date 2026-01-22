@@ -1,29 +1,45 @@
 """Test Chiaro text export format"""
 import pathlib
+import zipfile
+import tempfile
 import numpy as np
 
 import afmformats
 
-data_path = pathlib.Path(__file__).resolve().parent / "data"
+
+def _load_zip_data_path():
+    """Convenience function to find zipped test data path"""
+    zpath = (pathlib.Path(__file__).resolve().parent / "data" /
+             "fmt-chiaro-txt_AEBP1_Indentation_002.zip")
+    # unpack
+    arc = zipfile.ZipFile(str(zpath))
+    # extract all files to a temporary directory
+    edest = tempfile.mkdtemp(prefix=zpath.name)
+    arc.extractall(edest)
+    zip_temp_path = pathlib.Path(edest)
+    data_paths = [r for r in zip_temp_path.rglob("*.txt") if r.is_file()]
+    data_path = data_paths[0]
+    return data_path
+
+
+data_path = _load_zip_data_path()
 
 
 def test_chairo_txt_open_check_data():
-    data = afmformats.load_data(data_path /
-                                "fmt-chiaro-txt_AEBP1_Indentation_002.txt")[0]
+    data = afmformats.load_data(data_path)[0]
     assert data.metadata["imaging mode"] == "force-distance"
     assert data["force"][2000] == 9.399999999999999e-11
 
 
 def test_chairo_txt_detect():
-    path = data_path / "fmt-chiaro-txt_AEBP1_Indentation_002.txt"
-    recipe = afmformats.formats.get_recipe(path)
+    recipe = afmformats.formats.get_recipe(data_path)
     assert recipe.descr == "exported by Optics11 Chiaro Indenter"
     assert recipe.maker == "Optics11 Life"
 
 
 def test_chairo_txt_data_columns():
-    data = afmformats.load_data(data_path /
-                                "fmt-chiaro-txt_AEBP1_Indentation_002.txt")[0]
+    data = afmformats.load_data(data_path)[0]
+
     assert "force" in data
     assert "height (piezo)" in data
     assert "height (measured)" in data
@@ -33,8 +49,8 @@ def test_chairo_txt_data_columns():
 
 
 def test_chairo_txt_metadata():
-    data = afmformats.load_data(data_path /
-                                "fmt-chiaro-txt_AEBP1_Indentation_002.txt")[0]
+    data = afmformats.load_data(data_path)[0]
+
     metadata = data.metadata
     avail_keys = ["date", "duration", "spring constant", "time",
                   "speed approach", "speed retract", "segment count"]
@@ -43,8 +59,7 @@ def test_chairo_txt_metadata():
 
 
 def test_chiaro_txt_segments():
-    data = afmformats.load_data(data_path /
-                                "fmt-chiaro-txt_AEBP1_Indentation_002.txt")[0]
+    data = afmformats.load_data(data_path)[0]
 
     assert data["force"].size == 13827
     # maximum force is at end of 1st segment
