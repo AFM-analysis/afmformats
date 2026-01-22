@@ -11,6 +11,7 @@ from .fmt_jpk import (
     recipe_jpk_force_qi_series,
 )
 from .fmt_tab import recipe_tab
+from .fmt_chiaro_txt import recipe_chiaro_txt
 from .fmt_ntmdt_txt import recipe_ntmdt_txt
 from .fmt_workshop import recipe_workshop_single, recipe_workshop_map
 from ..mod_force_distance import AFMForceDistance
@@ -317,6 +318,7 @@ for _recipe in [
     recipe_jpk_force_qi_data,
     recipe_jpk_force_qi_series,
     recipe_ntmdt_txt,
+    recipe_chiaro_txt,
     recipe_tab,
     recipe_workshop_map,
     recipe_workshop_single,

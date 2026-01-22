@@ -14,7 +14,7 @@ converters = {
 
 
 def crop_beginning(data):
-    """Crop constant padding at the begin of the data column"""
+    """Crop constant padding at the start of the data column"""
     assert data.shape[1] == 2
 
     start = data[0, 1]

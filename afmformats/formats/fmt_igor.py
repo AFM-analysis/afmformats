@@ -11,7 +11,7 @@ def load_igor(path, callback=None, meta_override=None):
 
     The raw data are loaded with the Python module "igor"
     (http://blog.tremily.us/posts/igor/).
-    The way column labels are assigend to the data is kind of hacky.
+    The way column labels are assigned to the data is kind of hacky.
     The metadata assignment is largely guessed.
 
     Test data were provided by Nicolas Hauck :cite:`Hauck2018`.
