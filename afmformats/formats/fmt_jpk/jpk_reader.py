@@ -2,6 +2,7 @@ from collections import OrderedDict
 import copy
 import functools
 import zipfile
+import bisect
 
 import jprops
 import numpy as np
@@ -52,6 +53,22 @@ class ArchiveCache:
 
 
 class JPKReader(object):
+    @staticmethod
+    def _files_sortkey(maxdigits):
+        """Create a function to use as the sort key for files"""
+        repstr = "{:0" + "{}".format(maxdigits) + "d}"
+        def key(x):
+            if x.count("/"):
+                xs = x.split("/")
+                for ii in range(len(xs)):
+                    if xs[ii].isnumeric():
+                        xs[ii] = repstr.format(int(xs[ii]))
+                return "/".join(xs)
+            else:
+                return x
+            
+        return key
+
     def __init__(self, path):
         self.path = path
         self._user_metadata = {}
@@ -67,18 +84,7 @@ class JPKReader(object):
         arc = ArchiveCache.get(self.path)
         nlist = arc.namelist()
         maxdigits = int(np.ceil(np.log10(len(nlist)))) + 1
-        repstr = "{:0" + "{}".format(maxdigits) + "d}"
-
-        def sortkey(x):
-            if x.count("/"):
-                xs = x.split("/")
-                for ii in range(len(xs)):
-                    if xs[ii].isnumeric():
-                        xs[ii] = repstr.format(int(xs[ii]))
-                return "/".join(xs)
-            else:
-                return x
-
+        sortkey = self._files_sortkey(maxdigits)
         return sorted(nlist, key=sortkey)
 
     @property
@@ -487,17 +493,41 @@ class JPKReader(object):
 class JPKQIMapReader(JPKReader):
     def __init__(self, path):
         super().__init__(path)
-        self.reader = jpk_rs.QIMapReader(path)
-        self._metadata = self.reader.all_metadata()
+        self._reader = jpk_rs.QIMapReader(path)
+        self._files = self._reader.files()
+        self._metadata = self._reader.all_metadata()
 
-    @functools.lru_cache
-    def __len__(self):
-        return self.reader.len()
-    
+        shared_props = self._properties_shared
+        self._lcdinfo = {}
+        for key in shared_props:
+            parts = key.split(".", 2)
+            if len(parts) >= 3:
+                prefix = f"{parts[0]}.{parts[1]}."
+                var = parts[2]
+                if prefix not in self._lcdinfo:
+                    self._lcdinfo[prefix] = []
+                self._lcdinfo[prefix].append((var, shared_props[key]))
+
+        self._hierarchy = None
+        if self.files_contains("segments/"):
+            self._hierarchy = "single"
+        elif self.files_contains("index/"):
+            self._hierarchy = "indexed"
+  
     @property
     @functools.lru_cache()
     def files(self):
-        return self.reader.files()
+        return self._files
+    
+    @property
+    @functools.lru_cache()
+    def hierarchy(self):
+        """Format hierarchy ("single" or "indexed")"""
+        if self._hierarchy is None:
+            msg = "Cannot determine hierarchy: {}".format(self.path)
+            raise NotImplementedError(msg)
+        else:
+            return self._hierarchy
     
     @property
     @functools.lru_cache
@@ -511,6 +541,48 @@ class JPKQIMapReader(JPKReader):
         """Return content of "shared-data/header.properties"""
         return self._metadata[("shared_data", None, None)]
     
+    @functools.lru_cache
+    def files_contains(self, path):
+        """Return whether the path is in files"""
+        maxdigits = int(np.ceil(np.log10(len(self.files)))) + 1
+        sortkey = self._files_sortkey(maxdigits)
+        sortpath = sortkey(path)
+        index = bisect.bisect_left(self.files, sortpath, key=sortkey)
+        return index < len(self.files) and self.files[index] == path
+    
+    @functools.lru_cache()
+    def get_index_path(self, index):
+        """Return the path in the zip file for a specific curve index"""
+        enum = self.get_index_numbers()[index]
+        if self.hierarchy == "single":
+            path = ""
+        elif self.hierarchy == "indexed":
+            path = "index/{}/".format(enum)
+        else:
+            raise NotImplementedError("No rule to get path for hierarchy "
+                                      + "'{}'!".format(self.hierarchy))
+        if path and not self.files_contains(path):
+            raise IndexError("Cannot find path for index '{}' ".format(index)
+                             + " (enum '{}')!".format(enum))
+        return path
+    
+    @functools.lru_cache()
+    def get_index_segment_path(self, index, segment):
+        """Return the path in the zip file for a specific index and segment"""
+        enum = self.get_index_numbers()[index]
+        if self.hierarchy == "single":
+            path = "segments/{}/".format(segment)
+        elif self.hierarchy == "indexed":
+            path = "index/{}/segments/{}/".format(enum, segment)
+        else:
+            raise NotImplementedError("No rule to get path for hierarchy "
+                                      + "'{}'!".format(self.hierarchy))
+        if not self.files_contains(path):
+            raise IndexError("Cannot find path for index '{}' ".format(index)
+                             + "(enum '{}')".format(enum))
+        return path
+
+
     @functools.lru_cache
     def _get_index_segment_properties(self, index, segment):
         """Return properties from a specific index and segment
@@ -532,16 +604,12 @@ class JPKQIMapReader(JPKReader):
             prop.update(segment_prop)
 
         # 3. Substitute shared properties
-        psprop = self._properties_shared
-        # Generate lists of keys and sort them for easier debugging.
+        # Generate lists of keys.
         proplist = list(prop.keys())
-        proplist.sort()
-        pslist = list(psprop.keys())
-        pslist.sort()
         # Loop through the segment data and search for lcd-info tags
         for key in proplist:
             # Get line channel data
-            if key.count(".*"):
+            if ".*" in key:
                 # Replace the lcd-info tag by the values in the shared
                 # properties file:
                 # 0, 1, 2, 3, etc.
@@ -553,10 +621,9 @@ class JPKQIMapReader(JPKReader):
                 # append a "." here to make sure
                 # not to confuse "1" with "10".
                 startid = "{}.{}.".format(mediator, pindex)
-                for k2 in pslist:
-                    if k2.startswith(startid):
-                        var = ".".join(k2.split(".")[2:])
-                        prop[".".join([headkey, var])] = psprop[k2]
+                if startid in self._lcdinfo:
+                    for var, value in self._lcdinfo[startid]:
+                        prop[".".join([headkey, var])] = value
 
         # 4. Update with general properties
         # (for "single" hierarchy, this coincides with index properties)

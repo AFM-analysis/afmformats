@@ -105,33 +105,6 @@ def load_jpk_qi_data(path, callback=None, meta_override=None):
         are used when loading the files
         (see :data:`afmformats.meta.META_FIELDS`)
     """
-    # if meta_override is None:
-    #     meta_override = {}
-
-    # jpkr = JPKReader(path)
-    # jpkr.set_metadata(meta_override)
-
-    # dataset = []
-    # # iterate over all datasets and add them
-    # for index in range(len(jpkr)):
-    #     lazy_data = LazyData()
-    #     for column in ["force", "height (measured)", "height (piezo)",
-    #                    "segment", "time"]:
-    #         lazy_data.set_lazy_loader(column=column,
-    #                                   func=jpkr.get_data,
-    #                                   kwargs={"column": column,
-    #                                           "index": index})
-    #     metadata = jpkr.get_metadata(index=index)
-    #     metadata["z range"] = LazyMetaValue(
-    #         lambda data: np.ptp(data["height (piezo)"]),
-    #         lazy_data)
-    #     dataset.append({"data": lazy_data,
-    #                     "metadata": metadata,
-    #                     })
-    #     if callback:
-    #         callback((1+index) / len(jpkr))
-    # return dataset
-
     if meta_override is None:
         meta_override = {}
 
