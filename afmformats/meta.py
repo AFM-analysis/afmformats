@@ -404,6 +404,10 @@ def parse_time(value):
     else:
         ss0 = ss
         ss1 = ""
+    if hh.endswith("\\"):
+        hh = hh[:-1]
+    if mm.endswith("\\"):
+        mm = mm[:-1]
     newvalue = ":".join(["{:02d}".format(int(hh)),
                          "{:02d}".format(int(mm)),
                          "{:02d}".format(int(ss0)) + ss1
