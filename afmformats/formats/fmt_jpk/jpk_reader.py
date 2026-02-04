@@ -2,9 +2,11 @@ from collections import OrderedDict
 import copy
 import functools
 import zipfile
+import bisect
 
 import jprops
 import numpy as np
+import jpk_reader_rs as jpk_rs
 
 from ...errors import MissingMetaDataError
 from ... import meta
@@ -51,6 +53,22 @@ class ArchiveCache:
 
 
 class JPKReader(object):
+    @staticmethod
+    def _files_sortkey(maxdigits):
+        """Create a function to use as the sort key for files"""
+        repstr = "{:0" + "{}".format(maxdigits) + "d}"
+        def key(x):
+            if x.count("/"):
+                xs = x.split("/")
+                for ii in range(len(xs)):
+                    if xs[ii].isnumeric():
+                        xs[ii] = repstr.format(int(xs[ii]))
+                return "/".join(xs)
+            else:
+                return x
+            
+        return key
+
     def __init__(self, path):
         self.path = path
         self._user_metadata = {}
@@ -66,18 +84,7 @@ class JPKReader(object):
         arc = ArchiveCache.get(self.path)
         nlist = arc.namelist()
         maxdigits = int(np.ceil(np.log10(len(nlist)))) + 1
-        repstr = "{:0" + "{}".format(maxdigits) + "d}"
-
-        def sortkey(x):
-            if x.count("/"):
-                xs = x.split("/")
-                for ii in range(len(xs)):
-                    if xs[ii].isnumeric():
-                        xs[ii] = repstr.format(int(xs[ii]))
-                return "/".join(xs)
-            else:
-                return x
-
+        sortkey = self._files_sortkey(maxdigits)
         return sorted(nlist, key=sortkey)
 
     @property
@@ -481,3 +488,190 @@ class JPKReader(object):
         self._user_metadata.update(metadata)
         self.get_metadata.cache_clear()
         self._get_index_segment_properties.cache_clear()
+
+
+class JPKQIMapReader(JPKReader):
+    def __init__(self, path):
+        super().__init__(path)
+        self._reader = jpk_rs.QIMapReader(path)
+        self._files = self._reader.files()
+        self._metadata = self._reader.all_metadata()
+
+        shared_props = self._properties_shared
+        self._lcdinfo = {}
+        for key in shared_props:
+            parts = key.split(".", 2)
+            if len(parts) >= 3:
+                prefix = f"{parts[0]}.{parts[1]}."
+                var = parts[2]
+                if prefix not in self._lcdinfo:
+                    self._lcdinfo[prefix] = []
+                self._lcdinfo[prefix].append((var, shared_props[key]))
+
+        self._hierarchy = None
+        if self.files_contains("segments/"):
+            self._hierarchy = "single"
+        elif self.files_contains("index/"):
+            self._hierarchy = "indexed"
+  
+    @property
+    @functools.lru_cache()
+    def files(self):
+        return self._files
+    
+    @property
+    @functools.lru_cache()
+    def hierarchy(self):
+        """Format hierarchy ("single" or "indexed")"""
+        if self._hierarchy is None:
+            msg = "Cannot determine hierarchy: {}".format(self.path)
+            raise NotImplementedError(msg)
+        else:
+            return self._hierarchy
+    
+    @property
+    @functools.lru_cache
+    def _properties_general(self):
+        """Return content of "header.properties"""
+        return self._metadata[("dataset", None, None)]
+    
+    @property
+    @functools.lru_cache
+    def _properties_shared(self):
+        """Return content of "shared-data/header.properties"""
+        return self._metadata[("shared_data", None, None)]
+    
+    @functools.lru_cache
+    def files_contains(self, path):
+        """Return whether the path is in files"""
+        maxdigits = int(np.ceil(np.log10(len(self.files)))) + 1
+        sortkey = self._files_sortkey(maxdigits)
+        sortpath = sortkey(path)
+        index = bisect.bisect_left(self.files, sortpath, key=sortkey)
+        return index < len(self.files) and self.files[index] == path
+    
+    @functools.lru_cache()
+    def get_index_path(self, index):
+        """Return the path in the zip file for a specific curve index"""
+        enum = self.get_index_numbers()[index]
+        if self.hierarchy == "single":
+            path = ""
+        elif self.hierarchy == "indexed":
+            path = "index/{}/".format(enum)
+        else:
+            raise NotImplementedError("No rule to get path for hierarchy "
+                                      + "'{}'!".format(self.hierarchy))
+        if path and not self.files_contains(path):
+            raise IndexError("Cannot find path for index '{}' ".format(index)
+                             + " (enum '{}')!".format(enum))
+        return path
+    
+    @functools.lru_cache()
+    def get_index_segment_path(self, index, segment):
+        """Return the path in the zip file for a specific index and segment"""
+        enum = self.get_index_numbers()[index]
+        if self.hierarchy == "single":
+            path = "segments/{}/".format(segment)
+        elif self.hierarchy == "indexed":
+            path = "index/{}/segments/{}/".format(enum, segment)
+        else:
+            raise NotImplementedError("No rule to get path for hierarchy "
+                                      + "'{}'!".format(self.hierarchy))
+        if not self.files_contains(path):
+            raise IndexError("Cannot find path for index '{}' ".format(index)
+                             + "(enum '{}')".format(enum))
+        return path
+
+
+    @functools.lru_cache
+    def _get_index_segment_properties(self, index, segment):
+        """Return properties from a specific index and segment
+
+        Parameters
+        ----------
+        index: int
+            Curve index; For "single" hierarchy files, this should be 0.
+        segment: int or None
+            If None, then no segment-specific properties (e.g.
+            approach or retract) are returned.
+        """
+        # 1. Properties of index
+        prop = self._metadata[("index", index, None)]
+
+        # 2. Properties of segment (if applicable)
+        if segment is not None:
+            segment_prop = self._metadata[("segment", index, segment)]
+            prop.update(segment_prop)
+
+        # 3. Substitute shared properties
+        # Generate lists of keys.
+        proplist = list(prop.keys())
+        # Loop through the segment data and search for lcd-info tags
+        for key in proplist:
+            # Get line channel data
+            if ".*" in key:
+                # Replace the lcd-info tag by the values in the shared
+                # properties file:
+                # 0, 1, 2, 3, etc.
+                pindex = prop[key]
+                # lcd-info, force-segment-header-info
+                mediator = ".".join(key.split(".")[-2:-1])
+                # channel.vDeflection, force-segment-header
+                headkey = key.rsplit(".", 2)[0]
+                # append a "." here to make sure
+                # not to confuse "1" with "10".
+                startid = "{}.{}.".format(mediator, pindex)
+                if startid in self._lcdinfo:
+                    for var, value in self._lcdinfo[startid]:
+                        prop[".".join([headkey, var])] = value
+
+        # 4. Update with general properties
+        # (for "single" hierarchy, this coincides with index properties)
+        prop.update(self._properties_general)
+
+        # 5. Try to convert numbers to floats and remove NaNs
+        for p in list(prop.keys()):
+            try:
+                prop[p] = float(prop[p])
+            except BaseException:
+                pass
+            else:
+                if np.isnan(prop[p]):
+                    prop.pop(p)
+
+        # 6. sneakily insert spring constant and sensitivity into the property
+        #    lists. This is manipulation of metadata at the lowest possible
+        #    level. We need it in :func:`jpk_data.load_dat_unit` as well
+        #    as in :func:`.get_metadata`.
+        prmet = jpk_meta.get_primary_meta_recipe()
+        for key, base_slot, unit in [
+                ("spring constant", "distance", "N"),
+                ("sensitivity", "volts", "m")]:
+            if key in self._user_metadata:
+                for opt_mult in prmet[key]:
+                    # channel.vDeflection.conversion-set.conversion.
+                    # distance.scaling.multiplier
+                    prop[opt_mult] = self._user_metadata[key]
+                    # channel.vDeflection.conversion-set.conversion.
+                    # distance.scaling.offset
+                    opt_off = opt_mult.rsplit(".", 1)[0] + ".offset"
+                    prop[opt_off] = 0
+                    # channel.vDeflection.conversion-set.conversion.
+                    # distance.scaling.unit
+                    opt_unit = opt_mult.rsplit(".", 1)[0] + ".unit"
+                    prop[opt_unit] = unit
+                    # channel.vDeflection.conversion-set.conversion.
+                    # distance.base-calibration-slot
+                    opt_slot = (opt_mult.rsplit(".", 2)[0]
+                                + ".base-calibration-slot")
+                    prop[opt_slot] = base_slot
+        return prop
+    
+    def set_metadata(self, metadata):
+        """Override internal metadata
+
+        This has a direct effect on :func:`.get_metadata`.
+        """
+        self._user_metadata.clear()
+        self._user_metadata.update(metadata)
+        self.get_metadata.cache_clear()
