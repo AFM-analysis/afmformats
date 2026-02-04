@@ -404,6 +404,12 @@ def parse_time(value):
     else:
         ss0 = ss
         ss1 = ""
+
+    # strip escape characters.
+    # See https://github.com/AFM-analysis/afmformats/issues/43
+    hh = hh.strip("\\")
+    mm = mm.strip("\\")
+    
     newvalue = ":".join(["{:02d}".format(int(hh)),
                          "{:02d}".format(int(mm)),
                          "{:02d}".format(int(ss0)) + ss1
