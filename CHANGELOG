@@ -1,3 +1,5 @@
+0.18.6
+ - enh: remove escape sequences when parsing time (#43)
 0.18.5
  - enh: create chiaro text format loader (#38)
  - setup: migrate to pyproject.toml package file (#39)

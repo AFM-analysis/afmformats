@@ -374,7 +374,7 @@ class MetaData(dict):
         return self.as_dict().values()
 
 
-def parse_time(value):
+def parse_time(time_str: str):
     """Convert a time string to "HH:MM:SS.S"
 
     - leading zeros are added where necessary
@@ -387,17 +387,22 @@ def parse_time(value):
     - "6:15:22.00 AM" -> "06:15:22"
     - "6:02:22.010 AM" -> "06:02:22.01"
     """
+    # remove escape characters.
+    # See https://github.com/AFM-analysis/afmformats/issues/43
+    time_str = time_str.replace("\\", "")
+
     # fix AM/PM
-    if value.count(" "):
-        time, ap = value.split()
+    if time_str.count(" "):
+        time_str, ap = time_str.split()
         if ap == "PM":  # convert to 24h
-            timetup = time.split(":")
+            timetup = time_str.split(":")
             timetup[0] = str(int(timetup[0]) + 12)
-            time = ":".join(timetup)
+            time_str = ":".join(timetup)
     else:
-        time = value
+        time_str = time_str
+
     # convert to time with leading zeros and stripped subseconds
-    hh, mm, ss = time.split(":")
+    hh, mm, ss = time_str.split(":")
     if ss.count("."):
         ss0, ss1 = ss.split(".")
         ss1 = ("." + ss1).rstrip(".0")
@@ -405,11 +410,6 @@ def parse_time(value):
         ss0 = ss
         ss1 = ""
 
-    # strip escape characters.
-    # See https://github.com/AFM-analysis/afmformats/issues/43
-    hh = hh.strip("\\")
-    mm = mm.strip("\\")
-    
     newvalue = ":".join(["{:02d}".format(int(hh)),
                          "{:02d}".format(int(mm)),
                          "{:02d}".format(int(ss0)) + ss1
