@@ -1,7 +1,8 @@
+import logging
 import pathlib
-
 from .. import errors
 from .. import meta
+from ..logging_setup import configure_logging
 from .fmt_hdf5 import recipe_hdf5
 from .fmt_igor import recipe_ibw
 from .fmt_jpk import (
@@ -22,6 +23,10 @@ from ..mod_stress_relaxation import AFMStressRelaxation
 __all__ = ["AFMFormatRecipe", "find_data", "get_recipe", "load_data",
            "default_data_classes_by_modality", "formats_available",
            "formats_by_suffix", "formats_by_modality", "supported_extensions"]
+
+
+configure_logging()
+logger = logging.getLogger(__name__)
 
 
 class AFMFormatRecipe(object):
@@ -167,7 +172,7 @@ def find_data(path, modality=None):
             get_recipe(path=path, modality=modality)
         except errors.FileFormatNotSupportedError:
             # not a valid file format
-            pass
+            logger.debug("Skipping unsupported file '%s'", path)
         else:
             # valid file format
             file_list.append(path)
@@ -197,10 +202,22 @@ def get_recipe(path, modality=None):
 
     recipes = formats_by_suffix[path.suffix]
     for rec in recipes:
-        if ((modality is None or modality in rec.modalities)
-                and rec.detect(path)):
+        try:
+            supported = rec.detect(path)
+        except BaseException:
+            logger.debug(
+                "Detect failed for '%s' using recipe '%s'. Traceback follows.",
+                path, rec, exc_info=True)
+            supported = False
+        if ((modality is None or modality in rec.modalities) and supported):
             break
+        logger.debug(
+            "Recipe '%s' did not match '%s' for modality '%s'",
+            rec, path, modality)
     else:
+        logger.debug(
+            "No recipe matched '%s' for modality '%s'. Tried: %s",
+            path, modality, [r.descr for r in recipes])
         raise errors.FileFormatNotSupportedError(
             f"Could not determine file format recipe for '{path}'!")
 
@@ -255,18 +272,28 @@ def load_data(path, meta_override=None, modality=None,
             afm_data_class = data_classes_by_modality[modality]
         else:
             afm_data_class = default_data_classes_by_modality[modality]
-        for dd in loader(path,
-                         callback=callback,
-                         meta_override=meta_override):
-            dd["metadata"]["format"] = "{} ({})".format(cur_recipe["maker"],
-                                                        cur_recipe["descr"])
-            if fix_modality and dd["metadata"]["imaging mode"] != modality:
-                # The user explicitly requested this modality.
-                continue
-            ddi = afm_data_class(data=dd["data"],
-                                 metadata=dd["metadata"],
-                                 diskcache=diskcache)
-            afmdata.append(ddi)
+        try:
+            for dd in loader(path,
+                             callback=callback,
+                             meta_override=meta_override):
+                dd["metadata"]["format"] = "{} ({})".format(
+                    cur_recipe["maker"], cur_recipe["descr"])
+                if fix_modality and dd["metadata"]["imaging mode"] != modality:
+                    # The user explicitly requested this modality.
+                    logger.debug(
+                        "Skipping dataset with modality '%s' (expected '%s') "
+                        "from '%s'",
+                        dd["metadata"]["imaging mode"], modality, path)
+                    continue
+                ddi = afm_data_class(data=dd["data"],
+                                     metadata=dd["metadata"],
+                                     diskcache=diskcache)
+                afmdata.append(ddi)
+        except BaseException:
+            logger.debug(
+                "Loader failed for '%s' using recipe '%s'. Traceback follows.",
+                path, cur_recipe, exc_info=True)
+            raise
     else:
         raise ValueError("Unsupported file extension: '{}'!".format(path))
     return afmdata
