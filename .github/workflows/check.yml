@@ -8,6 +8,8 @@ jobs:
   build:
 
     runs-on: ${{ matrix.os }}
+    env:
+      AFMFORMATS_LOG_PATH: ${{ github.workspace }}/afmformats.log
     strategy:
       matrix:
         python-version: ['3.11', '3.12', '3.13']
@@ -34,5 +36,11 @@ jobs:
     - name: Test with pytest
       run: |
         coverage run --source=afmformats -m pytest tests
+    - name: Upload afmformats log artifact
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: afmformats-log-${{ matrix.os }}-py${{ matrix.python-version }}
+        path: afmformats.log
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
