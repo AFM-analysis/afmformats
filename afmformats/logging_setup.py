@@ -3,10 +3,15 @@
 import logging
 import os
 import pathlib
+import sys
 import tempfile
 from typing import Optional
 
-__all__ = ["DEFAULT_LOG_PATH", "configure_logging"]
+__all__ = [
+    "DEFAULT_LOG_PATH",
+    "configure_console_logging",
+    "configure_logging",
+]
 
 
 def configure_logging(log_path: Optional[str] = None) -> str:
@@ -41,6 +46,23 @@ def configure_logging(log_path: Optional[str] = None) -> str:
         logger.addHandler(fh)
         logger.debug("afmformats logging initialized at %s", path)
     return path
+
+
+def configure_console_logging(level: int = logging.DEBUG) -> None:
+    """Mirror afmformats log output to the terminal."""
+    logger = logging.getLogger("afmformats")
+    handler_exists = any(
+        isinstance(h, logging.StreamHandler)
+        and not isinstance(h, logging.FileHandler)
+        and getattr(h, "stream", None) is sys.stderr
+        for h in logger.handlers
+    )
+    if not handler_exists:
+        handler = logging.StreamHandler()
+        handler.setLevel(level)
+        handler.setFormatter(logging.Formatter(
+            "%(levelname)s:%(name)s:%(message)s"))
+        logger.addHandler(handler)
 
 
 DEFAULT_LOG_PATH = configure_logging()

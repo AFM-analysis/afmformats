@@ -1,9 +1,7 @@
-import logging
 import pathlib
 import pytest
 
 import afmformats
-
 
 data_path = pathlib.Path(__file__).resolve().parent / "data"
 
