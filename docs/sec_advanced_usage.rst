@@ -35,9 +35,11 @@ Logging (for developers)
 ========================
 ``afmformats`` now has a simple logging system. When loading data in a script
 or in the console, debug-level logs will be written to `afmformats.log` in
-your machine's temp folder. Additionally, when debugging file loading in a
-local script, the ``afmformats.log`` debug log will output to the terminal if
-you call ``afmformats.configure_console_logging()``:
+your machine's temp folder. This happens automatically.
+
+Optionally, when running a local script, the ``afmformats.log``
+debug log can be output to the terminal if
+you call :func:`afmformats.configure_console_logging()<afmformats.logging_setup.configure_console_logging>`:
 
 .. code-block:: python
 
