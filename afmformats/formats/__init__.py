@@ -294,7 +294,14 @@ def load_data(path, meta_override=None, modality=None,
                 "Loader failed for '%s' using recipe '%s'. Traceback follows.",
                 path, cur_recipe, exc_info=True)
             raise
+        logger.debug(
+            "Loaded %d dataset(s) from '%s' using '%s'",
+            len(afmdata), path, cur_recipe.descr)
     else:
+        logger.debug(
+            "Loader failed for '%s' as the extension '%s' is "
+            "not recognised. Traceback follows.",
+            path, path.suffix, exc_info=True)
         raise ValueError("Unsupported file extension: '{}'!".format(path))
     return afmdata
 
