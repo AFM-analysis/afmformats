@@ -9,22 +9,19 @@ from typing import Optional
 
 __all__ = [
     "DEFAULT_LOG_PATH",
-    "configure_console_logging",
     "configure_logging",
 ]
 
+DEFAULT_LOG_PATH = os.path.join(tempfile.gettempdir(), "afmformats.log")
 
-def configure_logging(log_path: Optional[str] = None) -> str:
+
+def configure_logging(log_path: Optional[str] = DEFAULT_LOG_PATH,
+                      console_logging_level: bool | int = 0) -> str:
     """Ensure afmformats writes debug logs to a file.
 
-    Priority: explicit argument -> AFMFORMATS_LOG_PATH env -> temp dir.
     Returns the log path used so CI pipelines can publish it as an artifact.
     """
-    path = (
-        log_path
-        or os.environ.get("AFMFORMATS_LOG_PATH")
-        or os.path.join(tempfile.gettempdir(), "afmformats.log")
-    )
+    path = log_path
     path = str(pathlib.Path(path))
     logger = logging.getLogger("afmformats")
     logger.setLevel(logging.DEBUG)
@@ -45,6 +42,8 @@ def configure_logging(log_path: Optional[str] = None) -> str:
         fh.setFormatter(formatter)
         logger.addHandler(fh)
         logger.debug("afmformats logging initialized at %s", path)
+    if console_logging_level:
+        configure_console_logging(console_logging_level)
     return path
 
 
@@ -63,6 +62,3 @@ def configure_console_logging(level: int = logging.DEBUG) -> None:
         handler.setFormatter(logging.Formatter(
             "%(levelname)s:%(name)s:%(message)s"))
         logger.addHandler(handler)
-
-
-DEFAULT_LOG_PATH = configure_logging()

@@ -2,7 +2,6 @@ import logging
 import pathlib
 from .. import errors
 from .. import meta
-from ..logging_setup import configure_logging
 from .fmt_hdf5 import recipe_hdf5
 from .fmt_igor import recipe_ibw
 from .fmt_jpk import (
@@ -25,7 +24,6 @@ __all__ = ["AFMFormatRecipe", "find_data", "get_recipe", "load_data",
            "formats_by_suffix", "formats_by_modality", "supported_extensions"]
 
 
-configure_logging()
 logger = logging.getLogger(__name__)
 
 
