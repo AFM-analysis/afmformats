@@ -6,9 +6,9 @@ import afmformats
 data_path = pathlib.Path(__file__).resolve().parent / "data"
 
 
-def test_logger_load_data_success():
+def test_logger_load_data_success(afmformats_log_path):
     path = data_path / "fmt-tab-fd_version_0.13.3.tab"
-    log_path = pathlib.Path(afmformats.DEFAULT_LOG_PATH)
+    log_path = pathlib.Path(afmformats_log_path)
 
     afmdata = afmformats.load_data(path)
     assert len(afmdata) == 1
@@ -25,9 +25,10 @@ def test_logger_load_data_success():
 @pytest.mark.parametrize(
     "file_name",
     ["fmt-tab-fd_version_0.13.3.slab"])
-def test_logger_load_data_failure_bad_extension(file_name):
+def test_logger_load_data_failure_bad_extension(
+        afmformats_log_path, file_name):
     path = data_path / file_name
-    log_path = pathlib.Path(afmformats.DEFAULT_LOG_PATH)
+    log_path = pathlib.Path(afmformats_log_path)
 
     with pytest.raises(ValueError,
                        match=r"Unsupported file extension"):
