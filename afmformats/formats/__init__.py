@@ -18,11 +18,9 @@ from ..mod_force_distance import AFMForceDistance
 from ..mod_creep_compliance import AFMCreepCompliance
 from ..mod_stress_relaxation import AFMStressRelaxation
 
-
 __all__ = ["AFMFormatRecipe", "find_data", "get_recipe", "load_data",
            "default_data_classes_by_modality", "formats_available",
            "formats_by_suffix", "formats_by_modality", "supported_extensions"]
-
 
 logger = logging.getLogger(__name__)
 
@@ -288,18 +286,17 @@ def load_data(path, meta_override=None, modality=None,
                                      diskcache=diskcache)
                 afmdata.append(ddi)
         except BaseException:
-            logger.debug(
+            logger.exception(
                 "Loader failed for '%s' using recipe '%s'. Traceback follows.",
-                path, cur_recipe, exc_info=True)
+                path, cur_recipe)
             raise
         logger.debug(
             "Loaded %d dataset(s) from '%s' using '%s'",
             len(afmdata), path, cur_recipe.descr)
     else:
         logger.debug(
-            "Loader failed for '%s' as the extension '%s' is "
-            "not recognised. Traceback follows.",
-            path, path.suffix, exc_info=True)
+            "Loader failed for '%s' as the extension '%s' is not recognised.",
+            path, path.suffix)
         raise ValueError("Unsupported file extension: '{}'!".format(path))
     return afmdata
 
