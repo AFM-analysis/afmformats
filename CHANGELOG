@@ -1,3 +1,6 @@
+0.18.7
+ - enh: add logging system (#30)
+ - ref: cleanup
 0.18.6
  - enh: remove escape sequences when parsing time (#43)
 0.18.5
@@ -157,7 +160,7 @@
 0.9.0
  - feat: support new file format from Asylum Research, Igor (.ibw)
  - ref: always compute piezo range metadata instead of taking it from
-   the set value in the acquisition settings (JKP format) 
+   the set value in the acquisition settings (JKP format)
 0.8.0
  - enh: do not export "index" column to HDF5 files to save disk space
  - enh: save column units when exporting to HDF5
@@ -193,7 +196,7 @@
  - ref: group meta data by topic
  - fix: identifier in JPK file format was actually session identifier
 0.4.0
- - BREAKING CHANGE: change metadata key names 
+ - BREAKING CHANGE: change metadata key names
  - enh: add class for checking metadata
 0.3.0
  - feat: support tab-separated values file format (.tab)
