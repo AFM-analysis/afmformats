@@ -34,12 +34,11 @@ functionalities:
 Logging (for developers)
 ========================
 ``afmformats`` now has a simple logging system. When loading data in a script
-or in the console, debug-level logs will be written to `afmformats.log` in
-your machine's temp folder. This happens automatically.
-
-Optionally, when running a local script, the ``afmformats.log``
-debug log can be output to the terminal if
-you call :func:`afmformats.configure_console_logging()<afmformats.logging_setup.configure_console_logging>`:
+or in the console, debug-level logs can be written to `afmformats.log` in
+your machine's temp folder if you call
+:func:`afmformats.configure_logging()<afmformats.logging_setup.configure_logging>`.
+When running tests via ``pytest``, the logs will be written to a temp directory
+as defined in :func:`tests.conftest.pytest_configure`.
 
 .. code-block:: python
 
@@ -48,14 +47,32 @@ you call :func:`afmformats.configure_console_logging()<afmformats.logging_setup.
 
     data_path = pathlib.Path("tests/data")
 
-    afmformats.configure_console_logging()
+    # write logs to tmp/afmformats.log
+    afmformats.configure_logging()
 
     afmformats.load_data(data_path / "fmt-hdf5-fd_version_0.13.3.h5")
+
+
+If you would like the logs also to be output to the terminal when running
+scripts you can set the logging level:
+
+.. code-block:: python
+
+    import pathlib
+    import afmformats
+    import logging
+
+    data_path = pathlib.Path("tests/data")
+
+    # write logs to tmp/afmformats.log and to terminal
+    afmformats.configure_logging(console_logging_level=logging.DEBUG)
+
+    afmformats.load_data(data_path / "fmt-hdf5-fd_version_0.13.3.h5")
+
 
 Output of the above script:
 
 .. code-block::
 
     DEBUG:afmformats.formats:Loaded 1 dataset(s) from '...\afmformats\tests\data\fmt-hdf5-fd_version_0.13.3.h5' using 'HDF5-based'
-
     Process finished with exit code 0
