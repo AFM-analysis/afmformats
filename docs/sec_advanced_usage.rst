@@ -33,7 +33,7 @@ functionalities:
 
 Logging (for developers)
 ========================
-``afmformats`` now has a simple logging system. When loading data in a script
+``afmformats`` has a simple logging system. When loading data in a script
 or in the console, debug-level logs can be written to `afmformats.log` in
 your machine's temp folder if you call
 :func:`afmformats.configure_logging()<afmformats.logging_setup.configure_logging>`.
