@@ -82,6 +82,11 @@ class JPKReader(object):
 
     @property
     @functools.lru_cache()
+    def _file_set(self):
+        return set(self.files)
+
+    @property
+    @functools.lru_cache()
     def hierarchy(self):
         """Format hierarchy ("single" or "indexed")"""
         if "segments/" in self.files:
@@ -303,7 +308,7 @@ class JPKReader(object):
         else:
             raise NotImplementedError("No rule to get path for hierarchy "
                                       + "'{}'!".format(self.hierarchy))
-        if path and path not in self.files:
+        if path and path not in self._file_set:
             raise IndexError("Cannot find path for index '{}' ".format(index)
                              + " (enum '{}')!".format(enum))
         return path
@@ -334,7 +339,7 @@ class JPKReader(object):
         else:
             raise NotImplementedError("No rule to get path for hierarchy "
                                       + "'{}'!".format(self.hierarchy))
-        if path not in self.files:
+        if path not in self._file_set:
             raise IndexError("Cannot find path for index '{}' ".format(index)
                              + "(enum '{}')".format(enum))
         return path
