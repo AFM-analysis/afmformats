@@ -115,6 +115,14 @@ class JPKReader(object):
         return props
 
     @functools.lru_cache()
+    def _get_index_properties(self, index):
+        path = self.get_index_path(index) + "header.properties"
+        arc = ArchiveCache.get(self.path)
+
+        with arc.open(path, "r") as fd:
+            return jprops.load_properties(fd)
+
+    @functools.lru_cache()
     def _get_index_segment_properties(self, index, segment):
         """Return properties from a specific index and segment
 
@@ -127,13 +135,11 @@ class JPKReader(object):
             approach or retract) are returned.
         """
         # 1. Properties of index
-        p_index = self.get_index_path(index) + "header.properties"
-        arc = ArchiveCache.get(self.path)
-        with arc.open(p_index, "r") as fd:
-            prop = jprops.load_properties(fd)
+        prop = self._get_index_properties(index).copy()
 
         # 2. Properties of segment (if applicable)
         if segment is not None:
+            arc = ArchiveCache.get(self.path)
             p_segment = self.get_index_segment_path(index, segment) \
                         + "segment-header.properties"
             with arc.open(p_segment, "r") as fd:
