@@ -145,8 +145,8 @@ class JPKReader(object):
         # 2. Properties of segment (if applicable)
         if segment is not None:
             arc = ArchiveCache.get(self.path)
-            p_segment = self.get_index_segment_path(index, segment) \
-                        + "segment-header.properties"
+            p_segment = (self.get_index_segment_path(index, segment) +
+                         "segment-header.properties")
             with arc.open(p_segment, "r") as fd:
                 prop.update(jprops.load_properties(fd))
 
