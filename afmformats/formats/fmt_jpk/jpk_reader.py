@@ -82,6 +82,11 @@ class JPKReader(object):
 
     @property
     @functools.lru_cache()
+    def _file_set(self):
+        return set(self.files)
+
+    @property
+    @functools.lru_cache()
     def hierarchy(self):
         """Format hierarchy ("single" or "indexed")"""
         if "segments/" in self.files:
@@ -115,6 +120,14 @@ class JPKReader(object):
         return props
 
     @functools.lru_cache()
+    def _get_index_properties(self, index):
+        path = self.get_index_path(index) + "header.properties"
+        arc = ArchiveCache.get(self.path)
+
+        with arc.open(path, "r") as fd:
+            return jprops.load_properties(fd)
+
+    @functools.lru_cache()
     def _get_index_segment_properties(self, index, segment):
         """Return properties from a specific index and segment
 
@@ -127,15 +140,13 @@ class JPKReader(object):
             approach or retract) are returned.
         """
         # 1. Properties of index
-        p_index = self.get_index_path(index) + "header.properties"
-        arc = ArchiveCache.get(self.path)
-        with arc.open(p_index, "r") as fd:
-            prop = jprops.load_properties(fd)
+        prop = self._get_index_properties(index).copy()
 
         # 2. Properties of segment (if applicable)
         if segment is not None:
-            p_segment = self.get_index_segment_path(index, segment) \
-                        + "segment-header.properties"
+            arc = ArchiveCache.get(self.path)
+            p_segment = (self.get_index_segment_path(index, segment) +
+                         "segment-header.properties")
             with arc.open(p_segment, "r") as fd:
                 prop.update(jprops.load_properties(fd))
 
@@ -297,7 +308,7 @@ class JPKReader(object):
         else:
             raise NotImplementedError("No rule to get path for hierarchy "
                                       + "'{}'!".format(self.hierarchy))
-        if path and path not in self.files:
+        if path and path not in self._file_set:
             raise IndexError("Cannot find path for index '{}' ".format(index)
                              + " (enum '{}')!".format(enum))
         return path
@@ -328,7 +339,7 @@ class JPKReader(object):
         else:
             raise NotImplementedError("No rule to get path for hierarchy "
                                       + "'{}'!".format(self.hierarchy))
-        if path not in self.files:
+        if path not in self._file_set:
             raise IndexError("Cannot find path for index '{}' ".format(index)
                              + "(enum '{}')".format(enum))
         return path
